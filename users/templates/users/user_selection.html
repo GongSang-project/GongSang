@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용자 선택</title>
+    <link rel="stylesheet" href="{% static 'users/css/user_selection.css' %}">
+</head>
+<body>
+    <div class="splash-screen" id="splashScreen">
+        <img
+          src="{% static 'users/images/splash_logo.svg' %}"
+          alt="Splash Logo"
+          width="250"
+        />
+    </div>
+
+    <div class="page-container">
+      <!-- 중앙 문구 -->
+      <div class="intro-text">
+        <img
+          src="{% static 'hospital/images/logo.svg' %}"
+          alt="logo"
+          class="logo-img"
+          width="190"
+        />
+      </div>
+
+      <!-- 사용자 선택 버튼 -->
+      <div class="selection-buttons">
+        <form
+          action="{% url 'users:login_as_user' user_type='youth' %}"
+          method="post"
+        >
+          {% csrf_token %}
+          <button type="submit" class="btn-general">청년 회원</button>
+        </form>
+        <form
+          action="{% url 'users:login_as_user' user_type='senior' %}"
+          method="post"
+        >
+          {% csrf_token %}
+          <button type="submit" class="btn-doctor">시니어 회원</button>
+        </form>
+      </div>
+
+      <!-- 오류 메시지 -->
+      {% if error_message %}
+      <p class="error-message">{{ error_message }}</p>
+      {% endif %}
+    <script src="{% static 'users/js/user_selection.js' %}"></script>
+</body>
+</html>

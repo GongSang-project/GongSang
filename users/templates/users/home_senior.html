@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시니어 홈</title>
+    <link rel="stylesheet" href="{% static 'users/css/home_senior.css' %}">
+</head>
+<body>
+    <p>시니어 홈</p>
+    <form action="{% url 'users:user_logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">로그아웃</button>
+    </form>
+    <script src="{% static 'users/js/home_senior.js' %}"></script>
+</body>
+</html>

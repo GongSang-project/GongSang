@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>설문조사</title>
+    <link rel="stylesheet" href="{% static 'users/css/survey_form.css' %}">
+</head>
+<body>
+    <div class="survey-container">
+        <form action="" method="post">
+            {% csrf_token %}
+
+            <h2>질문 {{ wizard.steps.step1 }} / 10</h2>
+
+            {{ wizard.management_form }}
+            {{ wizard.form.as_p }}
+
+            {% if wizard.steps.prev %}
+                <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">이전</button>
+            {% endif %}
+
+            <button type="submit" name="skip_step" value="1">종료</button>
+
+            <button type="submit">
+                    다음
+            </button>
+        </form>
+    </div>
+    <script src="{% static 'users/js/survey_form.js' %}"></script>
+</body>
+</html>

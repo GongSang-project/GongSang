@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>청년 홈</title>
+    <link rel="stylesheet" href="{% static 'users/css/home_youth.css' %}">
+</head>
+<body>
+    <p>청년 홈</p>
+    <form action="{% url 'users:user_logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">로그아웃</button>
+    </form>
+
+    <script src="{% static 'users/js/home_youth.js' %}"></script>
+</body>
+</html>
