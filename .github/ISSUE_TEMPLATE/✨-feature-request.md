@@ -7,14 +7,6 @@ assignees: ''
 
 ---
 
----
-name: ✨ Feature Request
-about: 새로운 기능 제안 시 사용
-title: "[Feat] "
-labels: enhancement
-assignees: ''
----
-
 ## 📌 기능 설명
 <!-- 어떤 기능인지 간단하게 작성 -->
 
