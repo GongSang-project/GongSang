@@ -5,7 +5,8 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'email', 'is_youth', 'is_staff', 'is_active', 'is_id_card_uploaded')
+    list_display = ('username', 'email', 'is_youth', 'is_staff', 'is_active',
+                    'is_id_card_uploaded', 'is_land_register_uploaded')
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
@@ -13,7 +14,12 @@ class UserAdmin(BaseUserAdmin):
         ('권한', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('중요 날짜', {'fields': ('last_login', 'date_joined')}),
 
-        ('신분증 정보', {'fields': ('id_card_image', 'is_id_card_uploaded')}),
+        ('신분증/등기부등본 정보', {'fields': (
+            'id_card_image',
+            'is_id_card_uploaded',
+            'land_register',
+            'is_land_register_uploaded',
+        )}),
 
         ('생활 습관 설문', {'fields': (
             'preferred_time',
