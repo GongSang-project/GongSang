@@ -11,4 +11,5 @@ urlpatterns = [
     path('home/senior/', views.home_senior, name='home_senior'),
     path('login/<str:user_type>/', views.login_as_user, name='login_as_user'),
     path('logout/', views.user_logout, name='user_logout'),
+    path('upload_id_card/', views.upload_id_card, name='upload_id_card'),
 ]
