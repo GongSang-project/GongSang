@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from formtools.wizard.views import SessionWizardView
 from django.shortcuts import redirect, render
 from .forms import (
@@ -16,6 +17,8 @@ from .models import User
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, logout as auth_logout
+
+from .forms import IdCardForm
 
 
 FORMS = [
@@ -104,7 +107,17 @@ def login_as_user(request, user_type):
         auth_login(request, user)
         print(f"로그인 성공: {user.username} (청년: {user.is_youth})")
 
-        return redirect('users:survey_wizard')
+        # 슈퍼유저가 아니면서 신분증을 첨부하지 않았다면 업로드 페이지로 리디렉션
+        if not user.is_superuser and not user.is_id_card_uploaded:
+            return redirect('users:upload_id_card')
+
+        # 그 외의 경우 기존 홈 페이지로 리디렉션
+        if user.is_youth:
+            return redirect('users:home_youth')
+        else:
+            return redirect('users:home_senior')
+
+        #return redirect('users:survey_wizard')
 
     else:
         return render(request, 'users/user_selection.html', {'error_message': '사용자를 찾거나 생성할 수 없습니다.'})
@@ -118,3 +131,21 @@ def home_senior(request):
 def user_logout(request):
     auth_logout(request)
     return redirect('users:user_selection')
+
+@login_required
+def upload_id_card(request):
+    if request.method == 'POST':
+        form = IdCardForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_id_card_uploaded = True
+            user.save()
+
+            if user.is_youth:
+                return redirect('users:home_youth')
+            else:
+                return redirect('users:home_senior')
+    else:
+        form = IdCardForm(instance=request.user)
+
+    return render(request, 'users/upload_id_card.html', {'form': form})

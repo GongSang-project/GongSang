@@ -32,6 +32,14 @@ class User(AbstractUser):
     affiliation = models.CharField(max_length=100, default='없음') #소속(00대학교)
     introduction = models.TextField(blank=True, null=True) #자기소개
 
+    id_card_image = models.ImageField(
+        "신분증 사진",
+        upload_to="users/id_card",  # 파일이 저장될 경로 (MEDIA_ROOT/users/id_card)
+        blank=True,
+        null=True
+    )
+    is_id_card_uploaded = models.BooleanField("신분증 첨부 여부", default=False)
+
     #설문 1 - 활동 시간대
     TIME_CHOICES = [
         ('A', '🌅 아침형'),

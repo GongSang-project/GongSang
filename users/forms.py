@@ -74,3 +74,11 @@ class SurveyStep10Form(forms.Form):
         label='함께 살게 될 청년(또는 어르신)에게 바라는 점이 있다면 자유롭게 적어주세요. (선택 응답)',
         required=False,
     )
+
+class IdCardForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['id_card_image']
+        widgets = {
+            'id_card_image': forms.FileInput(attrs={'class': 'form-control'}),
+        }
