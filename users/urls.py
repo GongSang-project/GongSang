@@ -12,4 +12,5 @@ urlpatterns = [
     path('login/<str:user_type>/', views.login_as_user, name='login_as_user'),
     path('logout/', views.user_logout, name='user_logout'),
     path('upload_id_card/', views.upload_id_card, name='upload_id_card'),
+    path('upload_land_register/', views.upload_land_register, name='upload_land_register'),
 ]

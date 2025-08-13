@@ -40,6 +40,14 @@ class User(AbstractUser):
     )
     is_id_card_uploaded = models.BooleanField("신분증 첨부 여부", default=False)
 
+    land_register = models.ImageField(
+        "등기부등본",
+        upload_to="users/land_register",
+        blank=True,
+        null=True
+    )
+    is_land_register_uploaded = models.BooleanField("등기부등본 첨부 여부", default=False)
+
     #설문 1 - 활동 시간대
     TIME_CHOICES = [
         ('A', '🌅 아침형'),

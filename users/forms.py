@@ -82,3 +82,11 @@ class IdCardForm(forms.ModelForm):
         widgets = {
             'id_card_image': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+class LandRegisterForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['land_register']
+        widgets = {
+            'land_register': forms.FileInput(attrs={'class': 'form-control'}),
+        }

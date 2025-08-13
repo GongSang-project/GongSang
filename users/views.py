@@ -18,7 +18,7 @@ from .models import User
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, logout as auth_logout
 
-from .forms import IdCardForm
+from .forms import IdCardForm, LandRegisterForm
 
 
 FORMS = [
@@ -107,11 +107,11 @@ def login_as_user(request, user_type):
         auth_login(request, user)
         print(f"로그인 성공: {user.username} (청년: {user.is_youth})")
 
-        # 슈퍼유저가 아니면서 신분증을 첨부하지 않았다면 업로드 페이지로 리디렉션
-        if not user.is_superuser and not user.is_id_card_uploaded:
+        if not user.is_id_card_uploaded:
             return redirect('users:upload_id_card')
+        if not user.is_youth and not user.is_land_register_uploaded:
+            return redirect('users:upload_land_register')
 
-        # 그 외의 경우 기존 홈 페이지로 리디렉션
         if user.is_youth:
             return redirect('users:home_youth')
         else:
@@ -144,8 +144,26 @@ def upload_id_card(request):
             if user.is_youth:
                 return redirect('users:home_youth')
             else:
-                return redirect('users:home_senior')
+                return redirect('users:upload_land_register')
     else:
         form = IdCardForm(instance=request.user)
 
     return render(request, 'users/upload_id_card.html', {'form': form})
+
+@login_required
+def upload_land_register(request):
+    user = request.user
+    if user.is_superuser or user.is_youth:
+        return redirect('users:home_youth')
+
+    if request.method == 'POST':
+        form = LandRegisterForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_land_register_uploaded = True
+            user.save()
+            return redirect('users:home_senior')
+    else:
+        form = LandRegisterForm(instance=user)
+
+    return render(request, 'users/upload_land_register.html', {'form': form})
