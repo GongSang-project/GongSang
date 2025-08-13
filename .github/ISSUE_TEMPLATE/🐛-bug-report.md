@@ -1,7 +1,7 @@
 ---
 name: "\U0001F41B Bug Report"
 about: 버그를 신고할 때 사용
-title: "[\U0001F41B Fix]"
+title: "[\U0001F41BFix]"
 labels: bug
 assignees: ''
 

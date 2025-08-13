@@ -1,7 +1,7 @@
 ---
 name: "♻️ Refactor"
 about: 코드 구조 개선, 성능 최적화, 가독성 향상 등 리팩터링 작업
-title: "[♻️ Refactor]"
+title: "[♻️Refactor]"
 labels: ''
 assignees: ''
 
