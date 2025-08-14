@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ other_user.username }} 채팅방</title>
+    <link rel="stylesheet" href="{% static 'chat/css/chatroom.css' %}">
+</head>
+<body>
+<header>
+    <a href="#" class="back-btn">&lt;</a>
+    <div class="user-info">
+        <h1>{{ other_user.username }} (월세 {{ room.deposit }}/{{ room.rent_fee }})</h1>
+        <span>👤 2</span>
+    </div>
+</header>
+
+    {% csrf_token %}
+    <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+
+    <div class="chat-container">
+        <div class="system-message">{{ chatroom.created_at|date:"Y년 m월 d일" }}</div>
+        <div class="system-message">채팅방이 형성되었습니다. 대화를 시작해 보세요.</div>
+
+        <div class="message-box received">
+            <div class="message">
+                <div class="sender-name">{{ chatroom.youth.username }}</div>
+                <div class="request-card">
+                    <p class="title">입주 희망을 요청하였습니다.</p>
+                    <p>성향이 (!--   추후 ai 작업 필요   --!)점 잘 맞는 편입니다.</p>
+                    <div class="profile">
+                        {% if chatroom.youth.profile_image %}
+                            <img src="{{ chatroom.youth.profile_image.url }}" alt="청년 프로필">
+                        {% else %}
+                            <img src="{% static 'images/default_profile.png' %}" alt="청년 프로필">
+                        {% endif %}
+                        <div>
+                            <p><strong>{{ chatroom.youth.username }}</strong></p>
+                            <p>{{ chatroom.youth.age }}세 {{ chatroom.youth.gender|lower }}</p>
+                        </div>
+                    </div>
+
+
+                    <!-- 추후 청년 정보 보여주는 말풍선 재작업 필요, 프론트 작업시 우선 텍스트로 써두셔도 됩니다
+                    <div class="hashtags">
+                        {% with youth=chatroom.youth %}
+                            <span>#{{ youth.get_preferred_time_display|slice:"2:" }}</span>
+                            <span>#{{ youth.get_important_points_display|slice:"2:" }}</span>
+                            <span>#{{ youth.get_conversation_style_display|slice:"2:" }}</span>
+                        {% endwith %}
+                    </div>  -->
+
+
+
+                    <div class="btn-container">
+                        <button onclick="acceptRequest()">요청 수락하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% for message in messages %}
+            {% if message.author == request.user %}
+                <div class="message-box sent">
+                    <div class="message sent-message">
+                        <div class="message-content">
+                            <p>{{ message.content }}</p>
+                            <span class="message-timestamp">{{ message.timestamp|date:"H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="message-box received">
+                    <div class="message received-message">
+                        <div class="sender-name">{{ other_user.username }}</div>
+                        <div class="message-content">
+                            <p>{{ message.content }}</p>
+                            <span class="message-timestamp">{{ message.timestamp|date:"H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+
+    </div>
+
+    <div class="input-area">
+        <input type="text" placeholder="메시지 입력">
+        <button>▶️</button>
+    </div>
+    <script src="{% static 'chat/js/chatroom.js' %}"></script>
+</body>
+</html>

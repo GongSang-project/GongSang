@@ -29,20 +29,12 @@
 
       <!-- 사용자 선택 버튼 -->
       <div class="selection-buttons">
-        <form
-          action="{% url 'users:login_as_user' user_type='youth' %}"
-          method="post"
-        >
-          {% csrf_token %}
-          <button type="submit" class="btn-general">청년 회원</button>
-        </form>
-        <form
-          action="{% url 'users:login_as_user' user_type='senior' %}"
-          method="post"
-        >
-          {% csrf_token %}
-          <button type="submit" class="btn-doctor">시니어 회원</button>
-        </form>
+        <a href="{% url 'users:user_logout' %}?next={% url 'users:login_as_user' user_type='youth' %}">
+            청년 회원
+        </a>
+        <a href="{% url 'users:user_logout' %}?next={% url 'users:login_as_user' user_type='senior' %}">
+            시니어 회원
+        </a>
       </div>
 
       <!-- 오류 메시지 -->

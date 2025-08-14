@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Room
+from chat.models import ChatRoom, Message
 
 
 def room_detail(request, room_id):
@@ -35,3 +36,7 @@ def room_detail(request, room_id):
         'hashtags': hashtags,  # 템플릿으로 전달
     }
     return render(request, 'room_detail.html', context)
+
+def room_detail_test(request, room_id):
+    room = get_object_or_404(Room, id=room_id)
+    return render(request, 'room/room_detail.html', {'room': room})
