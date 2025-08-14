@@ -21,7 +21,7 @@ class User(AbstractUser):
     USERNAME_FIELD = 'username'
     is_youth = models.BooleanField(default=True) #T면 청년, F면 시니어
     profile_image = models.ImageField(
-        "프로필 이미지", upload_to="users/profile", blank=True)
+        "프로필 이미지", upload_to="chat/profile", blank=True)
     is_id_verified = models.BooleanField(default=False) #신분증 인증 여부
     age = models.IntegerField(default=20) #나이
     GENDER_CHOICES = [
@@ -34,7 +34,7 @@ class User(AbstractUser):
 
     id_card_image = models.ImageField(
         "신분증 사진",
-        upload_to="users/id_card",  # 파일이 저장될 경로 (MEDIA_ROOT/users/id_card)
+        upload_to="chat/id_card",  # 파일이 저장될 경로 (MEDIA_ROOT/chat/id_card)
         blank=True,
         null=True
     )
@@ -42,7 +42,7 @@ class User(AbstractUser):
 
     land_register = models.ImageField(
         "등기부등본",
-        upload_to="users/land_register",
+        upload_to="chat/land_register",
         blank=True,
         null=True
     )

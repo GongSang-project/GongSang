@@ -1,11 +1,10 @@
-# users/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'email', 'is_youth', 'is_staff', 'is_active',
+    list_display = ('id', 'username', 'email', 'is_youth', 'is_staff', 'is_active',
                     'is_id_card_uploaded', 'is_land_register_uploaded')
 
     fieldsets = (

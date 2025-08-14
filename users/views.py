@@ -104,7 +104,11 @@ def login_as_user(request, user_type):
         )
 
     if user:
+        auth_logout(request)
         auth_login(request, user)
+
+        request.session.cycle_key()
+
         print(f"로그인 성공: {user.username} (청년: {user.is_youth})")
 
         if not user.is_id_card_uploaded:
@@ -116,11 +120,13 @@ def login_as_user(request, user_type):
             return redirect('users:home_youth')
         else:
             return redirect('users:home_senior')
-
-        #return redirect('users:survey_wizard')
-
     else:
         return render(request, 'users/user_selection.html', {'error_message': '사용자를 찾거나 생성할 수 없습니다.'})
+
+def user_logout(request):
+    auth_logout(request)
+    next_url = request.GET.get('next', 'users:user_selection')
+    return redirect(next_url)
 
 def home_youth(request):
     return render(request, 'users/home_youth.html')
@@ -130,7 +136,8 @@ def home_senior(request):
 
 def user_logout(request):
     auth_logout(request)
-    return redirect('users:user_selection')
+    next_url = request.GET.get('next', 'users:user_selection')
+    return redirect(next_url)
 
 @login_required
 def upload_id_card(request):
@@ -167,4 +174,3 @@ def upload_land_register(request):
         form = LandRegisterForm(instance=user)
 
     return render(request, 'users/upload_land_register.html', {'form': form})
-
