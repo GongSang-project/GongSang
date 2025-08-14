@@ -19,7 +19,7 @@ class SurveyStep3Form(forms.Form):
     important_points = forms.ChoiceField(
         choices=User.IMPORTANT_CHOICES,
         widget=forms.RadioSelect,
-        label='생활 공간에서 가장 중요하게 생각하는 점은 무엇인가요? (최대 2개 선택)'
+        label='생활 공간에서 가장 중요하게 생각하는 점은 무엇인가요?' #2개 선택 아직 안함, 택 1
     )
 
 
@@ -34,7 +34,7 @@ class SurveyStep5Form(forms.Form):
     weekend_preference = forms.ChoiceField(
         choices=User.WEEKEND_CHOICES,
         widget=forms.RadioSelect,
-        label='주말에는 주로 어떻게 시간을 보내시나요?'
+        label='주말에는 주로 어떻게 시간을 보내세요?'
     )
 
 
@@ -58,14 +58,14 @@ class SurveyStep8Form(forms.Form):
     space_sharing_preference = forms.ChoiceField(
         choices=User.SPACE_CHOICES,
         widget=forms.RadioSelect,
-        label='공용공간(거실, 주방 등)을 사용하는 것에 대해 어떻게 생각하시나요?'
+        label='공용공간(거실, 주방 등)을 얼마나 자주 사용하세요?'
     )
 
 class SurveyStep9Form(forms.Form):
     pet_preference = forms.ChoiceField(
         choices=User.PET_CHOICES,
         widget=forms.RadioSelect,
-        label='반려동물과 함께 지내는 것에 대해 어떻게 생각하시나요?'
+        label='반려동물과 함께 지내는 것에 대해 어떻게 생각하세요?'
     )
 
 class SurveyStep10Form(forms.Form):

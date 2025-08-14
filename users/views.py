@@ -167,3 +167,4 @@ def upload_land_register(request):
         form = LandRegisterForm(instance=user)
 
     return render(request, 'users/upload_land_register.html', {'form': form})
+

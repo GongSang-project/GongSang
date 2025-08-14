@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'youth',
     'users',
     'common00',
+    'room',
+    'review',
 ]
 
 AUTH_USER_MODEL = 'users.User'

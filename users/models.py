@@ -68,14 +68,14 @@ class User(AbstractUser):
         ('B', '🛌 생활 리듬'),
         ('C', '🧍 소통'),
         ('D', '🙋 배려심'),
-        ('E', '🧘 조용함'),
+        ('E', '🔏 사생활 존중'),
     ]
     important_points = models.CharField(max_length=2, choices=IMPORTANT_CHOICES, default='A')
 
     #설문 4 - 식사
     MEAL_CHOICES = [
-        ('A', '🍽️ 함께 먹기 좋아함'),
-        ('B', '🍱 각자 먹기 선호'),
+        ('A', '	🍽️ 함께 먹기 좋아해요'),
+        ('B', '🍱 각자 먹기 선호해요'),
     ]
     meal_preference = models.CharField(max_length=1, choices=MEAL_CHOICES, default='A')
 
