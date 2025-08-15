@@ -6,18 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>사용자 선택</title>
     <link rel="stylesheet" href="{% static 'users/css/user_selection.css' %}">
+
 </head>
 <body>
-    <div id="root">
-        <div id="app-wrapper">
+  <div id="root">
+    <div id="app-wrapper">
 
-        <!-- 스플래시 화면 (보류, GUI 미완)
-        <div id="splash" class="splash">
-        </div> -->
+      <!-- 스플래시 화면 (보류, GUI 미완)
+      <div id="splash" class="splash">
+        <img
 
-        <!-- 로고 -->
-        <p class="logo">DOOYU</p>
-        <P class="logo-de">둘이 집 공유</P>
+        />
+      </div> -->
+
+      <!-- 로고 -->
+      <p class="logo">DOOYU</p>
+      <P class="logo-de">둘이 집 공유</P>
 
        <!-- 사용자 선택 버튼 -->
        <div class="selection-buttons">
@@ -27,9 +31,10 @@
 
          <a class="youth" href="{% url 'users:user_logout' %}?next={% url 'users:login_as_user' user_type='youth' %}">
           👩 함께 살 집 찾기
+        </a>
        </div>
 
-            <!-- 오류 메시지 -->
+       <!-- 오류 메시지 -->
        {% if error_message %}
        <p class="error-message">{{ error_message }}</p>
        {% endif %}

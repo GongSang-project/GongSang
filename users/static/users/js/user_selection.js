@@ -1,3 +1,4 @@
+
 // 스플래쉬 화면
 
 document.addEventListener('DOMContentLoaded', () => {
