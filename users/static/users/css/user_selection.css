@@ -117,13 +117,13 @@ body {
 /* 스플레쉬 화면 css */
 /* Splash overlay */
 .splash {
-  position: fixed;     
-  inset: 0;            
+  position: fixed;
+  inset: 0;
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ff0000;    
+  background: #ff0000;
   opacity: 1;
   transition: opacity .4s ease;
   width: 375px;
