@@ -18,11 +18,8 @@ urlpatterns = [
     path('login/<str:user_type>/', views.login_as_user, name='login_as_user'),
     path('logout/', views.user_logout, name='user_logout'),
     path('upload_id_card/', views.upload_id_card, name='upload_id_card'),
-    path('upload_land_register/', views.upload_land_register, name='upload_land_register'),
 
     path('check_progress/', views.check_user_progress, name='check_user_progress'),
     path('user_info/', views.user_info_view, name='user_info'),
-    path('region_survey/', views.region_survey, name='region_survey'),
     path('upload_id_card/', views.upload_id_card, name='upload_id_card'),
-    path('upload_land_register/', views.upload_land_register, name='upload_land_register'),
 ]

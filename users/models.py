@@ -2,26 +2,11 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-# class Region(models.Model):
-#     code = models.CharField(max_length=10, unique=True) #행정동 코드(예: 2112056)
-#     name = models.CharField(max_length=50) #행정동 이름(예: 녹산동)
-#     region_type = models.CharField(max_length=10, choices=[ #지역 유형 (province, city, district)
-#         ('province', '시/도'),
-#         ('city', '시/군/구'),
-#         ('district', '읍/면/동'),
-#     ])
-#     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
-#                                related_name='subregions') #상위 지역 (ForeignKey로 상위 지역과 연결)
-#
-#     def __str__(self):
-#         return self.name
-
-
 class User(AbstractUser):
     USERNAME_FIELD = 'username'
     is_youth = models.BooleanField(default=True) #T면 청년, F면 시니어
     profile_image = models.ImageField(
-        "프로필 이미지", upload_to="chat/profile", blank=True)
+        "프로필 이미지", upload_to="users/profile", blank=True)
     is_id_verified = models.BooleanField(default=False) #신분증 인증 여부
     age = models.IntegerField(default=20, null=True, blank=True) #나이
     GENDER_CHOICES = [
@@ -29,24 +14,14 @@ class User(AbstractUser):
         ('F', '여성'),
     ]
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True) #성별
-    affiliation = models.CharField(max_length=100, default='없음') #소속(00대학교)
-    introduction = models.TextField(blank=True, null=True) #자기소개
 
     id_card_image = models.ImageField(
         "신분증 사진",
-        upload_to="chat/id_card",  # 파일이 저장될 경로 (MEDIA_ROOT/chat/id_card)
+        upload_to="users/id_card",  # 파일이 저장될 경로 (MEDIA_ROOT/users/id_card)
         blank=True,
         null=True
     )
     is_id_card_uploaded = models.BooleanField("신분증 첨부 여부", default=False)
-
-    land_register = models.ImageField(
-        "등기부등본",
-        upload_to="chat/land_register",
-        blank=True,
-        null=True
-    )
-    is_land_register_uploaded = models.BooleanField("등기부등본 첨부 여부", default=False)
 
     #설문 1 - 활동 시간대
     TIME_CHOICES = [
@@ -119,7 +94,9 @@ class User(AbstractUser):
     #설문 10 - 바라는 점 (서술형)
     wishes = models.TextField(blank=True, null=True)
 
-    #preferred_regions = models.ManyToManyField(Region, blank=True) #청년 - 지역
+    interested_province = models.CharField(max_length=50, blank=True, null=True, verbose_name="관심 시/도")
+    interested_city = models.CharField(max_length=50, blank=True, null=True, verbose_name="관심 시/군/구")
+    interested_district = models.CharField(max_length=50, blank=True, null=True, verbose_name="관심 읍/면/동")
 
     groups = models.ManyToManyField(
         'auth.Group',

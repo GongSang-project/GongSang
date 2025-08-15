@@ -5,19 +5,17 @@ from .models import User
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     list_display = ('id', 'username', 'email', 'is_youth', 'is_staff', 'is_active',
-                    'is_id_card_uploaded', 'is_land_register_uploaded', 'living_type', 'living_type_other')
+                    'is_id_card_uploaded', 'living_type', 'living_type_other')
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('개인 정보', {'fields': ('first_name', 'last_name', 'email', 'is_youth', 'profile_image', 'is_id_verified', 'age', 'gender', 'affiliation', 'introduction')}),
+        ('개인 정보', {'fields': ('first_name', 'last_name', 'email', 'is_youth', 'profile_image', 'is_id_verified', 'age', 'gender')}),
         ('권한', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('중요 날짜', {'fields': ('last_login', 'date_joined')}),
 
-        ('신분증/등기부등본 정보', {'fields': (
+        ('신분증 정보', {'fields': (
             'id_card_image',
             'is_id_card_uploaded',
-            'land_register',
-            'is_land_register_uploaded',
         )}),
 
         ('생활 습관 설문', {'fields': (
@@ -33,5 +31,8 @@ class UserAdmin(BaseUserAdmin):
             'wishes',
             "living_type",
             "living_type_other",
+            'interested_province',
+            'interested_city',
+            'interested_district',
         )}),
     )

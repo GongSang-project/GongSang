@@ -83,14 +83,6 @@ class IdCardForm(forms.ModelForm):
             'id_card_image': forms.FileInput(attrs={'class': 'form-control'}),
         }
 
-class LandRegisterForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['land_register']
-        widgets = {
-            'land_register': forms.FileInput(attrs={'class': 'form-control'}),
-        }
-
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
@@ -99,7 +91,7 @@ class UserProfileForm(forms.ModelForm):
 class YouthUserInformationForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['username', 'age', 'gender']
+        fields = ['username', 'age', 'gender', 'interested_province', 'interested_city', 'interested_district']
 
 class SeniorUserInformationForm(forms.ModelForm):
     class Meta:
