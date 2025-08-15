@@ -11,51 +11,7 @@
     <p>월세: {{ room.rent_fee }}</p>
     <p>보증금: {{ room.deposit }}</p>
 
-    <!--채팅방 생성하고 이동하는 버튼입니다. 이 부분의 버튼과 js 부분은 프론트 작업시 반드시 그대로 가져가야 합니다-->
-    <button onclick="requestChat()">입주 희망 요청하기</button>
+    <button>입주 희망 요청하기</button>
 
-    <script>
-        const roomId = "{{ room.id }}";
-
-        function requestChat() {
-            fetch('/chat/create-or-get-chatroom/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: new URLSearchParams({
-                    'room_id': roomId,
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('API 응답:', data);
-                if (data.chatroom_id) {
-                    alert('채팅방이 생성되었습니다! 채팅방 ID: ' + data.chatroom_id);
-                    window.location.href = `/chat/chatroom/${data.chatroom_id}/`;
-                } else {
-                    alert('채팅 요청 실패: ' + data.error);
-                }
-            })
-            .catch(error => console.error('에러 발생:', error));
-        }
-
-        // CSRF 토큰을 가져오는 함수
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.startsWith(name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-    </script>
 </body>
 </html>

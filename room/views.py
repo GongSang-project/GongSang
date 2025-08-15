@@ -1,7 +1,5 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Room
-from chat.models import ChatRoom, Message
-
 
 def room_detail(request, room_id):
     room = get_object_or_404(Room, id=room_id)

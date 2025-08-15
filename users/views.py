@@ -16,14 +16,11 @@ from .forms import (
     YouthUserInformationForm,
     SeniorUserInformationForm,
     IdCardForm,
-    LandRegisterForm,
 )
 from .models import User
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, logout as auth_logout
-
-from .forms import IdCardForm, LandRegisterForm
 
 
 FORMS = [
@@ -81,39 +78,6 @@ class SurveyWizard(SessionWizardView):
                 return redirect(reverse('users:survey_wizard_url', args=[first_empty_db_field_step]))
 
         return super().get(request, *args, **kwargs)
-
-
-        # if not user.is_authenticated:
-        #     return redirect('users:user_selection')
-        #
-        # current_step_name = self.steps.current
-        #
-        # survey_fields = [
-        #     'preferred_time', 'conversation_style', 'important_points', 'meal_preference',
-        #     'weekend_preference', 'smoking_preference', 'noise_level', 'space_sharing_preference',
-        #     'pet_preference',
-        # ]
-        #
-        # first_empty_db_field_step = None
-        # for i, field_name in enumerate(survey_fields):
-        #     if not getattr(user, field_name):
-        #         first_empty_db_field_step = FORMS[i][0]
-        #         break
-        #
-        # if not first_empty_db_field_step:
-        #     if user.is_youth:
-        #         return redirect('users:home_youth')
-        #     else:
-        #         return redirect('users:home_senior')
-        #
-        # if first_empty_db_field_step:
-        #     first_empty_db_index = self.steps.all.index(first_empty_db_field_step)
-        #     current_step_index = self.steps.all.index(current_step_name)
-        #
-        #     if current_step_index > first_empty_db_index:
-        #         return redirect(reverse('users:survey_wizard_url', args=[first_empty_db_field_step]))
-        #
-        # return super().get(request, *args, **kwargs)
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
@@ -207,20 +171,10 @@ def check_user_progress(request):
         print("기본 정보가 불완전하여 user_info 페이지로 리디렉션합니다.")
         return redirect('users:user_info')
 
-    # 2. 신분증 첨부 확인 (시니어 회원만 해당)
-    if not user.is_id_card_uploaded:
-        return redirect('users:upload_id_card')
-
     # 3. 성향 조사 확인
     is_survey_complete = all(getattr(user, field, None) for field in REQUIRED_FIELDS['survey'])
     if not is_survey_complete:
         return redirect(reverse('users:survey_wizard_url', args=[FORMS[0][0]]))
-
-    # 4. 지역 조사 확인 (청년 회원만)
-    # 현재는 필수 필드가 없으므로 건너뜀.
-    # 추후 지역 선택 필드가 추가되면 로직 추가
-    # if user.is_youth and not user.is_region_selected:
-    #     return redirect('users:region_survey')
 
     # 모든 단계를 완료했다면 홈으로 이동
     if user.is_youth:
@@ -250,6 +204,7 @@ def user_info_view(request):
             request.user.refresh_from_db()
 
             return redirect('users:check_user_progress')
+
     else:
         form = FormClass(instance=user)
 
@@ -271,19 +226,6 @@ def upload_id_card(request):
 
     return render(request, 'users/upload_id_card.html', {'form': form})
 
-
-@login_required
-def region_survey(request):
-    user = request.user
-    if not user.is_youth:
-        return redirect('users:check_user_progress')
-
-    if request.method == 'POST':
-        # 임시 로직, 추후 지역 저장 로직 추가
-        return redirect('users:check_user_progress')
-
-    return render(request, 'users/region_survey.html')
-
 def user_logout(request):
     auth_logout(request)
     next_url = request.GET.get('next', 'users:user_selection')
@@ -294,21 +236,3 @@ def home_youth(request):
 
 def home_senior(request):
     return render(request, 'users/home_senior.html')
-
-@login_required
-def upload_land_register(request):
-    user = request.user
-    if user.is_youth:
-        return redirect('users:check_user_progress')
-
-    if request.method == 'POST':
-        form = LandRegisterForm(request.POST, request.FILES, instance=user)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.is_land_register_uploaded = True
-            user.save()
-            return redirect('users:home_senior')
-    else:
-        form = LandRegisterForm(instance=user)
-
-    return render(request, 'users/upload_land_register.html', {'form': form})
