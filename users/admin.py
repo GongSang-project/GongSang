@@ -5,7 +5,7 @@ from .models import User
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     list_display = ('id', 'username', 'email', 'is_youth', 'is_staff', 'is_active',
-                    'is_id_card_uploaded', 'is_land_register_uploaded')
+                    'is_id_card_uploaded', 'is_land_register_uploaded', 'living_type', 'living_type_other')
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
@@ -31,5 +31,7 @@ class UserAdmin(BaseUserAdmin):
             'space_sharing_preference',
             'pet_preference',
             'wishes',
+            "living_type",
+            "living_type_other",
         )}),
     )

@@ -90,3 +90,18 @@ class LandRegisterForm(forms.ModelForm):
         widgets = {
             'land_register': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['living_type', 'living_type_other']
+
+class YouthUserInformationForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'age', 'gender']
+
+class SeniorUserInformationForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'age', 'gender', 'living_type', 'living_type_other']
