@@ -202,7 +202,9 @@ def check_user_progress(request):
         required_fields_list += REQUIRED_FIELDS['senior_specific']
 
     is_basic_info_complete = all(getattr(user, field, None) for field in required_fields_list)
+    print(f"기본 정보 완료 여부: {is_basic_info_complete}")
     if not is_basic_info_complete:
+        print("기본 정보가 불완전하여 user_info 페이지로 리디렉션합니다.")
         return redirect('users:user_info')
 
     # 2. 신분증 첨부 확인 (시니어 회원만 해당)
@@ -244,13 +246,14 @@ def user_info_view(request):
     if request.method == 'POST':
         form = FormClass(request.POST, instance=user)
         if form.is_valid():
-            form.save()
-            return redirect('users:check_user_progress') # 다음 단계 확인 로직으로 이동
+            updated_user = form.save()
+            request.user.refresh_from_db()
+
+            return redirect('users:check_user_progress')
     else:
         form = FormClass(instance=user)
 
     return render(request, 'users/user_info.html', {'form': form})
-
 
 @login_required
 def upload_id_card(request):

@@ -8,39 +8,34 @@
     <link rel="stylesheet" href="{% static 'users/css/user_selection.css' %}">
 </head>
 <body>
-    <div class="splash-screen" id="splashScreen">
-        <img
-          src="{% static 'users/images/splash_logo.svg' %}"
-          alt="Splash Logo"
-          width="250"
-        />
+    <div id="root">
+        <div id="app-wrapper">
+
+        <!-- 스플래시 화면 (보류, GUI 미완)
+        <div id="splash" class="splash">
+        </div> -->
+
+        <!-- 로고 -->
+        <p class="logo">DOOYU</p>
+        <P class="logo-de">둘이 집 공유</P>
+
+       <!-- 사용자 선택 버튼 -->
+       <div class="selection-buttons">
+         <a class="senior" href="{% url 'users:user_logout' %}?next={% url 'users:login_as_user' user_type='senior' %}">
+          👵 함께 살 청년 맞이
+         </a>
+
+         <a class="youth" href="{% url 'users:user_logout' %}?next={% url 'users:login_as_user' user_type='youth' %}">
+          👩 함께 살 집 찾기
+       </div>
+
+            <!-- 오류 메시지 -->
+       {% if error_message %}
+       <p class="error-message">{{ error_message }}</p>
+       {% endif %}
+
     </div>
-
-    <div class="page-container">
-      <!-- 중앙 문구 -->
-      <div class="intro-text">
-        <img
-          src="{% static 'hospital/images/logo.svg' %}"
-          alt="logo"
-          class="logo-img"
-          width="190"
-        />
-      </div>
-
-      <!-- 사용자 선택 버튼 -->
-      <div class="selection-buttons">
-        <a href="{% url 'users:user_logout' %}?next={% url 'users:login_as_user' user_type='youth' %}">
-            청년 회원
-        </a>
-        <a href="{% url 'users:user_logout' %}?next={% url 'users:login_as_user' user_type='senior' %}">
-            시니어 회원
-        </a>
-      </div>
-
-      <!-- 오류 메시지 -->
-      {% if error_message %}
-      <p class="error-message">{{ error_message }}</p>
-      {% endif %}
-    <script src="{% static 'users/js/user_selection.js' %}"></script>
+  </div>
+  <script src="{% static 'users/js/user_selection.js' %}"></script>
 </body>
 </html>
