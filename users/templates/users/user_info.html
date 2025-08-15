@@ -1,0 +1,16 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>기본 정보 입력</title>
+</head>
+<body>
+    <h1>기본 정보 입력</h1>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">다음</button>
+    </form>
+</body>
+</html>

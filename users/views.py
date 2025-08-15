@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from formtools.wizard.views import SessionWizardView
 from django.shortcuts import redirect, render
@@ -12,6 +13,10 @@ from .forms import (
     SurveyStep8Form,
     SurveyStep9Form,
     SurveyStep10Form,
+    YouthUserInformationForm,
+    SeniorUserInformationForm,
+    IdCardForm,
+    LandRegisterForm,
 )
 from .models import User
 
@@ -34,10 +39,85 @@ FORMS = [
     ("step10", SurveyStep10Form),
 ]
 
+REQUIRED_FIELDS = {
+    'basic_info': ['username', 'age', 'gender'],
+    'senior_specific': ['living_type'],
+    'id_card': ['is_id_card_uploaded'],
+    'survey': [
+        'preferred_time', 'conversation_style', 'important_points', 'meal_preference',
+        'weekend_preference', 'smoking_preference', 'noise_level', 'space_sharing_preference',
+        'pet_preference',
+    ],
+    'region': []
+}
 
 class SurveyWizard(SessionWizardView):
     def get_template_names(self):
         return ['users/survey_form.html']
+
+    def get_step_url(self, step):
+        return reverse('users:survey_wizard_url', args=[step])
+
+    # get 요청을 처리하여 미완료된 설문 페이지로 리디렉션
+    def get(self, request, *args, **kwargs):
+        user = request.user
+
+        is_survey_complete = all(getattr(user, field, None) for field in REQUIRED_FIELDS['survey'])
+        if is_survey_complete:
+            return redirect('users:check_user_progress')
+
+        # 미완료된 설문이 있을 경우, 처음 미완료된 단계로 리디렉션
+        first_empty_db_field_step = None
+        for i, field_name in enumerate(REQUIRED_FIELDS['survey']):
+            if not getattr(user, field_name):
+                first_empty_db_field_step = FORMS[i][0]
+                break
+
+        if first_empty_db_field_step:
+            first_empty_db_index = self.steps.all.index(first_empty_db_field_step)
+            current_step_index = self.steps.all.index(self.steps.current)
+
+            if current_step_index > first_empty_db_index:
+                return redirect(reverse('users:survey_wizard_url', args=[first_empty_db_field_step]))
+
+        return super().get(request, *args, **kwargs)
+
+
+        # if not user.is_authenticated:
+        #     return redirect('users:user_selection')
+        #
+        # current_step_name = self.steps.current
+        #
+        # survey_fields = [
+        #     'preferred_time', 'conversation_style', 'important_points', 'meal_preference',
+        #     'weekend_preference', 'smoking_preference', 'noise_level', 'space_sharing_preference',
+        #     'pet_preference',
+        # ]
+        #
+        # first_empty_db_field_step = None
+        # for i, field_name in enumerate(survey_fields):
+        #     if not getattr(user, field_name):
+        #         first_empty_db_field_step = FORMS[i][0]
+        #         break
+        #
+        # if not first_empty_db_field_step:
+        #     if user.is_youth:
+        #         return redirect('users:home_youth')
+        #     else:
+        #         return redirect('users:home_senior')
+        #
+        # if first_empty_db_field_step:
+        #     first_empty_db_index = self.steps.all.index(first_empty_db_field_step)
+        #     current_step_index = self.steps.all.index(current_step_name)
+        #
+        #     if current_step_index > first_empty_db_index:
+        #         return redirect(reverse('users:survey_wizard_url', args=[first_empty_db_field_step]))
+        #
+        # return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, form, **kwargs):
+        context = super().get_context_data(form=form, **kwargs)
+        return context
 
     def post(self, request, *args, **kwargs):
         # '건너뛰기' 버튼이 눌렸는지 확인
@@ -71,10 +151,7 @@ class SurveyWizard(SessionWizardView):
         user.save()
         self.storage.reset()  # 세션 데이터 초기화
 
-        if user.is_youth:
-            return redirect('users:home_youth')
-        else:
-            return redirect('users:home_senior')
+        return redirect('users:check_user_progress')
 
 def user_selection(request):
     if request.user.is_authenticated:
@@ -106,22 +183,103 @@ def login_as_user(request, user_type):
     if user:
         auth_logout(request)
         auth_login(request, user)
-
         request.session.cycle_key()
 
         print(f"로그인 성공: {user.username} (청년: {user.is_youth})")
 
-        if not user.is_id_card_uploaded:
-            return redirect('users:upload_id_card')
-        if not user.is_youth and not user.is_land_register_uploaded:
-            return redirect('users:upload_land_register')
-
-        if user.is_youth:
-            return redirect('users:home_youth')
-        else:
-            return redirect('users:home_senior')
+        return redirect('users:check_user_progress')
     else:
         return render(request, 'users/user_selection.html', {'error_message': '사용자를 찾거나 생성할 수 없습니다.'})
+
+
+@login_required
+def check_user_progress(request):
+    user = request.user
+
+    # 1. 기본 정보 확인
+    required_fields_list = REQUIRED_FIELDS['basic_info']
+    if not user.is_youth:  # 시니어인 경우 동거 형태 필드 추가
+        required_fields_list += REQUIRED_FIELDS['senior_specific']
+
+    is_basic_info_complete = all(getattr(user, field, None) for field in required_fields_list)
+    if not is_basic_info_complete:
+        return redirect('users:user_info')
+
+    # 2. 신분증 첨부 확인 (시니어 회원만 해당)
+    if not user.is_id_card_uploaded:
+        return redirect('users:upload_id_card')
+
+    # 3. 성향 조사 확인
+    is_survey_complete = all(getattr(user, field, None) for field in REQUIRED_FIELDS['survey'])
+    if not is_survey_complete:
+        return redirect(reverse('users:survey_wizard_url', args=[FORMS[0][0]]))
+
+    # 4. 지역 조사 확인 (청년 회원만)
+    # 현재는 필수 필드가 없으므로 건너뜀.
+    # 추후 지역 선택 필드가 추가되면 로직 추가
+    # if user.is_youth and not user.is_region_selected:
+    #     return redirect('users:region_survey')
+
+    # 모든 단계를 완료했다면 홈으로 이동
+    if user.is_youth:
+        return redirect('users:home_youth')
+    else:
+        return redirect('users:home_senior')
+
+@login_required
+def user_info_view(request):
+    user = request.user
+
+    required_fields_list = REQUIRED_FIELDS['basic_info']
+    if not user.is_youth:
+        required_fields_list += REQUIRED_FIELDS['senior_specific']
+
+    is_basic_info_complete = all(getattr(user, field, None) for field in required_fields_list)
+
+    if is_basic_info_complete:
+        return redirect('users:check_user_progress')
+
+    FormClass = YouthUserInformationForm if user.is_youth else SeniorUserInformationForm
+
+    if request.method == 'POST':
+        form = FormClass(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('users:check_user_progress') # 다음 단계 확인 로직으로 이동
+    else:
+        form = FormClass(instance=user)
+
+    return render(request, 'users/user_info.html', {'form': form})
+
+
+@login_required
+def upload_id_card(request):
+    user = request.user
+
+    if request.method == 'POST':
+        form = IdCardForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_id_card_uploaded = True
+            user.save()
+            return redirect('users:check_user_progress') # 다음 단계 확인 로직으로 이동
+    else:
+        form = IdCardForm(instance=user)
+
+    return render(request, 'users/upload_id_card.html', {'form': form})
+
+
+@login_required
+def region_survey(request):
+    user = request.user
+    if not user.is_youth:
+        return redirect('users:check_user_progress')
+
+    if request.method == 'POST':
+        # 임시 로직, 추후 지역 저장 로직 추가
+        return redirect('users:check_user_progress')
+
+    return render(request, 'users/region_survey.html')
 
 def user_logout(request):
     auth_logout(request)
@@ -134,34 +292,11 @@ def home_youth(request):
 def home_senior(request):
     return render(request, 'users/home_senior.html')
 
-def user_logout(request):
-    auth_logout(request)
-    next_url = request.GET.get('next', 'users:user_selection')
-    return redirect(next_url)
-
-@login_required
-def upload_id_card(request):
-    if request.method == 'POST':
-        form = IdCardForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.is_id_card_uploaded = True
-            user.save()
-
-            if user.is_youth:
-                return redirect('users:home_youth')
-            else:
-                return redirect('users:upload_land_register')
-    else:
-        form = IdCardForm(instance=request.user)
-
-    return render(request, 'users/upload_id_card.html', {'form': form})
-
 @login_required
 def upload_land_register(request):
     user = request.user
-    if user.is_superuser or user.is_youth:
-        return redirect('users:home_youth')
+    if user.is_youth:
+        return redirect('users:check_user_progress')
 
     if request.method == 'POST':
         form = LandRegisterForm(request.POST, request.FILES, instance=user)

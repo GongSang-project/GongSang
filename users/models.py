@@ -23,12 +23,12 @@ class User(AbstractUser):
     profile_image = models.ImageField(
         "프로필 이미지", upload_to="chat/profile", blank=True)
     is_id_verified = models.BooleanField(default=False) #신분증 인증 여부
-    age = models.IntegerField(default=20) #나이
+    age = models.IntegerField(default=20, null=True, blank=True) #나이
     GENDER_CHOICES = [
         ('M', '남성'),
         ('F', '여성'),
     ]
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='F') #성별
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True) #성별
     affiliation = models.CharField(max_length=100, default='없음') #소속(00대학교)
     introduction = models.TextField(blank=True, null=True) #자기소개
 
@@ -53,14 +53,14 @@ class User(AbstractUser):
         ('A', '🌅 아침형'),
         ('B', '🌙 저녁형'),
     ]
-    preferred_time = models.CharField(max_length=1, choices=TIME_CHOICES, default='A')
+    preferred_time = models.CharField(max_length=1, choices=TIME_CHOICES, null=True, blank=True)
 
     #설문 2 - 대화 스타일
     STYLE_CHOICES = [
         ('A', '🤫 필요한 대화만'),
         ('B', '💬 자주 대화'),
     ]
-    conversation_style = models.CharField(max_length=1, choices=STYLE_CHOICES, default='A')
+    conversation_style = models.CharField(max_length=1, choices=STYLE_CHOICES, null=True, blank=True)
 
     #설문 3 - 중요한 점
     IMPORTANT_CHOICES = [
@@ -70,28 +70,28 @@ class User(AbstractUser):
         ('D', '🙋 배려심'),
         ('E', '🔏 사생활 존중'),
     ]
-    important_points = models.CharField(max_length=2, choices=IMPORTANT_CHOICES, default='A')
+    important_points = models.CharField(max_length=2, choices=IMPORTANT_CHOICES, null=True, blank=True)
 
     #설문 4 - 식사
     MEAL_CHOICES = [
         ('A', '	🍽️ 함께 먹기 좋아해요'),
         ('B', '🍱 각자 먹기 선호해요'),
     ]
-    meal_preference = models.CharField(max_length=1, choices=MEAL_CHOICES, default='A')
+    meal_preference = models.CharField(max_length=1, choices=MEAL_CHOICES, null=True, blank=True)
 
     #설문 5 - 주말
     WEEKEND_CHOICES = [
         ('A', '🏠 집에서'),
         ('B', '🚶 외출'),
     ]
-    weekend_preference = models.CharField(max_length=1, choices=WEEKEND_CHOICES, default='A')
+    weekend_preference = models.CharField(max_length=1, choices=WEEKEND_CHOICES, null=True, blank=True)
 
     #설문 6 - 흡연
     SMOKING_CHOICES = [
         ('A', '🚬 예'),
         ('B', '🚭 아니오'),
     ]
-    smoking_preference = models.CharField(max_length=1, choices=SMOKING_CHOICES, default='A')
+    smoking_preference = models.CharField(max_length=1, choices=SMOKING_CHOICES, null=True, blank=True)
 
     #설문 7 - 소음 발생
     NOISE_CHOICES = [
@@ -99,7 +99,7 @@ class User(AbstractUser):
         ('B', '🎶 특정 시간대만 들어요'),
         ('C', '🔇 거의 안 켜요'),
     ]
-    noise_level = models.CharField(max_length=1, choices=NOISE_CHOICES, default='A')
+    noise_level = models.CharField(max_length=1, choices=NOISE_CHOICES, null=True, blank=True)
 
     #설문 8 - 공간 공유
     SPACE_CHOICES = [
@@ -107,14 +107,14 @@ class User(AbstractUser):
         ('B', '필요할 때만'),
         ('C', '거의 이용 안 함'),
     ]
-    space_sharing_preference = models.CharField(max_length=1, choices=SPACE_CHOICES, default='A')
+    space_sharing_preference = models.CharField(max_length=1, choices=SPACE_CHOICES, null=True, blank=True)
 
     #설문 9 - 반려동물
     PET_CHOICES = [
         ('A', '🐶 가능'),
         ('B', '🐱 불가능'),
     ]
-    pet_preference = models.CharField(max_length=1, choices=PET_CHOICES, default='A')
+    pet_preference = models.CharField(max_length=1, choices=PET_CHOICES, null=True, blank=True)
 
     #설문 10 - 바라는 점 (서술형)
     wishes = models.TextField(blank=True, null=True)
@@ -133,6 +133,27 @@ class User(AbstractUser):
         related_name='youth',
         blank=True,
         verbose_name='user permissions',
+    )
+
+    class LivingType(models.TextChoices):
+        ALONE_FEMALE_SENIOR = "alone_female_senior", "혼자"
+        SENIOR_COUPLE = "senior_couple", "시니어 부부"
+        GRANDCHILD = "grandchild", "손자"
+        OTHER = "other", "기타"
+
+    living_type = models.CharField(
+        max_length=30,
+        choices=LivingType.choices,
+        blank=True,
+        null=True,
+        verbose_name="동거 형태"
+    )
+
+    living_type_other = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="기타 동거 형태"
     )
 
     class Meta:
