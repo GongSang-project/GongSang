@@ -11,6 +11,12 @@
     <p>월세: {{ room.rent_fee }}</p>
     <p>보증금: {{ room.deposit }}</p>
 
+    {% if matching_score is not None %}
+        <p>나와의 매칭 점수: <strong>{{ matching_score }}점</strong></p>
+    {% else %}
+        <p>로그인 후 매칭 점수를 확인하세요.</p>
+    {% endif %}
+
     <button>입주 희망 요청하기</button>
 
 </body>
