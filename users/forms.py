@@ -10,7 +10,7 @@ class UserInformationForm(forms.ModelForm):
     )
     class Meta:
         model = User
-        fields = ['username', 'gender', 'age']
+        fields = ['username', 'gender', 'age', 'phone_number']
 
 # 1-2. (시니어) 동거형태
 class SeniorLivingTypeForm(forms.ModelForm):

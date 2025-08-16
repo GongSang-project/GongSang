@@ -14,6 +14,14 @@ class User(AbstractUser):
         ('F', '여성'),
     ]
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True) #성별
+    phone_number = models.CharField(max_length=11, blank=True, null=True) #전화번호
+
+    # 뷰 함수에 쓸 하이픈 포함 전화번호 띄우기
+    # def format_phone_number(number_str):
+    #     if len(number_str) == 11:
+    #         return f"{number_str[:3]}-{number_str[3:7]}-{number_str[7:]}"
+    #     return number_str
+
 
     id_card_image = models.ImageField(
         "신분증 사진",
