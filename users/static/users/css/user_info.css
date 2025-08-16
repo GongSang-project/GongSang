@@ -49,31 +49,97 @@ body {
     overflow: auto;
 }
 
-.logo{
-    color: #F26430;
-    text-align: center;
-    font-family: "TmoneyRoundWindExtraBold";
-    font-size: 64px;
-    font-style: normal;
-    font-weight: 800;
-    line-height: 15px; /* 23.438% */
-    letter-spacing: -0.32px;
-    margin-top: 293px;
-    margin-bottom: 0px;
-
+.header {
+    width: 100%; 
+    height: 102.94px;
+    display: flex;
 }
 
-.logo-de{
-    color: var(--, #515151);
+
+.icon {
+    width: 20px;
+    height: 27px;
+    padding: 6px;
+    margin-top: 54px;
+    margin-left: 20.61px;
+}
+
+.header > h1 {
+    color: #000;
     text-align: center;
-    font-family: "TmoneyRoundWindRegular";
+    font-family: 'Inter';
     font-size: 20px;
     font-style: normal;
-    font-weight: 400;
-    line-height: 15px; /* 75% */
-    letter-spacing: -0.1px;
-    margin-top: 34.86px;
+    font-weight: 500;
+    letter-spacing: -0.46px;
+    width: 78px;
+    height: 30px;
+    margin-top:52px;
+    margin-left:108.39px;
+    display:flex;
+    align-items:center;       
+    justify-content:center;   
 }
+
+/* 진행 바 */
+.progress-wrap {
+     width:100%; height:5px; 
+     background:#ececec; 
+}
+.progress-bar  { 
+    width:0; height:100%;
+    background:#F1662A; 
+    transition:width .25s ease; 
+}
+
+.num {
+    position: absolute;
+    top: 126.75px;
+    left: 24px;
+    width: 21px; height: 15px;
+    color: var(--, #515151);
+
+    font-family: 'Pretendard';
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: -0.075px;
+    margin: 0 0;
+}
+
+h2 {
+    color: var(--Black, #121212);
+    font-family: Pretendard;
+    font-size: 25px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 15px; /* 60% */
+    letter-spacing: -0.125px;
+    width: 227px;
+    height: 15px;
+    position: absolute;
+    top:158px;
+    left:23px;
+    margin: 0 0;
+
+}
+
+/* 레이아웃/폼 */
+#userInfoForm {
+    display: flex;
+    width: 325px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 30px;
+    position: absolute;
+    top:232px;
+    left:25px;
+}
+
+#userInfoForm > div { margin:12px 0; }
+#submitBtn { width:100%; height:44px; border:0; border-radius:8px; background:#F1662A; color:#fff; font-weight:700; }
+#submitBtn:disabled { opacity:.4; cursor:not-allowed; }
+
 
 .selection-buttons{
     display: flex;
@@ -102,16 +168,16 @@ body {
     line-height: 22px; /* 110% */
 }
 
-.senior{
-    background-color: #F26430;
-    color:white;
-}
-
-.youth{
-    background-color: #FFEBD9;
-    color:#F26430;
-}
 
 
 
 
+
+
+/* 에러 메시지 */
+.errors { color:#c0392b; font-size:14px; margin-bottom:8px; }
+
+/* 완료 화면 */
+#doneSection { text-align:center; padding:24px 0; }
+.checkmark { font-size:56px; color:#F1662A; margin:24px 0; }
+a.cta { display:block; margin:16px 0 0; background:#F1662A; color:#fff; text-decoration:none; font-weight:700; padding:12px 0; border-radius:8px; }
