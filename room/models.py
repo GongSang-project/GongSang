@@ -4,23 +4,59 @@ from django.core.validators import MinValueValidator
 
 # 방 옵션
 OPTION_CHOICES = [
-    ('AC', '에어컨'),
-    ('SHOES', '신발장'),
-    ('CLOSET', '옷장'),
-    ('FRIDGE', '냉장고'),
+    ('REFRIGERATOR', '냉장고'),
     ('WASHER', '세탁기'),
-    ('MICROWAVE', '전자레인지'),
-    ('INDUCTION', '인덕션'),
-    ('BED', '침대'),
+    ('SINK', '싱크대'),
     ('DESK', '책상'),
+    ('CLOSET', '옷장'),
+    ('BUILT_IN_WARDROBE', '붙박이장'),
+    ('BED', '침대'),
+    ('SHOES', '신발장'),
+    ('MICROWAVE', '전자레인지'),
+    ('GAS_STOVE', '가스레인지'),
+    ('GAS_OVEN', '가스오븐'),
+    ('SHOWER_BOOTH', '샤워부스'),
+    ('BATHTUB', '욕조'),
+    ('BIDET', '비데'),
+    ('DRYER', '건조기'),
+    ('DISHWASHER', '식기세척기'),
+    ('DINING_TABLE', '식탁'),
+    ('SOFA', '소파'),
+    ('TV', '티비'),
+    ('AC', '에어컨'),
+    ('FAN', '선풍기'),
+    ('INDUCTION', '인덕션'),
     ('WIFI', '와이파이'),
 ]
 
 # 보안 옵션
 SECURITY_CHOICES = [
-    ('INTERCOM', '인터폰'),
-    ('CCTV', 'CCTV'),
     ('DOOR_SECURITY', '현관보안'),
+    ('CCTV', 'CCTV'),
+    ('INTERCOM', '인터폰'),
+    ('VIDEOPHONE', '비디오폰'),
+    ('CARDKEY', '카드키'),
+    ('BURGLAR_BARS', '방범창'),
+    ('SELF_SECURITY_GUARD', '자치경비원'),
+    ('PRIVATE_SECURITY', '사설경비'),
+]
+
+# 기타 시설
+OTHER_FACILITY_CHOICES = [
+    ('ELEVATOR', '엘리베이터'),
+    ('FIRE_ALARM', '화재경보기'),
+    ('PARCEL_LOCKER', '무인택배함'),
+    ('VERANDA', '베란다'),
+    ('TERRACE', '테라스'),
+    ('YARD', '마당'),
+    ('EXTINGUISHER', '소화기'),
+]
+
+# 난방 방식
+HEATING_CHOICES = [
+    ('INDIVIDUAL', '개별난방'),
+    ('CENTRAL', '중앙난방'),
+    ('DISTRICT', '지역난방'),
 ]
 
 
@@ -28,7 +64,6 @@ class Room(models.Model):
     # 방의 기본 정보
     deposit = models.IntegerField(verbose_name="보증금", validators=[MinValueValidator(0)])
     rent_fee = models.IntegerField(verbose_name="월세", validators=[MinValueValidator(0)])
-    address = models.CharField(verbose_name="주소", max_length=200)
     floor = models.CharField(verbose_name="층수", max_length=50)  # '아파트 9층', '빌라 2층' 등
     area = models.FloatField(verbose_name="면적(m²)", validators=[MinValueValidator(0.1)])
     utility_fee = models.IntegerField(verbose_name="관리비", default=0, validators=[MinValueValidator(0)])
@@ -37,6 +72,7 @@ class Room(models.Model):
     address_province = models.CharField(verbose_name="주소(시/도)", max_length=50, blank=True, null=True)
     address_city = models.CharField(verbose_name="주소(시/군/구)", max_length=50, blank=True, null=True)
     address_district = models.CharField(verbose_name="주소(읍/면/동)", max_length=50, blank=True, null=True)
+    address_detailed = models.CharField(verbose_name="상세주소(도로명/동/호)", max_length=50, blank=True, null=True)
 
     # 추가 정보
     can_short_term = models.BooleanField(verbose_name="단기 거주 가능 여부", default=False)
@@ -56,14 +92,15 @@ class Room(models.Model):
     # 방 상세페이지에 해시태그 표시하는 과정은 room/views.py 파일 room_detail()에 정의되어 있습니다
     # room_detail() 함수에다가 방 상세페이지에 띄울 정보들 더 추가하시면 됩니다!
 
-    # AI 분석 결과
-    ai_analysis_result1 = models.CharField(verbose_name="AI 분석 결과 1", max_length=200, blank=True, null=True)
-    ai_analysis_result2 = models.CharField(verbose_name="AI 분석 결과 2", max_length=200, blank=True, null=True)
-    ai_matching_score = models.IntegerField(verbose_name="AI 매칭 점수", default=0, validators=[MinValueValidator(0)])
-
     # 시설 정보
-    options = models.JSONField(verbose_name="옵션", default=list)  # ['에어컨', '신발장'] 등 리스트로 저장
-    security_facilities = models.JSONField(verbose_name="보안시설", default=list)  # ['인터폰', 'CCTV'] 등 리스트로 저장
+    options = models.JSONField(verbose_name="생활 시설", default=list)
+    security_facilities = models.JSONField(verbose_name="보안 시설", default=list)
+    other_facilities = models.JSONField(verbose_name="기타 시설", default=list)
+
+    # 단일 선택 시설
+    parking_available = models.BooleanField(verbose_name="주차 가능 여부", default=False)
+    pet_allowed = models.BooleanField(verbose_name="반려동물 가능 여부", default=False)
+    heating_type = models.CharField(verbose_name="난방 방식", max_length=20, choices=HEATING_CHOICES, blank=True, null=True)
 
     # 주변 정보
     nearest_subway = models.CharField(verbose_name="주변 지하철역", max_length=100, blank=True, null=True)
@@ -72,7 +109,8 @@ class Room(models.Model):
     updated_at = models.DateTimeField(verbose_name="수정일", auto_now=True)
 
     def __str__(self):
-        return f"{self.address} ({self.owner.username}님의 방)"
+        full_address = f"{self.address_province} {self.address_city} {self.address_district} {self.address_detailed}"
+        return f"{full_address} ({self.owner.username}님의 방)"
 
     class Meta:
         verbose_name = "방"
