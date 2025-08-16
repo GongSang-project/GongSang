@@ -1,4 +1,3 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -9,7 +8,18 @@
     <h1>기본 정보 입력</h1>
     <form method="post">
       {% csrf_token %}
-      {{ form.as_p }}
+      <div>
+        <label for="id_username">성명:</label>
+        {{ form.username }}
+      </div>
+      <div>
+        <label for="id_gender">성별:</label>
+        {{ form.gender }}
+      </div>
+      <div>
+        <label for="id_age">나이:</label>
+        {{ form.age }}
+      </div>
       <button type="submit">다음</button>
     </form>
 </body>

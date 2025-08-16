@@ -8,11 +8,14 @@
     <link rel="stylesheet" href="{% static 'users/css/upload_id_card.css' %}">
 </head>
 <body>
-    <h2>신분증 사진을 첨부해 주세요.</h2>
+    <h1>신분증 업로드</h1>
     <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">제출하기</button>
+      {% csrf_token %}
+      <div>
+        <label for="id_id_card_image">신분증 이미지:</label>
+        {{ form.id_card_image }}
+      </div>
+      <button type="submit">다음</button>
     </form>
     <script src="{% static 'users/js/upload_id_card.js' %}"></script>
 </body>
