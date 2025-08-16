@@ -5,11 +5,11 @@ from .models import User
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     list_display = ('id', 'username', 'email', 'is_youth', 'is_staff', 'is_active',
-                    'is_id_card_uploaded', 'living_type', 'living_type_other')
+                    'is_id_card_uploaded', 'phone_number', 'living_type', 'living_type_other')
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('개인 정보', {'fields': ('first_name', 'last_name', 'email', 'is_youth', 'profile_image', 'is_id_verified', 'age', 'gender')}),
+        ('개인 정보', {'fields': ('first_name', 'last_name', 'email', 'is_youth', 'profile_image', 'is_id_verified', 'age', 'gender', 'phone_number')}),
         ('권한', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('중요 날짜', {'fields': ('last_login', 'date_joined')}),
 
