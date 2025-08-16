@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>관심 지역 정보 입력</title>
+</head>
+<body>
+    <h1>관심 지역 정보 입력 (청년)</h1>
+    <form method="post">
+      {% csrf_token %}
+      <div>
+        <label for="id_interested_province">관심 시/도:</label>
+        {{ form.interested_province }}
+      </div>
+      <div>
+        <label for="id_interested_city">관심 시/군/구:</label>
+        {{ form.interested_city }}
+      </div>
+      <div>
+        <label for="id_interested_district">관심 읍/면/동:</label>
+        {{ form.interested_district }}
+      </div>
+      <button type="submit">다음</button>
+    </form>
+</body>
+</html>

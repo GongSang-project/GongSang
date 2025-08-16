@@ -1,6 +1,38 @@
 from django import forms
 from .models import User
 
+# 1. 기본정보
+class UserInformationForm(forms.ModelForm):
+    gender = forms.ChoiceField(
+        choices=User.GENDER_CHOICES,
+        widget=forms.RadioSelect,
+        label='성별'
+    )
+    class Meta:
+        model = User
+        fields = ['username', 'gender', 'age']
+
+# 1-2. (시니어) 동거형태
+class SeniorLivingTypeForm(forms.ModelForm):
+    living_type = forms.ChoiceField(
+        choices=User.LivingType.choices,
+        widget=forms.RadioSelect,
+        label='동거 형태'
+    )
+    class Meta:
+        model = User
+        fields = ['living_type', 'living_type_other']
+
+# 2. 신분증 업로드
+class IdCardForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['id_card_image']
+        widgets = {
+            'id_card_image': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+# 3. 성향조사
 class SurveyStep1Form(forms.Form):
     preferred_time = forms.ChoiceField(
         choices=User.TIME_CHOICES,
@@ -75,33 +107,8 @@ class SurveyStep10Form(forms.Form):
         required=False,
     )
 
-class IdCardForm(forms.ModelForm):
+# 4. (청년) 지역조사
+class YouthInterestedRegionForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['id_card_image']
-        widgets = {
-            'id_card_image': forms.FileInput(attrs={'class': 'form-control'}),
-        }
-
-class LandRegisterForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['land_register']
-        widgets = {
-            'land_register': forms.FileInput(attrs={'class': 'form-control'}),
-        }
-
-class UserProfileForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['living_type', 'living_type_other']
-
-class YouthUserInformationForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['username', 'age', 'gender']
-
-class SeniorUserInformationForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['username', 'age', 'gender', 'living_type', 'living_type_other']
+        fields = ['interested_province', 'interested_city', 'interested_district']

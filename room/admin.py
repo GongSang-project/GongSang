@@ -10,6 +10,7 @@ class RoomAdmin(admin.ModelAdmin):
     raw_id_fields = ('owner', 'contracted_youth',)
     fieldsets = (
         ('기본 정보', {'fields': ('deposit', 'rent_fee', 'address', 'floor', 'area', 'utility_fee')}),
+        ('주소 정보', {'fields': ('address_province', 'address_city', 'address_district')}),
         ('추가 정보', {'fields': ('can_short_term', 'toilet_count', 'available_date')}),
         ('소유주 및 계약 정보', {'fields': ('owner', 'contracted_youth')}),
         ('집 주인 정보', {'fields': ('owner_living_status',)}),

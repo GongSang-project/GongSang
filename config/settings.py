@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'room',
     'review',
     'users',
-    'chat',
 ]
 
 AUTH_USER_MODEL = 'users.User'

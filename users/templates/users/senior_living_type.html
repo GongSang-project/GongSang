@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>동거 형태 입력</title>
+</head>
+<body>
+    <h1>동거 형태 입력 (어르신)</h1>
+    <form method="post">
+      {% csrf_token %}
+      <div>
+        <label for="id_living_type">동거 형태:</label>
+        {{ form.living_type }}
+      </div>
+      <div>
+        <label for="id_living_type_other">기타 (직접 입력):</label>
+        {{ form.living_type_other }}
+      </div>
+      <button type="submit">다음</button>
+    </form>
+</body>
+</html>

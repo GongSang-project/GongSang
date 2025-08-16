@@ -33,6 +33,11 @@ class Room(models.Model):
     area = models.FloatField(verbose_name="면적(m²)", validators=[MinValueValidator(0.1)])
     utility_fee = models.IntegerField(verbose_name="관리비", default=0, validators=[MinValueValidator(0)])
 
+    # 주소
+    address_province = models.CharField(verbose_name="주소(시/도)", max_length=50, blank=True, null=True)
+    address_city = models.CharField(verbose_name="주소(시/군/구)", max_length=50, blank=True, null=True)
+    address_district = models.CharField(verbose_name="주소(읍/면/동)", max_length=50, blank=True, null=True)
+
     # 추가 정보
     can_short_term = models.BooleanField(verbose_name="단기 거주 가능 여부", default=False)
     toilet_count = models.IntegerField(verbose_name="화장실 개수", default=1, validators=[MinValueValidator(1)])
