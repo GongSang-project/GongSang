@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required
 from formtools.wizard.views import SessionWizardView
 from django.shortcuts import redirect, render
 from .forms import (
+    UserInformationForm,
+    SeniorLivingTypeForm,
+    IdCardForm,
     SurveyStep1Form,
     SurveyStep2Form,
     SurveyStep3Form,
@@ -13,13 +16,9 @@ from .forms import (
     SurveyStep8Form,
     SurveyStep9Form,
     SurveyStep10Form,
-    YouthUserInformationForm,
-    SeniorUserInformationForm,
-    IdCardForm,
+    YouthInterestedRegionForm,
 )
 from .models import User
-
-from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, logout as auth_logout
 
 
@@ -109,56 +108,47 @@ def login_as_user(request, user_type):
         auth_logout(request)
         auth_login(request, user)
         request.session.cycle_key()
-
         print(f"로그인 성공: {user.username} (청년: {user.is_youth})")
-
         return redirect('users:user_info')
     else:
         return render(request, 'users/user_selection.html', {'error_message': '사용자를 찾거나 생성할 수 없습니다.'})
 
 
 @login_required
-def check_user_progress(request):
-    user = request.user
-
-    # 1. 기본 정보 확인
-    required_fields_list = REQUIRED_FIELDS['basic_info']
-    if not user.is_youth:  # 시니어인 경우 동거 형태 필드 추가
-        required_fields_list += REQUIRED_FIELDS['senior_specific']
-
-    is_basic_info_complete = all(getattr(user, field, None) for field in required_fields_list)
-    print(f"기본 정보 완료 여부: {is_basic_info_complete}")
-    if not is_basic_info_complete:
-        print("기본 정보가 불완전하여 user_info 페이지로 리디렉션합니다.")
-        return redirect('users:user_info')
-
-    # 3. 성향 조사 확인
-    is_survey_complete = all(getattr(user, field, None) for field in REQUIRED_FIELDS['survey'])
-    if not is_survey_complete:
-        return redirect(reverse('users:survey_wizard_url', args=[FORMS[0][0]]))
-
-    # 모든 단계를 완료했다면 홈으로 이동
-    if user.is_youth:
-        return redirect('users:home_youth')
-    else:
-        return redirect('users:home_senior')
-
-@login_required
 def user_info_view(request):
     user = request.user
-    FormClass = YouthUserInformationForm if user.is_youth else SeniorUserInformationForm
+    form = UserInformationForm(request.POST or None, instance=user)
 
-    if request.method == 'POST':
-        form = FormClass(request.POST, instance=user)
-        if form.is_valid():
-            updated_user = form.save()
-            request.user.refresh_from_db()
-
-            return redirect('users:upload_id_card')
-    else:
-        form = FormClass(instance=user)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        if user.is_youth:
+            return redirect('users:youth_region')
+        else:
+            return redirect('users:senior_living_type')
 
     return render(request, 'users/user_info.html', {'form': form})
+
+@login_required
+def youth_region_view(request):
+    user = request.user
+    form = YouthInterestedRegionForm(request.POST or None, instance=user)
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('users:upload_id_card')
+
+    return render(request, 'users/youth_region.html', {'form': form})
+
+@login_required
+def senior_living_type_view(request):
+    user = request.user
+    form = SeniorLivingTypeForm(request.POST or None, instance=user)
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('users:upload_id_card')
+
+    return render(request, 'users/senior_living_type.html', {'form': form})
 
 @login_required
 def upload_id_card(request):
@@ -170,7 +160,7 @@ def upload_id_card(request):
             user = form.save(commit=False)
             user.is_id_card_uploaded = True
             user.save()
-            return redirect(reverse('users:survey_wizard_url', args=[FORMS[0][0]]))
+            return redirect('users:survey_wizard_start')
     else:
         form = IdCardForm(instance=user)
 
