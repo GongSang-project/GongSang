@@ -8,26 +8,29 @@
     <link rel="stylesheet" href="{% static 'users/css/survey_form.css' %}">
 </head>
 <body>
-    <div class="survey-container">
-        <form action="" method="post">
-            {% csrf_token %}
+    <div id="root">
+        <div id="app-wrapper">
+            <div class="survey-container">
+               <form action="" method="post">
+                {% csrf_token %}
 
-            <h2>질문 {{ wizard.steps.step1 }} / 10</h2>
+                <h2>질문 {{ wizard.steps.step1 }} / 10</h2>
 
-            {{ wizard.management_form }}
-            {{ wizard.form.as_p }}
+                {{ wizard.management_form }}
+                {{ wizard.form.as_p }}
 
-            {% if wizard.steps.prev %}
+                {% if wizard.steps.prev %}
                 <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">이전</button>
-            {% endif %}
+                 {% endif %}
 
-            <button type="submit" name="skip_step" value="1">종료</button>
+                <button type="submit" name="skip_step" value="1">종료</button>
 
-            <button type="submit">
-                    다음
-            </button>
-        </form>
+                <button type="submit">다음</button>
+                </form>
+            </div>
+        </div>
     </div>
+
     <script src="{% static 'users/js/survey_form.js' %}"></script>
 </body>
 </html>

@@ -3,14 +3,27 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>기본 정보 입력</title>
+    <link rel="stylesheet" href="{% static 'users/css/user_info.css' %}">
 </head>
 <body>
-    <h1>기본 정보 입력</h1>
-    <form method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit">다음</button>
-    </form>
+  <div id="root">
+    <div id="app-wrapper">
+      <!--상단 진행 바-->
+      <div class="progress-wrap" aria-label="진행률">
+        <div id="progressBar" class="progress-bar" style="width:0%"></div>
+      </div>
+
+      <h1>기본 정보 입력</h1>
+
+      <form method="post" id="userInfoForm" novalidate>
+        {% csrf_token%}
+        {{form.as_p}}
+        <button id="submitBtn" type="submit" >다음</button>
+      </form>
+    </div>
+  </div>
+  <script src="{% static 'users/js/user_info.js' %}"></script>
 </body>
 </html>
