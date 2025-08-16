@@ -7,7 +7,7 @@ app_name = 'users'
 urlpatterns = [
     path('survey/', SurveyWizard.as_view(FORMS), name='survey_wizard'),
     path(
-        'survey/<slug:step>/',
+        'survey/',
         SurveyWizard.as_view(FORMS),
         name='survey_wizard_url'
     ),
@@ -19,7 +19,6 @@ urlpatterns = [
     path('logout/', views.user_logout, name='user_logout'),
     path('upload_id_card/', views.upload_id_card, name='upload_id_card'),
 
-    path('check_progress/', views.check_user_progress, name='check_user_progress'),
     path('user_info/', views.user_info_view, name='user_info'),
     path('upload_id_card/', views.upload_id_card, name='upload_id_card'),
 ]
