@@ -47,6 +47,7 @@ body {
     position: relative;
     display: block;
     overflow: auto;
+
 }
 
 .header {
@@ -60,8 +61,10 @@ body {
     width: 20px;
     height: 27px;
     padding: 6px;
-    margin-top: 54px;
-    margin-left: 20.61px;
+    position: absolute;
+    top:54px;
+    left:20.6133px;
+
 }
 
 .header > h1 {
@@ -74,11 +77,13 @@ body {
     letter-spacing: -0.46px;
     width: 78px;
     height: 30px;
-    margin-top:52px;
-    margin-left:108.39px;
+    position:absolute;
+    top:52px;
+    left:149px;
+    margin: 0px;
     display:flex;
     align-items:center;       
-    justify-content:center;   
+    justify-content:center;    
 }
 
 /* 진행 바 */
@@ -124,7 +129,7 @@ h2 {
 
 }
 
-/* 레이아웃/폼 */
+
 #userInfoForm {
     display: flex;
     width: 325px;
@@ -136,20 +141,93 @@ h2 {
     left:25px;
 }
 
-#userInfoForm > div { margin:12px 0; }
-#submitBtn { width:100%; height:44px; border:0; border-radius:8px; background:#F1662A; color:#fff; font-weight:700; }
-#submitBtn:disabled { opacity:.4; cursor:not-allowed; }
-
-
-.selection-buttons{
+#userInfoForm > div {
     display: flex;
     flex-direction: column;
+    gap: 12px; }
+
+#submitBtn {
+    position: absolute;
+    top: 722px;
+    left: 16px;
+    display: flex;
+    width: 343px;
+    padding: 17px 0;
+    justify-content: center;
     align-items: center;
-    gap:13px;
-    margin-top: 295.14px;
+    border-radius: 10px;
+    background: var(--GNB, #959595);
+    border:0px;
+
+    color: var(--White, #FFF);
+    text-align: center;
+    font-feature-settings: 'liga' off, 'clig' off;
+
+    font-family: 'Pretendard';
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 22px; 
+    transition: 'background-color' 0.2s ease;
 }
 
-.selection-buttons a{
+#submitBtn:not(:disabled){
+    background: var(--Primary, #F26430);
+    border: 0px;
+    cursor:pointer;
+}
+
+
+/* 에러 메시지 */
+.errors { color:#c0392b; font-size:14px; margin-bottom:8px; }
+
+/* 완료 화면 */
+#doneSection { 
+    position: absolute;
+    inset:0;
+    background-color: #FFF;
+    z-index: 9999;
+    pointer-events: auto;
+}
+#doneSection[hidden] {
+    display:none;
+}
+
+#doneSection > h1 {
+    color: var(--Black, #121212);
+    text-align: center;
+    font-family: 'Pretendard';
+    font-size: 25px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.125px;
+    width:163px;
+    height: auto;
+    position: absolute;
+    top:273px;
+    left:106px;
+    display:flex;
+    align-items:center;       
+    justify-content:center;   
+    margin: 0px;
+    text-wrap: balance;
+
+}
+.checkmark { 
+    width: 130px;
+    height: 130px;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    aspect-ratio: 1/1;
+    position: absolute;
+    top:345px;
+    left:122px;
+}
+
+
+a.cta{
     width: 343px;
     height: 56px;
     flex-shrink: 0;
@@ -160,24 +238,19 @@ h2 {
     text-align: center;
     text-decoration: none;
 
-    /* 버튼 텍스트 크기 */
     font-family: 'Pretendard';
     font-size: 20px;
     font-style: normal;
     font-weight: 700;
     line-height: 22px; /* 110% */
+
+    background-color: #F26430;
+    color:white;
+
+    position: absolute;
+    top:722px;
+    left:16px;
+    
 }
 
-
-
-
-
-
-
-/* 에러 메시지 */
-.errors { color:#c0392b; font-size:14px; margin-bottom:8px; }
-
-/* 완료 화면 */
-#doneSection { text-align:center; padding:24px 0; }
-.checkmark { font-size:56px; color:#F1662A; margin:24px 0; }
-a.cta { display:block; margin:16px 0 0; background:#F1662A; color:#fff; text-decoration:none; font-weight:700; padding:12px 0; border-radius:8px; }
+.icon-btn { all: unset; cursor: pointer; }

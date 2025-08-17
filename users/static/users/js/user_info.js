@@ -4,15 +4,17 @@
   if (!form) return;
 
   const bar = document.getElementById('progressBar');
-  const submitBtn = document.getElementById('submitBtn');
+  const submitBtn = document.getElementById('submitBtn') || form.querySelector('button[type="submit"]');
   const done = document.getElementById('doneSection');
   const errorsBox = document.getElementById('formErrors');
 
   // Django 기본 렌더링 id/name 모두 대응
   const username = document.getElementById('id_username') || form.querySelector('[name="username"]');
   const age = document.getElementById('id_age') || form.querySelector('[name="age"]');
+  const phone = document.getElementById('id_phone_number') || form.querySelector('[name="phone_number"]');
   const genderRadios = form.querySelectorAll('input[name="gender"]');
   const genderSelect = form.querySelector('select[name="gender"]');
+
 
   function genderFilled() {
     if (genderRadios && genderRadios.length) {
@@ -27,11 +29,16 @@
     if (!Number.isFinite(n)) return false;
     return n >= 1 && n <= 120;
   }
+  function phoneFilled() {
+    return !!phone && String(phone.value || '').trim().length > 0;
+  }
+
   function updateProgress() {
     const checks = [
       () => !!username && username.value.trim().length > 0,
       () => ageValid(),
-      () => genderFilled()
+      () => genderFilled(),
+      () => phoneFilled(), 
     ];
     const passed = checks.reduce((acc, fn) => acc + (fn() ? 1 : 0), 0);
     const total = checks.length;
@@ -50,6 +57,7 @@
   if (age) inputs.push(age);
   if (genderSelect) inputs.push(genderSelect);
   if (genderRadios && genderRadios.length) genderRadios.forEach(r => inputs.push(r));
+  if (phone) inputs.push(phone); // [추가] 전화번호 입력 변화도 감지
   inputs.forEach(el => {
     el.addEventListener('input', updateProgress);
     el.addEventListener('change', updateProgress);
@@ -85,7 +93,6 @@
 
       const contentType = res.headers.get('content-type') || '';
       if (!res.ok) {
-        // 서버가 JSON으로 폼 에러를 돌려주는 경우 처리
         if (contentType.includes('application/json')) {
           const data = await res.json();
           if (errorsBox && data && data.errors) {
@@ -105,9 +112,8 @@
 
       // 성공 처리
       if (done) done.hidden = false;
-      form.hidden = true;               // 폼 숨기기
-      if (bar) bar.style.width = '100%';// 진행바 100%
-      // 접근성: 포커스 이동
+      form.hidden = true;
+      if (bar) bar.style.width = '100%';
       const cta = document.getElementById('ctaSurvey');
       if (cta) cta.focus();
 
@@ -116,4 +122,19 @@
       if (errorsBox) errorsBox.textContent = '네트워크 오류가 발생했습니다.';
     }
   });
+  
+  const doneClose = document.getElementById('doneClose');
+  if (doneClose) {
+    doneClose.addEventListener('click',()=>{
+      if (done) done.hidden =true;
+      if (form) form.hidden =false;
+
+      if (typeof updateProgress === 'function') updateProgress();
+
+      form.querySelector('input,select,textarea')?.focus();
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  }
+
+
 })();
