@@ -57,7 +57,7 @@
   if (age) inputs.push(age);
   if (genderSelect) inputs.push(genderSelect);
   if (genderRadios && genderRadios.length) genderRadios.forEach(r => inputs.push(r));
-  if (phone) inputs.push(phone); // [추가] 전화번호 입력 변화도 감지
+  if (phone) inputs.push(phone); 
   inputs.forEach(el => {
     el.addEventListener('input', updateProgress);
     el.addEventListener('change', updateProgress);
@@ -70,58 +70,58 @@
     return input ? input.value : '';
   }
 
-  // 폼 제출 → AJAX로 저장하고, 성공 시 동일 페이지에서 완료 화면 표시
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (submitBtn && submitBtn.disabled) return;
+  // // 폼 제출 → AJAX로 저장하고, 성공 시 동일 페이지에서 완료 화면 표시
+  // form.addEventListener('submit', async (e) => {
+  //   e.preventDefault();
+  //   if (submitBtn && submitBtn.disabled) return;
 
-    // 이전 에러 메시지 초기화
-    if (errorsBox) errorsBox.textContent = '';
+  //   // 이전 에러 메시지 초기화
+  //   if (errorsBox) errorsBox.textContent = '';
 
-    try {
-      const formData = new FormData(form);
-      const res = await fetch(form.action || window.location.href, {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRFToken': getCsrfToken(),
-        },
-        body: formData,
-        redirect: 'follow',
-        credentials: 'same-origin',
-      });
+  //   try {
+  //     const formData = new FormData(form);
+  //     const res = await fetch(form.action || window.location.href, {
+  //       method: 'POST',
+  //       headers: {
+  //         'X-Requested-With': 'XMLHttpRequest',
+  //         'X-CSRFToken': getCsrfToken(),
+  //       },
+  //       body: formData,
+  //       redirect: 'follow',
+  //       credentials: 'same-origin',
+  //     });
 
-      const contentType = res.headers.get('content-type') || '';
-      if (!res.ok) {
-        if (contentType.includes('application/json')) {
-          const data = await res.json();
-          if (errorsBox && data && data.errors) {
-            const msgs = [];
-            for (const [field, list] of Object.entries(data.errors)) {
-              msgs.push(`${field}: ${Array.isArray(list) ? list.join(', ') : String(list)}`);
-            }
-            errorsBox.textContent = msgs.join(' • ');
-          } else if (errorsBox) {
-            errorsBox.textContent = '제출 중 오류가 발생했습니다. 다시 시도해주세요.';
-          }
-        } else {
-          if (errorsBox) errorsBox.textContent = '제출 중 오류가 발생했습니다. 다시 시도해주세요.';
-        }
-        return;
-      }
+  //     const contentType = res.headers.get('content-type') || '';
+  //     if (!res.ok) {
+  //       if (contentType.includes('application/json')) {
+  //         const data = await res.json();
+  //         if (errorsBox && data && data.errors) {
+  //           const msgs = [];
+  //           for (const [field, list] of Object.entries(data.errors)) {
+  //             msgs.push(`${field}: ${Array.isArray(list) ? list.join(', ') : String(list)}`);
+  //           }
+  //           errorsBox.textContent = msgs.join(' • ');
+  //         } else if (errorsBox) {
+  //           errorsBox.textContent = '제출 중 오류가 발생했습니다. 다시 시도해주세요.';
+  //         }
+  //       } else {
+  //         if (errorsBox) errorsBox.textContent = '제출 중 오류가 발생했습니다. 다시 시도해주세요.';
+  //       }
+  //       return;
+  //     }
 
-      // 성공 처리
-      if (done) done.hidden = false;
-      form.hidden = true;
-      if (bar) bar.style.width = '100%';
-      const cta = document.getElementById('ctaSurvey');
-      if (cta) cta.focus();
+  //     // 성공 처리
+  //     if (done) done.hidden = false;
+  //     form.hidden = true;
+  //     if (bar) bar.style.width = '100%';
+  //     const cta = document.getElementById('ctaSurvey');
+  //     if (cta) cta.focus();
 
-    } catch (err) {
-      console.error(err);
-      if (errorsBox) errorsBox.textContent = '네트워크 오류가 발생했습니다.';
-    }
-  });
+  //   } catch (err) {
+  //     console.error(err);
+  //     if (errorsBox) errorsBox.textContent = '네트워크 오류가 발생했습니다.';
+  //   }
+  // });
   
   const doneClose = document.getElementById('doneClose');
   if (doneClose) {
