@@ -7,96 +7,68 @@
   --illustration-bg:#F3F3F3;
 }
 
-/* 화면 고정 375x812 */
+/* 375x812 고정 */
 html,body{height:100%;}
 body{
   margin:0; background:#eee; display:flex; justify-content:center; align-items:center;
   font-family:Pretendard, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
 }
-.screen{
-  position:relative; width:375px; height:812px; background:var(--bg); overflow:hidden;
-}
+.screen{position:relative; width:375px; height:812px; background:var(--bg); overflow:hidden;}
+.view{position:absolute; inset:0;}
 
-/* 뒤로가기 */
 .btn-back{
   position:absolute; left:21px; top:54px; width:21px; height:27px;
-  padding:0; border:none; background:transparent; cursor:pointer;
+  padding:0; border:none; background:transparent; cursor:pointer; z-index:10;
 }
 
-/* 텍스트 */
-.headline{
-  position:absolute; left:25px; top:149px; margin:0;
-  font-weight:600; font-size:25px; letter-spacing:-0.125px; line-height:15px; color:var(--black);
-}
-.subline-1{
-  position:absolute; left:25px; top:189px; margin:0;
-  font-weight:500; font-size:20px; letter-spacing:-0.1px; line-height:15px; color:var(--black);
-}
-.subline-2{
-  position:absolute; left:25px; top:215px; margin:0;
-  font-weight:500; font-size:20px; letter-spacing:-0.1px; line-height:15px; color:var(--black); white-space:nowrap;
-}
+/* ===== STEP A (선택 화면) ===== */
+.headline{position:absolute; left:25px; top:149px; margin:0; font-weight:600; font-size:25px; letter-spacing:-0.125px; line-height:15px; color:var(--black);}
+.subline-1{position:absolute; left:25px; top:189px; margin:0; font-weight:500; font-size:20px; letter-spacing:-0.1px; line-height:15px; color:var(--black);}
+.subline-2{position:absolute; left:25px; top:215px; margin:0; font-weight:500; font-size:20px; letter-spacing:-0.1px; line-height:15px; color:var(--black); white-space:nowrap;}
 
-/* 폼 */
 .form{width:100%; height:100%;}
 .hidden-django-input{display:none;}
 
-/* 카드+코너 래퍼 (겹침 방지: 코너는 이 래퍼 기준으로 위치) */
-.id-wrap{
-  position:absolute;
-  left:68.05px;   
-  top:334.61px;   
-  width:239.76px; 
-  height:154.81px; 
-}
+.id-wrap{position:absolute; left:68.05px; top:334.61px; width:239.76px; height:154.81px;}
+.id-card-box{position:absolute; inset:0; background:var(--illustration-bg); border-radius:8px; overflow:hidden; z-index:1;}
+.id-card-box .placeholder, #previewImage{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+#previewImage{display:none;}
 
-/* 카드 박스: 내부만 클립 */
-.id-card-box{
-  position:absolute; inset:0;
-  background:var(--illustration-bg);
-  border-radius:8px;
-  overflow:hidden;
-  z-index:1;
-}
-.id-card-box .placeholder,
-#previewImage{
-  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-}
-#previewImage{ display:none; }
+.corner{position:absolute; width:15.53px; height:15.46px; pointer-events:none; z-index:2;}
+.corner.tl{ left:-7.765px;  top:-7.73px;    transform:rotate(0deg);}
+.corner.tr{ right:-7.765px; top:-7.73px;    transform:rotate(90deg);}
+.corner.br{ right:-7.765px; bottom:-7.73px; transform:rotate(180deg);}
+.corner.bl{ left:-7.765px;  bottom:-7.73px; transform:rotate(270deg);}
 
-/* 코너 — 카드 밖으로 1/2만큼 내보내기 */
-.corner{
-  position:absolute;
-  width:15.53px;        
-  height:15.46px;         
-  pointer-events:none;
-  z-index:2;             
-}
-/* half offsets */
-.corner.tl{ left:-7.765px;  top:-7.73px;    transform:rotate(0deg);   }
-.corner.tr{ right:-7.765px; top:-7.73px;    transform:rotate(90deg);  }
-.corner.br{ right:-7.765px; bottom:-7.73px; transform:rotate(180deg); }
-.corner.bl{ left:-7.765px;  bottom:-7.73px; transform:rotate(270deg); }
+.privacy-note{position:absolute; left:50%; transform:translateX(-50%); top:618px; margin:0; font-size:16px; line-height:15px; font-weight:500; color:var(--muted); white-space:nowrap;}
 
-/* 안내문 */
-.privacy-note{
-  position:absolute; left:50%; transform:translateX(-50%);
-  top:618px; margin:0; font-size:16px; line-height:15px; font-weight:500; color:var(--muted); white-space:nowrap;
-}
-
-/* 버튼 */
-.btn{
-  position:absolute; left:16px; width:343px; height:56px;
-  border-radius:10px; border:none; font-weight:700; font-size:20px; line-height:22px; cursor:pointer;
-}
+.btn{position:absolute; left:16px; width:343px; height:56px; border-radius:10px; border:none; font-weight:700; font-size:20px; line-height:22px; cursor:pointer;}
 .btn-outline{top:650px; background:var(--secondary); color:var(--primary);}
-.btn-outline:active{transform:scale(0.995);}
 .btn-primary{top:722px; background:var(--primary); color:#fff;}
-.btn-primary:disabled{opacity:.5; cursor:not-allowed;}
-.btn-primary:active{transform:scale(0.995);}
+.btn:active{transform:scale(0.995);}
 
-/* 접근성 숨김 */
-.visually-hidden{
-  position:absolute !important; width:1px; height:1px; margin:-1px; border:0; padding:0;
-  clip:rect(0 0 0 0); clip-path:inset(50%); overflow:hidden;
+.visually-hidden{position:absolute !important; width:1px; height:1px; margin:-1px; border:0; padding:0; clip:rect(0 0 0 0); clip-path:inset(50%); overflow:hidden;}
+
+/* ===== STEP B (확인 화면) ===== */
+.review-title{position:absolute; left:25px; top:149px; margin:0; font-weight:600; font-size:25px; color:var(--black);}
+.review-photo{
+  position:absolute; left:25px; top:321px; width:326px; height:182px;
+  background:#F3F3F3; border-radius:8px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
 }
+.review-photo .ph{font-weight:600; font-size:25px; color:#121212; line-height:15px;}
+#reviewImage{display:none; width:100%; height:100%; object-fit:contain; background:#fff;}
+#step-review .btn-outline{top:650px;}
+#step-review .btn-primary{top:722px;}
+
+/* ===== STEP C (완료 화면) ===== */
+.done-title{
+  position:absolute; top:294px; left:50%; transform:translateX(-50%);
+  margin:0; color:#121212; font-weight:600; font-size:25px; letter-spacing:-0.125px; line-height:15px;
+  text-align:center; white-space:nowrap;
+}
+.done-check{
+  position:absolute; width:130px; height:130px; top:345px; left:50%; transform:translateX(-50%);
+  display:block;
+}
+#step-done .btn-primary{ top:722px; left:16px; width:343px; height:56px; }
