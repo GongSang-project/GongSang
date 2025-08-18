@@ -22,44 +22,41 @@ def calculate_matching_score(youth_user: User, owner_user: User) -> int:
 
     score = 0
 
-    # 1. 활동 시간대 (preferred_time)
-    if youth_user.preferred_time == owner_user.preferred_time:
-        score += WEIGHTS['preferred_time']
+    # 1. 일치 여부로 점수를 계산하는 항목들
+    simple_match_fields = [
+        'preferred_time', 'conversation_style', 'meal_preference',
+        'space_sharing_preference', 'pet_preference', 'smoking_preference',
+        'weekend_preference'
+    ]
 
-    # 2. 대화 스타일 (conversation_style)
-    if youth_user.conversation_style == owner_user.conversation_style:
-        score += WEIGHTS['conversation_style']
+    for field in simple_match_fields:
+        youth_value = getattr(youth_user, field)
+        owner_value = getattr(owner_user, field)
+        if youth_value == owner_value:
+            score += WEIGHTS[field]
 
-    # 3. 중요한 점 (important_points)
-    if youth_user.important_points == owner_user.important_points:
-        score += WEIGHTS['important_points']
+    # 2. 중요한 점 (important_points) - 다중 선택 로직
+    youth_points = set(youth_user.important_points.split(',') if youth_user.important_points else [])
+    owner_points = set(owner_user.important_points.split(',') if owner_user.important_points else [])
 
-    # 4. 소음 발생 (noise_level)
-    # A=항상, B=특정, C=거의안함 -> 차이가 적을수록 점수 높게
-    diff = abs(ord(youth_user.noise_level) - ord(owner_user.noise_level))
-    score += (2 - diff) * (WEIGHTS['noise_level'] / 2)
+    if youth_points or owner_points:
+        match_count = len(youth_points.intersection(owner_points))
+        # 두 사용자 중 선택 개수가 더 많은 쪽을 기준으로 일치율 계산
+        max_choices = max(len(youth_points), len(owner_points))
+        if max_choices > 0:
+            score += (match_count / max_choices) * WEIGHTS['important_points']
+    elif not youth_points and not owner_points:
+        # 둘 다 항목을 선택하지 않은 경우, 어느 정도의 일치로 간주
+        score += WEIGHTS['important_points'] * 0.5
 
-    # 5. 식사 (meal_preference)
-    if youth_user.meal_preference == owner_user.meal_preference:
-        score += WEIGHTS['meal_preference']
+    # 3. 소음 발생 (noise_level) - 차이 기반 로직
+    noise_mapping = {'A': 0, 'B': 1, 'C': 2}
+    if youth_user.noise_level and owner_user.noise_level:
+        diff = abs(noise_mapping[youth_user.noise_level] - noise_mapping[owner_user.noise_level])
+        # 차이가 클수록 점수를 덜 주는 방식
+        # 2개 차이 -> 0점, 1개 차이 -> 4.5점, 0개 차이 -> 9점
+        score += (2 - diff) / 2 * WEIGHTS['noise_level']
 
-    # 6. 공간 공유 (space_sharing_preference)
-    if youth_user.space_sharing_preference == owner_user.space_sharing_preference:
-        score += WEIGHTS['space_sharing_preference']
-
-    # 7. 반려동물 (pet_preference)
-    if youth_user.pet_preference == owner_user.pet_preference:
-        score += WEIGHTS['pet_preference']
-
-    # 8. 흡연 (smoking_preference)
-    if youth_user.smoking_preference == owner_user.smoking_preference:
-        score += WEIGHTS['smoking_preference']
-
-    # 9. 주말 (weekend_preference)
-    if youth_user.weekend_preference == owner_user.weekend_preference:
-        score += WEIGHTS['weekend_preference']
-
-    # 총점 계산 (0~100점 범위)
-    # 매칭 점수 = Σ(문항별 일치 점수 x 가중치) / Σ(가중치) x 100
+    # 최종 점수 계산 및 반올림
     normalized_score = (score / TOTAL_WEIGHT) * 100
     return round(normalized_score)

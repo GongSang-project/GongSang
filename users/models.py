@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 
 class User(AbstractUser):
@@ -53,7 +54,11 @@ class User(AbstractUser):
         ('D', '🙋 배려심'),
         ('E', '🔏 사생활 존중'),
     ]
-    important_points = models.CharField(max_length=2, choices=IMPORTANT_CHOICES, null=True, blank=True)
+    important_points = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='생활 공간에서 가장 중요하게 생각하는 점'
+    )
 
     #설문 4 - 식사
     MEAL_CHOICES = [
@@ -124,7 +129,6 @@ class User(AbstractUser):
         ALONE_FEMALE_SENIOR = "alone_female_senior", "혼자"
         SENIOR_COUPLE = "senior_couple", "시니어 부부"
         GRANDCHILD = "grandchild", "손자"
-        OTHER = "other", "기타"
 
     living_type = models.CharField(
         max_length=30,

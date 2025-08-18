@@ -63,7 +63,11 @@ class SurveyWizard(SessionWizardView):
         # 데이터가 없는 필드는 기본값 유지.
         user.preferred_time = form_data.get('preferred_time', user.preferred_time)
         user.conversation_style = form_data.get('conversation_style', user.conversation_style)
-        user.important_points = form_data.get('important_points', user.important_points)
+        if 'important_points' in form_data:
+            selected_points = form_data.get('important_points', [])
+            user.important_points = ','.join(selected_points)
+        else:
+            user.important_points = ''
         user.meal_preference = form_data.get('meal_preference', user.meal_preference)
         user.weekend_preference = form_data.get('weekend_preference', user.weekend_preference)
         user.smoking_preference = form_data.get('smoking_preference', user.smoking_preference)
