@@ -74,6 +74,18 @@ class Room(models.Model):
     address_district = models.CharField(verbose_name="주소(읍/면/동)", max_length=50, blank=True, null=True)
     address_detailed = models.CharField(verbose_name="상세주소(도로명/동/호)", max_length=50, blank=True, null=True)
 
+    # 등기부 등본
+    land_register_document = models.FileField(
+        verbose_name="등기부 등본",
+        upload_to='land_registers/',
+        null=True,
+        blank=True
+    )
+    is_land_register_verified = models.BooleanField(
+        verbose_name="등기부 등본 인증 여부",
+        default=False
+    )
+
     # 추가 정보
     can_short_term = models.BooleanField(verbose_name="단기 거주 가능 여부", default=False)
     toilet_count = models.IntegerField(verbose_name="화장실 개수", default=1, validators=[MinValueValidator(1)])
