@@ -5,42 +5,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=375, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>신분증 사진 첨부</title>
-
-  <!-- Pretendard -->
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
-  <!-- CSS -->
   <link rel="stylesheet" href="{% static 'users/css/upload_id_card.css' %}">
 </head>
 <body>
-  <div class="screen">
-    <!-- 뒤로가기 -->
-    <button class="btn-back" type="button" aria-label="뒤로가기" onclick="history.back()">
+  <div class="screen" id="app">
+    <!-- 뒤로가기: 항상 바로 앞 단계로 -->
+    <button class="btn-back" type="button" aria-label="뒤로가기" id="btnBack">
       <svg width="21" height="27" viewBox="0 0 21 27" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M14.6133 6L6.61328 13.5L14.6133 21" stroke="#959595" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
 
-    <!-- 텍스트 -->
-    <h1 class="headline">신원 인증이 필요해요</h1>
-    <p class="subline-1">주민등록증 또는 운전면허증을</p>
-    <p class="subline-2">찍거나 사진을 첨부해주세요</p>
+    <!-- STEP A. 업로드 선택 화면 -->
+    <section class="view" id="step-choose">
+      <h1 class="headline">신원 인증이 필요해요</h1>
+      <p class="subline-1">주민등록증 또는 운전면허증을</p>
+      <p class="subline-2">찍거나 사진을 첨부해주세요</p>
 
-    <!-- 업로드 폼 -->
-    <form id="idForm" method="post" enctype="multipart/form-data" class="form">
-      {% csrf_token %}
-      <div class="hidden-django-input">
-        {{ form.id_card_image }}
-      </div>
-
-      <!-- 카드+코너 래퍼 (Figma 좌표/크기 고정) -->
-      <div class="id-wrap" id="previewBox" aria-live="polite">
+      <!-- 카드 + 코너 -->
+      <div class="id-wrap" id="previewBox">
         <div class="id-card-box">
-          <!-- 배경/플레이스홀더 (이미지는 네가 내려받아 넣기) -->
           <img src="{% static 'users/images/id-illustration.svg' %}" alt="" class="placeholder">
           <img id="previewImage" alt="선택된 신분증 미리보기" />
         </div>
-
-        <!-- 코너 4개: 하나의 에셋을 회전해서 사용 -->
         <img class="corner tl" src="{% static 'users/images/corner-l.svg' %}" alt="">
         <img class="corner tr" src="{% static 'users/images/corner-l.svg' %}" alt="">
         <img class="corner br" src="{% static 'users/images/corner-l.svg' %}" alt="">
@@ -52,14 +40,45 @@
       <button type="button" id="btnCamera"  class="btn btn-outline">카메라로 촬영</button>
       <button type="button" id="btnGallery" class="btn btn-primary">사진 첨부</button>
 
-      <!-- 실제 입력 (접근성용) -->
-      <input id="cameraInput"  class="visually-hidden" type="file" accept="image/*" capture="environment">
-      <input id="galleryInput" class="visually-hidden" type="file" accept="image/*">
-      <button id="submitNext" type="submit" class="visually-hidden">다음</button>
-    </form>
+      <!-- Django form: 최종 제출에 사용 -->
+      <form id="idForm" method="post" enctype="multipart/form-data" class="form">
+        {% csrf_token %}
+        <div class="hidden-django-input">
+          {{ form.id_card_image }}
+        </div>
+        <!-- 카메라/갤러리 fallback -->
+        <input id="cameraInput"  class="visually-hidden" type="file" accept="image/*" capture="environment">
+        <input id="galleryInput" class="visually-hidden" type="file" accept="image/*">
+        <button id="submitNext" type="submit" class="visually-hidden">다음</button>
+      </form>
+    </section>
+
+    <!-- STEP B. 확인 화면 (카메라/첨부 공용 UI, 라벨만 다름) -->
+    <section class="view" id="step-review" hidden>
+      <h1 class="review-title">
+        <span>신분증 정보를</span><br />
+        <span>확인해주세요</span>
+      </h1>
+
+      <div class="review-photo">
+        <img id="reviewImage" alt="신분증 사진" />
+        <div class="ph">신분증 사진</div>
+      </div>
+
+      <button type="button" class="btn btn-outline" id="btnAgain">다시 촬영</button>
+      <button type="button" class="btn btn-primary" id="btnConfirm">확인</button>
+    </section>
+
+    <!-- STEP C. 완료 화면 -->
+    <section class="view" id="step-done" hidden>
+      <h1 class="done-title">신원 확인이 되었습니다!</h1>
+      <!-- 체크 아이콘 -->
+      <img class="done-check" src="{% static 'users/images/id-verify-check.svg' %}" alt="확인 완료 아이콘">
+      <!-- 폼 제출 -->
+      <button type="button" class="btn btn-primary" id="btnGoSurvey">성향 조사하기</button>
+    </section>
   </div>
 
-  <!-- JS -->
   <script src="{% static 'users/js/upload_id_card.js' %}"></script>
 </body>
 </html>
