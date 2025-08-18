@@ -1,22 +1,71 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>동거 형태 입력</title>
+    <link rel="stylesheet" href="{% static 'users/css/info_senior.css' %}">
+
 </head>
 <body>
-    <h1>동거 형태 입력 (어르신)</h1>
-    <form method="post">
+  <div id="root">
+    <div id="app-wrapper">
+
+      <div class="header">
+        <a href="/users/user_info/">
+          <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
+        </a>
+        <h1>기본 정보</h1>
+      </div>
+
+      <!--상단 진행 바-->
+      <div class="progress-wrap" aria-label="진행률">
+        <div id="progressBar" class="progress-bar" style="width:0%"></div>
+      </div>
+
+      <h1 class="num">2/2</h1>
+      <h2>어떤 형태로 살고 계신가요?</h2>
+      <h1 class="qu1">함께 사는 분이 있다면 </h1>
+      <h1 class="qu2">관계를 선택해주세요</h1>
+
+      <form method="post" id="userInfoForm" novalidate>
       {% csrf_token %}
       <div>
-        <label for="id_living_type">동거 형태:</label>
-        {{ form.living_type }}
+        <div class="radio-cards">
+          {% for opt in form.living_type %}
+          <label class="radio-card">
+           {{ opt.tag }}  <!-- 실제 라디오 input -->
+            <div class="card">
+              <span class="dot" aria-hidden="true"></span>
+              <!-- 필요하면 이모지 붙이기 -->
+              <span class="emoji" aria-hidden="true">
+              {% if "혼자" in opt.choice_label %}🧓
+              {% elif "부부" in opt.choice_label %}👵👴
+              {% elif "손자" in opt.choice_label %}👧👦
+              {% endif %}
+              </span>
+              <span class="txt">{{ opt.choice_label }}</span>
+            </div>
+          </label>
+          {% endfor %}
+          <div id="otherWrap" class="radio-card other">
+            <div class="card" id="otherCard">
+             <label for="id_living_type_other" class="txt other-label">기타</label>
+             {{ form.living_type_other }}
+            </div>
+          </div>
+        </div>
+        </div>
+
       </div>
-      <div>
-        <label for="id_living_type_other">기타 (직접 입력):</label>
-        {{ form.living_type_other }}
-      </div>
-      <button type="submit">다음</button>
     </form>
+
+<button id="submitBtn" type="submit" form="userInfoForm" disabled>다음</button>
+
+    </div>
+  </div>
+  <script src="{% static 'users/js/info_senior.js' %}?v=8"></script>
+
 </body>
 </html>

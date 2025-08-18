@@ -1,0 +1,290 @@
+/*공통 스타일*/
+
+/* 폰트 불러오기 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* Tmoney RoundWind Regular */
+@font-face {
+    font-family: 'TmoneyRoundWindRegular';
+    src: url('https://cdn.jsdelivr.net/gh/woffz/a1@main/Tmoney/TmoneyRoundWindRegular.woff') format('woff');
+    font-weight: normal;
+    font-style: Regular;
+}
+
+
+/* Tmoney RoundWind ExtraBold */
+@font-face {
+    font-family: 'TmoneyRoundWindExtraBold';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/TmoneyRoundWindExtraBold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root{
+  --brand:#F26430;
+  --brand-weak:#FFEBD9;
+  --ink:#121212;
+  --muted:#9e9e9e;
+  --line:#ececec;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: rgb(0, 0, 0);
+    align-self: stretch;
+    padding: 30px 0;
+    padding-bottom: 60px; /* 버튼 높이만큼 */
+    font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+}
+
+#root {
+    width: 375px;
+    height: 812px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    background-color: #fff;
+}
+
+#app-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: block;
+    overflow: auto;
+}
+
+/* 헤더 */
+.header {
+    width: 100%; 
+    height: 102.94px;
+    display: flex;
+}
+
+.back-btn{
+  -webkit-appearance:none;
+  appearance:none;
+  background:none;
+  border:0;
+  padding:0;
+  margin:0;
+  font:inherit;
+  color:inherit;
+  line-height:0;   
+  cursor:pointer;
+}
+
+.icon {
+    width: 20px;
+    height: 27px;
+    padding: 6px;
+    position: absolute;
+    top:54px;
+    left:20.6133px;
+
+}
+
+.header > h1 {
+    color: #000;
+    text-align: center;
+    font-family: 'Inter';
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: -0.46px;
+    width: 78px;
+    height: 30px;
+    position:absolute;
+    top:52px;
+    left:149px;
+    margin: 0px;
+    display:flex;
+    align-items:center;       
+    justify-content:center;    
+}
+
+/* 진행 바 */
+.progress-wrap {
+     width:100%; height:5px; 
+     background:#ececec; 
+}
+.progress-bar  { 
+    width:0; height:100%;
+    background:#F1662A; 
+    transition:width .25s ease; 
+}
+
+/* 질문 번호 */
+.num {
+    position: absolute;
+    top: 126.75px;
+    left: 24px;
+    width: auto; height: 15px;
+    color: #515151;
+
+    font-family: 'Pretendard';
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: -0.075px;
+    margin: 0 0;
+}
+/* 질문 타이틀 */
+.question{
+    position: absolute;
+    top:158px;
+    left:23px;
+    margin: 0 0;
+    color: #000;
+
+/* Headline 1 */
+font-family: 'Pretendard';
+font-size: 25px;
+font-style: normal;
+font-weight: 600;
+line-height: 35px;
+letter-spacing: -0.125px;
+
+}
+
+/* 선택지 리스트 */
+.choice-list{
+    width: 325px;
+    position: absolute;
+    top: 273px;
+    left:25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap:30px;
+
+}
+
+/* 라벨 전체가 클릭영역 */
+.choice-card{
+    display:block;
+    position:relative
+}
+
+/* 실제 input은 안 보이게 */
+.choice-card input{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  cursor:pointer;
+  margin:0;
+}
+
+/* 카드 UI */
+.card{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:325px;
+  min-height:56px;
+  padding:18px 23.3px;
+  border-radius:10px;
+  background:#fff;
+  box-shadow:0 0 7px rgba(0,0,0,.15);
+  transition:background-color .2s ease,border-color .2s ease;
+  border:0px;
+}
+.card .txt {
+  color: #121212;
+  font-family: Pretendard;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 15px; /* 75% */
+  letter-spacing: -0.1px;
+}
+
+/* 선택되었을 때 하이라이트 */
+.choice-card input[type="radio"]:checked + .card,
+.choice-card input[type="checkbox"]:checked + .card{
+border: 2px solid #F26430;
+background: #FFEBD9;
+box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.15);
+}
+.choice-card input[type="radio"]:checked + .card .txt,
+.choice-card input[type="checkbox"]:checked + .card .txt{
+    color:#F26430;
+    font-weight: 700;
+}
+
+/* 텍스트영역 */
+.textarea-card{
+    width:323px;
+    height:118px;
+    flex-shrink: 0;
+    position: absolute;
+    top: 306px;
+    left: 27px;
+    border: 1px solid #C3C3C3;
+    border-radius: 10px;
+    background: #FFF;
+}
+
+.textarea-card textarea{
+  width:100%;
+  min-height:118px;
+  padding-top:24px;
+  padding-left:21.33px;
+  border:0;
+  outline:0;
+  resize:none;
+  overflow: auto;
+  font-family:'Pretendard';
+  font-size:20px;
+  color:#333;
+  background:transparent;
+}
+
+/* 체크박스 힌트 */
+.hint{
+    margin:0 0;
+    color:#777;
+    font-size:13px;
+    position: absolute;
+    top:683px;
+    left:30px;
+
+}
+.hint.error{color:#c0392b}
+
+/* 다음 버튼 */
+.cta{
+    width: 343px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    display: flex block;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-decoration: none;
+
+    font-family: 'Pretendard';
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 22px; /* 110% */
+
+    background-color: #959595;
+    color:white;
+    border: 0px;
+
+    position: absolute;
+    top:722px;
+    left:16px;
+    
+}
+.cta:not(:disabled){
+    background:#F26430;
+    cursor:pointer;
+    border: 0px;
+}

@@ -29,7 +29,6 @@ body {
     background-color: rgb(0, 0, 0);
     align-self: stretch;
     padding: 30px 0;
-    padding-bottom: 60px; /* 버튼 높이만큼 */
     font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
 }
 
@@ -50,30 +49,45 @@ body {
     overflow: auto;
 }
 
-.logo{
-    color: #F26430;
-    text-align: center;
-    font-family: "TmoneyRoundWindExtraBold";
-    font-size: 64px;
-    font-style: normal;
-    font-weight: 800;
-    line-height: 15px; /* 23.438% */
-    letter-spacing: -0.32px;
-    margin-top: 293px;
-    margin-bottom: 0px;
+.logo_l {
+width: 243.48px;
+height: 100.24px;
+flex-shrink: 0;
+position: absolute;
+top:263px;
+left:66px;
 
 }
 
-.logo-de{
-    color: var(--, #515151);
-    text-align: center;
-    font-family: "TmoneyRoundWindRegular";
-    font-size: 20px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: 15px; /* 75% */
-    letter-spacing: -0.1px;
-    margin-top: 34.86px;
+.name_l{
+color: #515151;
+text-align: center;
+font-family: "Tmoney RoundWind";
+font-size: 20px;
+font-style: normal;
+font-weight: 400;
+line-height: 15px; /* 75% */
+letter-spacing: -0.1px;
+position: absolute;
+top:391px;
+left:110px;
+margin: 0 0;
+}
+
+.name_l2 {
+color: #F26430;
+text-align: center;
+font-family: "Tmoney RoundWind";
+font-size: 20px;
+font-style: normal;
+font-weight: 400;
+line-height: 15px; /* 75% */
+letter-spacing: -0.1px;
+position: absolute;
+top: 391px;
+left:228px;
+margin: 0 0;
+
 }
 
 .selection-buttons{
@@ -101,21 +115,27 @@ body {
     font-style: normal;
     font-weight: 700;
     line-height: 22px; /* 110% */
+
 }
 
 .senior{
     background-color: #F26430;
     color:white;
+    position: absolute;
+    top:653px;
+    left:16px;
 }
 
 .youth{
     background-color: #FFEBD9;
     color:#F26430;
+    position: absolute;
+    top:722px;
+    left:16px;
 }
 
 
-/* 스플레쉬 화면 css */
-/* Splash overlay */
+/* 스플레쉬 화면  */
 .splash {
   position: fixed;
   inset: 0;
@@ -123,7 +143,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ff0000;
+  background: #F26430;
   opacity: 1;
   transition: opacity .4s ease;
   width: 375px;
@@ -131,6 +151,36 @@ body {
   margin: 0 auto;
   margin-top: 30px;
 }
+.splash > div{
+    position: absolute;
+    top:305.8604px;
+    left: 66px;
+    display: flex;
+    gap: 25.76px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+}
+.logo_s {
+width: 243.48px;
+height: 100.24px;
+flex-shrink: 0;
+
+}
+
+.name_s {
+color: #FFEBD9;
+text-align: center;
+font-family: "Tmoney RoundWind";
+font-size: 20px;
+font-style: normal;
+font-weight: 400;
+line-height: 15px; /* 75% */
+letter-spacing: -0.1px;
+margin: 0 0;
+}
+
 
 /* 사라질 때 */
 .splash.hidden {

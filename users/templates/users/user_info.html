@@ -1,30 +1,76 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>기본 정보 입력</title>
+    <link rel="stylesheet" href="{% static 'users/css/user_info.css' %}">
 </head>
 <body>
-    <h1>기본 정보 입력</h1>
-    <form method="post">
+  <div id="root">
+    <div id="app-wrapper">
+
+      <div class="header">
+        <a href="/users/select_user/">
+          <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
+        </a>
+        <h1>기본 정보</h1>
+      </div>
+      
+
+      <!--상단 진행 바-->
+      <div class="progress-wrap" aria-label="진행률">
+        <div id="progressBar" class="progress-bar" style="width:0%"></div>
+      </div>
+
+    <h1 class="num">1/2</h1>
+    <h2>기본 정보를 알려주세요</h2>
+
+    <form method="post" id="userInfoForm" novalidate>
       {% csrf_token %}
+
       <div>
-        <label for="id_username">성명:</label>
+        <label for="id_username">성명</label>
         {{ form.username }}
       </div>
+
       <div>
-        <label for="id_gender">성별:</label>
+        <label for="id_gender">성별</label>
         {{ form.gender }}
       </div>
+
       <div>
-        <label for="id_age">나이:</label>
+        <label for="id_age">나이</label>
         {{ form.age }}
       </div>
+
       <div>
-        <label for="id_phone_number">전화번호:</label>
+        <label for="id_phone_number">전화번호</label>
         {{ form.phone_number }}
       </div>
-      <button type="submit">다음</button>
+
     </form>
+
+    <button id="submitBtn" type="submit" form="userInfoForm">다음</button>
+
+
+    <!-- 완료 화면
+     <section id="doneSection" hidden>
+      <button type="button" id="doneClose" class="icon-btn">
+         <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
+      </button>
+
+      <h1>기본 정보 입력을 완료하였습니다!</h1>
+      <div aria-hidden="true">
+        <img src="{% static 'users/images/check-circle.png' %}" alt="" class="checkmark">
+      </div>
+      <a id="ctaSurvey" class="cta" href="/users/survey/">성향 조사하기</a>
+
+     </section> -->
+    </div>
+  </div>
+<script src="{% static 'users/js/user_info.js' %}?v=8"></script>
+
 </body>
 </html>
