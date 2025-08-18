@@ -2,21 +2,64 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>신분증 사진 첨부</title>
-    <link rel="stylesheet" href="{% static 'users/css/upload_id_card.css' %}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=375, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>신분증 사진 첨부</title>
+
+  <!-- Pretendard -->
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+  <!-- CSS -->
+  <link rel="stylesheet" href="{% static 'users/css/upload_id_card.css' %}">
 </head>
 <body>
-    <h1>신분증 업로드</h1>
-    <form method="post" enctype="multipart/form-data">
+  <div class="screen">
+    <!-- 뒤로가기 -->
+    <button class="btn-back" type="button" aria-label="뒤로가기" onclick="history.back()">
+      <svg width="21" height="27" viewBox="0 0 21 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14.6133 6L6.61328 13.5L14.6133 21" stroke="#959595" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <!-- 텍스트 -->
+    <h1 class="headline">신원 인증이 필요해요</h1>
+    <p class="subline-1">주민등록증 또는 운전면허증을</p>
+    <p class="subline-2">찍거나 사진을 첨부해주세요</p>
+
+    <!-- 업로드 폼 -->
+    <form id="idForm" method="post" enctype="multipart/form-data" class="form">
       {% csrf_token %}
-      <div>
-        <label for="id_id_card_image">신분증 이미지:</label>
+      <div class="hidden-django-input">
         {{ form.id_card_image }}
       </div>
-      <button type="submit">다음</button>
+
+      <!-- 카드+코너 래퍼 (Figma 좌표/크기 고정) -->
+      <div class="id-wrap" id="previewBox" aria-live="polite">
+        <div class="id-card-box">
+          <!-- 배경/플레이스홀더 (이미지는 네가 내려받아 넣기) -->
+          <img src="{% static 'users/images/id-illustration.svg' %}" alt="" class="placeholder">
+          <img id="previewImage" alt="선택된 신분증 미리보기" />
+        </div>
+
+        <!-- 코너 4개: 하나의 에셋을 회전해서 사용 -->
+        <img class="corner tl" src="{% static 'users/images/corner-l.svg' %}" alt="">
+        <img class="corner tr" src="{% static 'users/images/corner-l.svg' %}" alt="">
+        <img class="corner br" src="{% static 'users/images/corner-l.svg' %}" alt="">
+        <img class="corner bl" src="{% static 'users/images/corner-l.svg' %}" alt="">
+      </div>
+
+      <p class="privacy-note">개인정보는 안전하게 보호됩니다.</p>
+
+      <button type="button" id="btnCamera"  class="btn btn-outline">카메라로 촬영</button>
+      <button type="button" id="btnGallery" class="btn btn-primary">사진 첨부</button>
+
+      <!-- 실제 입력 (접근성용) -->
+      <input id="cameraInput"  class="visually-hidden" type="file" accept="image/*" capture="environment">
+      <input id="galleryInput" class="visually-hidden" type="file" accept="image/*">
+      <button id="submitNext" type="submit" class="visually-hidden">다음</button>
     </form>
-    <script src="{% static 'users/js/upload_id_card.js' %}"></script>
+  </div>
+
+  <!-- JS -->
+  <script src="{% static 'users/js/upload_id_card.js' %}"></script>
 </body>
 </html>
