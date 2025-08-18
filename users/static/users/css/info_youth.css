@@ -46,6 +46,7 @@ body {
     height: 100%;
     position: relative;
     display: block;
+    overflow: auto;
 
 }
 
@@ -85,37 +86,6 @@ body {
     justify-content:center;    
 }
 
-.qu1 {
-    position: absolute;
-    top: 190px;
-    left: 25px;
-    width:315px;
-    height: 15px;
-    color:#121212;
-    font-family: 'Pretendard';
-    font-size: 20px;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 15px; /* 75% */
-    letter-spacing: -0.1px;
-    margin: 0%;
-}
-
-.qu2 {
-    position: absolute;
-    top: 216px;
-    left: 25px;
-    width:315px;
-    height: 15px;
-    color:#121212;
-    font-family: 'Pretendard';
-    font-size: 20px;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 15px; /* 75% */
-    letter-spacing: -0.1px;
-    margin: 0%;
-}
 /* 진행 바 */
 .progress-wrap {
      width:100%; height:5px; 
@@ -143,14 +113,13 @@ body {
 }
 
 h2 {
-    color: #121212;
-    font-family: 'Pretendard';
-    font-size: 25px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 15px; /* 60% */
-    letter-spacing: -0.125px;
-    height: 15px;
+   color: #121212;
+   font-family: 'Pretendard';
+   font-size: 25px;
+   font-style: normal;
+   font-weight: 600;
+   line-height: 31px;
+   letter-spacing: -0.125px;
     position: absolute;
     top:158px;
     left:23px;
@@ -158,65 +127,38 @@ h2 {
 
 }
 
+h3{
+    color: #515151;
+    font-family: 'Pretendard';
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 23px;
+    letter-spacing: -0.1px;
+    position: absolute;
+    top: 232px;
+    left: 25px;
+    margin: 0 0;
+}
+
 #userInfoForm {
     display: flex;
     width: 325px;
     flex-direction: column;
     align-items: flex-start;
-    gap: 30px;
+    gap: 45px;
     position: absolute;
-    top:273.0527px;
+    top:311px;
     left:25px;
 }
 
+#userInfoForm > div {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; }
 
-/* 카드 리스트 */
-.radio-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-/* 라벨이 전체 클릭영역 */
-.radio-card {
-  display: block;
-  position: relative;
-}
-
-/* 진짜 라디오는 안 보이게(접근성은 유지) */
-.radio-card input[type="radio"] {
-  position: absolute;
-  inset: 0;         /* 라벨 전체 클릭 가능 */
-  opacity: 0;
-  cursor: pointer;
-}
-
-/* 카드 박스 */
-.radio-card .card {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 325px ;
-  height: 56px;
-  padding-left: 23.3px;
-  padding-top: 18px;
-  padding-bottom: 18px;
-  padding-right: auto;
-  border-radius: 10px;
-  background: #FFF;
-  box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.15);
-  transition: border-color .2s ease, background-color .2s ease;
-}
-
-.radio-card .dot {
-    display: none !important;
-}
-
-.radio-card .emoji { 
-    font-size: 20px; 
-}
-
-.radio-card .txt   {
+#userInfoForm > div > label {
+    align-self: stretch;
     color: #121212;
     font-family: 'Pretendard';
     font-size: 20px;
@@ -224,81 +166,32 @@ h2 {
     font-weight: 500;
     line-height: 15px; /* 75% */
     letter-spacing: -0.1px;
-}
+}    
 
-.radio-card input[type="radio"]:checked + .card .txt {
-  color: #F26430;
-}
+#userInfoForm input#id_interested_province,
+#userInfoForm input#id_interested_city,
+#userInfoForm input#id_interested_district {
+    width: 325px;
+    height: 56px;
+    align-items: center;
+    align-self: stretch;
+    border-radius: 10px;
+    border: 1px solid #C3C3C3;
+    background:#FFF;
+    padding: 18px 16px;
 
-
-.radio-card input[type="radio"]:checked + .card {
-border: 2px solid #F26430;
-background: #FFEBD9;
-color:#F26430;
-}
-
-/* --- 기타 카드 공통 --- */
-.radio-card.other {
-  position: relative;
-}
-
-/* 카드 내부 입력창 정렬 */
-.radio-card.other #id_living_type_other {
-  /* 카드 안 오른쪽에 붙는 인라인 입력 */
-  margin-left: 0px;
-  flex: 1 1 auto;
-  height: 32px;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-family: 'Pretendard';
-  font-size: 18px;
-  line-height: 1;
-  padding: 0;
-}
-
-/* placeholder 색 약간 연함 */
-.radio-card.other #id_living_type_other::placeholder {
-    font-family: 'Pretendard';
-    font-weight: 500;
-    font-style: Medium;
+    font-family: 'Pretendard', system-ui, '-apple-system', 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
     font-size: 20px;
+    font-weight: 500;
+    font-style: normal;
     line-height: 15px;
-    letter-spacing: -0.5%;
-    color: #9e9e9e;
-    margin-right: 0px ;
-}
-
-/* 카드 자체는 라디오 카드와 동일 */
-.radio-card.other .card {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 325px;
-  height: 56px;
-  padding: 18px 16px 18px 23px;
-  border-radius: 10px;
-  background: #FFF;
-  box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.15);
-  transition: border-color .2s ease, background-color .2s ease;
-}
-
-/* 활성화 상태(입력 포커스 혹은 값 존재 시) → 라디오의 checked 상태와 동일한 룰 */
-.radio-card.other .card.active {
-  border: 2px solid #F26430;
-  background: #FFEBD9;
-  color: #F26430;
-}
-
-/* 활성화 시 텍스트 컬러도 동일하게 */
-.radio-card.other .card.active .txt {
-  color: #F26430;
+    color: #121212;
 }
 
 
 #submitBtn {
     position: absolute;
-    top:722px;
+    top: 722px;
     left: 16px;
     display: flex;
     width: 343px;

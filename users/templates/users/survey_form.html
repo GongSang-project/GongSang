@@ -2,37 +2,77 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>설문조사</title>
-    <link rel="stylesheet" href="{% static 'users/css/survey_form.css' %}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>성향 조사</title>
+  <link rel="stylesheet" href="{% static 'users/css/survey_form.css' %}">
 </head>
 <body>
-    <div id="root">
-        <div id="app-wrapper">
-            
+  <div id="root">
+    <div id="app-wrapper" data-step="{{ wizard.steps.step1 }}" data-total="10">
 
-            <div class="survey-container">
-               <form action="" method="post">
-                {% csrf_token %}
+     <!-- 상단 헤더 -->
+      <div class="header">
+        {% if wizard.steps.prev %}
+        <button class="back-btn" type="submit" name="wizard_goto_step" value="{{ wizard.steps.prev }}" form="surveyForm" aria-label="이전">
+          <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
+        </button>
+        {% endif %}
+          <a id="selectUserLink" href="/users/select_user/">
+           <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
+          </a>
+          
+        <h1>성향 조사</h1>
+      </div>
 
-                <h2>질문 {{ wizard.steps.step1 }} / 10</h2>
+      <!-- 상단 진행 바 -->
+      <div class="progress-wrap" aria-label="진행률">
+        <div id="progressBar" class="progress-bar" style="width: 0%;"></div>
+      </div>
 
-                {{ wizard.management_form }}
-                {{ wizard.form.as_p }}
+      <form action="" method="post" id="surveyForm" novalidate>
+        {% csrf_token %}
+        {{ wizard.management_form }}
 
-                {% if wizard.steps.prev %}
-                <button name="wizard_goto_step" type="submit" value="{{ wizard.steps.prev }}">이전</button>
-                 {% endif %}
+        <!-- 현재 단계 번호 -->
+        <h1 class="num">{{ wizard.steps.step1 }} / 10</h1>
 
-                <button type="submit" name="skip_step" value="1">종료</button>
+        {% for field in wizard.form.visible_fields %}
+        <h2 class="question">{{ field.label|safe }}</h2>
 
-                <button type="submit">다음</button>
-                </form>
-            </div>
+        {# 라디오/체크박스#}
+        {% if field.field.choices %}
+        <div class="choice-list">
+          {% for opt in field %}
+            <label class="choice-card">
+             {{ opt.tag }}
+              <div class="card">
+                 <span class="txt">{{ opt.choice_label }}</span>
+               </div>
+            </label>
+          {% endfor %}
         </div>
-    </div>
 
-    <script src="{% static 'users/js/survey_form.js' %}"></script>
+        {# 체크박스(다중 선택)면 힌트 표시 #}
+        {% if field.field.widget.allow_multiple_selected %}
+        <div id="checkHint" class="hint">최대 2개까지 선택할 수 있어요.</div>
+           {% endif %}
+
+        {# Textarea #}
+        {% else %}
+         <div class="textarea-card">
+           {{ field }}
+        </div>
+        {% endif %}
+        {% endfor %}
+
+
+        <!-- 다음 버튼 -->
+        <button type="submit" id="nextBtn" class="cta" disabled>다음</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="{% static 'users/js/survey_form.js' %}"></script>
 </body>
 </html>

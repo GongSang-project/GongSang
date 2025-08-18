@@ -23,7 +23,10 @@ class SeniorLivingTypeForm(forms.ModelForm):
     living_type_other = forms.CharField(
         label='기타 (직접 입력)',
         max_length=100,
-        required=False
+        required=False,
+        widget=forms.TextInput(attrs={
+            'placeholder': ': 직접 입력',
+        })   
     )
 
     class Meta:
@@ -55,7 +58,7 @@ class SurveyStep1Form(forms.Form):
     preferred_time = forms.ChoiceField(
         choices=User.TIME_CHOICES,
         widget=forms.RadioSelect,
-        label='하루 중 가장 활동적인 시간대는 언제인가요?',
+        label='하루 중 가장 활동적인 시간대는<br>언제인가요?',
         required=False
     )
 
@@ -63,7 +66,7 @@ class SurveyStep2Form(forms.Form):
     conversation_style = forms.ChoiceField(
         choices=User.STYLE_CHOICES,
         widget=forms.RadioSelect,
-        label='함께 지내는 분과의 대화는 어느 정도가 좋으세요?',
+        label='함께 지내는 분과의 대화는<br>어느 정도가 좋으세요?',
         required=False
     )
 
@@ -71,7 +74,7 @@ class SurveyStep3Form(forms.Form):
     important_points = forms.MultipleChoiceField(
         choices=User.IMPORTANT_CHOICES,
         widget=forms.CheckboxSelectMultiple,
-        label='생활 공간에서 가장 중요하게 생각하는 점은 무엇인가요? (최대 2개 선택)',
+        label='생활 공간에서 가장 중요하게<br>생각하는 점은 무엇인가요?',
         required=False
     )
 
@@ -88,7 +91,7 @@ class SurveyStep4Form(forms.Form):
     meal_preference = forms.ChoiceField(
         choices=User.MEAL_CHOICES,
         widget=forms.RadioSelect,
-        label='음식을 함께 나눠 먹는 것에 대해 어떻게 생각하시나요?',
+        label='음식을 함께 나눠 먹는 것에 대해<br>어떻게 생각하시나요?',
         required=False
     )
 
@@ -96,7 +99,7 @@ class SurveyStep5Form(forms.Form):
     weekend_preference = forms.ChoiceField(
         choices=User.WEEKEND_CHOICES,
         widget=forms.RadioSelect,
-        label='주말에는 주로 어떻게 시간을 보내세요?',
+        label='주말에는 주로 어떻게 시간을<br>보내세요?',
         required=False
     )
 
@@ -114,7 +117,7 @@ class SurveyStep7Form(forms.Form):
     noise_level = forms.ChoiceField(
         choices=User.NOISE_CHOICES,
         widget=forms.RadioSelect,
-        label='TV, 음악, 통화 등의 생활 소음에 대해 어떻게 생각하세요?',
+        label='TV, 음악, 통화 등의 생활 소음에<br>대해 어떻게 생각하세요?',
         required=False
     )
 
@@ -123,7 +126,7 @@ class SurveyStep8Form(forms.Form):
     space_sharing_preference = forms.ChoiceField(
         choices=User.SPACE_CHOICES,
         widget=forms.RadioSelect,
-        label='공용공간(거실, 주방 등)을 얼마나 자주 사용하세요?',
+        label='공용공간(거실, 주방 등)을 얼마나<br>자주 사용하세요?',
         required=False
     )
 
@@ -131,15 +134,18 @@ class SurveyStep9Form(forms.Form):
     pet_preference = forms.ChoiceField(
         choices=User.PET_CHOICES,
         widget=forms.RadioSelect,
-        label='반려동물과 함께 지내는 것에 대해 어떻게 생각하세요?',
+        label='반려동물과 함께 지내는 것에 대해<br>어떻게 생각하세요?',
         required=False
     )
 
 class SurveyStep10Form(forms.Form):
     wishes = forms.CharField(
-        widget=forms.Textarea,
-        label='함께 살게 될 청년(또는 어르신)에게 바라는 점이 있다면 자유롭게 적어주세요. (선택 응답)',
+         widget=forms.Textarea(attrs={
+            'placeholder': '직접 입력(선택 응답)',
+        }),
+        label='함께 살게 될 동거인에게<br>바라는 점이 있다면<br>자유롭게 적어주세요.',
         required=False,
+        
     )
 
 # 4. (청년) 지역조사

@@ -34,7 +34,7 @@ class User(AbstractUser):
 
     #설문 1 - 활동 시간대
     TIME_CHOICES = [
-        ('A', '🌅 아침형'),
+        ('A', '🌤️ 아침형'),
         ('B', '🌙 저녁형'),
     ]
     preferred_time = models.CharField(max_length=1, choices=TIME_CHOICES, null=True, blank=True)
@@ -42,7 +42,7 @@ class User(AbstractUser):
     #설문 2 - 대화 스타일
     STYLE_CHOICES = [
         ('A', '🤫 필요한 대화만'),
-        ('B', '💬 자주 대화'),
+        ('B', '🗣️ 자주 대화'),
     ]
     conversation_style = models.CharField(max_length=1, choices=STYLE_CHOICES, null=True, blank=True)
 
@@ -50,7 +50,7 @@ class User(AbstractUser):
     IMPORTANT_CHOICES = [
         ('A', '🧹 청결'),
         ('B', '🛌 생활 리듬'),
-        ('C', '🧍 소통'),
+        ('C', '🕊️ 소통'),
         ('D', '🙋 배려심'),
         ('E', '🔏 사생활 존중'),
     ]
@@ -62,7 +62,7 @@ class User(AbstractUser):
 
     #설문 4 - 식사
     MEAL_CHOICES = [
-        ('A', '	🍽️ 함께 먹기 좋아해요'),
+        ('A', '🍽️ 함께 먹기 좋아해요'),
         ('B', '🍱 각자 먹기 선호해요'),
     ]
     meal_preference = models.CharField(max_length=1, choices=MEAL_CHOICES, null=True, blank=True)
@@ -83,8 +83,8 @@ class User(AbstractUser):
 
     #설문 7 - 소음 발생
     NOISE_CHOICES = [
-        ('A', '📺 하루 종일 틀어놓는 편이에요'),
-        ('B', '🎶 특정 시간대만 들어요'),
+        ('A', '🎵 하루 종일 틀어놓는 편이에요'),
+        ('B', '📺 특정 시간대만 들어요'),
         ('C', '🔇 거의 안 켜요'),
     ]
     noise_level = models.CharField(max_length=1, choices=NOISE_CHOICES, null=True, blank=True)
@@ -100,7 +100,7 @@ class User(AbstractUser):
     #설문 9 - 반려동물
     PET_CHOICES = [
         ('A', '🐶 가능'),
-        ('B', '🐱 불가능'),
+        ('B', '🚫 불가능'),
     ]
     pet_preference = models.CharField(max_length=1, choices=PET_CHOICES, null=True, blank=True)
 

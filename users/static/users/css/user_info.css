@@ -201,7 +201,6 @@ h2 {
     letter-spacing: -0.1px;
 }
 
-/* 3) 기본 라디오 숨기지 말고 appearance만 제거해 커스텀 */
 #id_gender input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
@@ -216,7 +215,6 @@ h2 {
   outline: none;
 }
 
-/* 점(안쪽 원) */
 #id_gender input[type="radio"]::before {
   content: "";
   width: 8px;
@@ -224,10 +222,9 @@ h2 {
   border-radius: 50%;
   transform: scale(0);
   transition: 'transform' .15s ease;
-  background: #ffff;      /* 주황색 점 */
+  background: #ffff;      
 }
 
-/* 체크됐을 때 오렌지 아웃라인 + 점 표시 */
 #id_gender input[type="radio"]:checked { 
   border: 5px solid #F26430;
 }
@@ -235,19 +232,12 @@ h2 {
   transform: scale(1);
 }
 
-/* 포커스(키보드 이동) 보조 */
 #id_gender input[type="radio"]:focus-visible {
   outline: 2px solid #ffd7c7;
   outline-offset: 2px;
 }
 
-/* 4) 각 항목 앞에 이모지 붙이기 (label:has 이용) */
-/* 값이 무엇인지에 따라 value 셀렉터를 맞춰줘야 해! (F/M 또는 여성/남성 등) */
-#id_gender label:has(input[value="여성"]),
-#id_gender label:has(input[value="F"]) {
-  /* 라벨 앞쪽에 이모지 */
-  position: relative;
-}
+
 #id_gender label:has(input[value="여성"])::before,
 #id_gender label:has(input[value="F"])::before {
   font-size: 18px;

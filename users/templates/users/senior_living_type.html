@@ -32,7 +32,6 @@
       <form method="post" id="userInfoForm" novalidate>
       {% csrf_token %}
       <div>
-        <label for="id_living_type"></label>
         <div class="radio-cards">
           {% for opt in form.living_type %}
           <label class="radio-card">
@@ -43,22 +42,22 @@
               <span class="emoji" aria-hidden="true">
               {% if "혼자" in opt.choice_label %}🧓
               {% elif "부부" in opt.choice_label %}👵👴
-              {% elif "손자" in opt.choice_label %}👵👶
+              {% elif "손자" in opt.choice_label %}👧👦
               {% endif %}
               </span>
               <span class="txt">{{ opt.choice_label }}</span>
             </div>
           </label>
           {% endfor %}
+          <div id="otherWrap" class="radio-card other">
+            <div class="card" id="otherCard">
+             <label for="id_living_type_other" class="txt other-label">기타</label>
+             {{ form.living_type_other }}
+            </div>
+          </div>
+        </div>
         </div>
 
-<!-- “기타” 텍스트 입력 -->
-<!-- <div id="otherWrap" class="other-wrap" hidden>
-  <label for="id_living_type_other" class="other-label">기타 : 직접 입력</label>
-  {{ form.living_type_other }}
-</div> -->
-
-<!-- 백에서 form 수정필요, 수정 후 다시 수정 예정 -->
       </div>
     </form>
 

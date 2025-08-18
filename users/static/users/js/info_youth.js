@@ -6,39 +6,28 @@
   const bar = document.getElementById('progressBar');
   const submitBtn = document.getElementById('submitBtn') || form.querySelector('button[type="submit"]');
   const done = document.getElementById('doneSection');
-  const errorsBox = document.getElementById('formErrors');
 
-  const username = document.getElementById('id_username') || form.querySelector('[name="username"]');
-  const age = document.getElementById('id_age') || form.querySelector('[name="age"]');
-  const phone = document.getElementById('id_phone_number') || form.querySelector('[name="phone_number"]');
-  const genderRadios = form.querySelectorAll('input[name="gender"]');
-  const genderSelect = form.querySelector('select[name="gender"]');
+  const province = document.getElementById('id_interested_province') || form.querySelector('[name="interested_province"]');
+  const city = document.getElementById('id_interested_city') || form.querySelector('[name="interested_city"]');
+  const district = document.getElementById('id_interested_district') || form.querySelector('[name="interested_district"]');
 
-
-  function genderFilled() {
-    if (genderRadios && genderRadios.length) {
-      return Array.from(genderRadios).some(r => r.checked);
-    }
-    if (genderSelect) return genderSelect.value !== '' && genderSelect.value !== null;
-    return false;
+  function provinceFilled() {
+    return !!province && String(province.value || '').trim().length > 0;
   }
-  function ageValid() {
-    if (!age) return false;
-    const n = Number(String(age.value).replace(/[^\d]/g, ''));
-    if (!Number.isFinite(n)) return false;
-    return n >= 1 && n <= 120;
+  function cityFilled() {
+    return !!city && String(city.value || '').trim().length > 0;
   }
-  function phoneFilled() {
-    return !!phone && String(phone.value || '').trim().length > 0;
+  function districtFilled() {
+    return !!district && String(district.value || '').trim().length > 0;
   }
 
   function updateProgress() {
     const checks = [
-      () => !!username && username.value.trim().length > 0,
-      () => ageValid(),
-      () => genderFilled(),
-      () => phoneFilled(), 
+      () => provinceFilled(),
+      () => cityFilled(), 
+      () => districtFilled(), 
     ];
+
     const passed = checks.reduce((acc, fn) => acc + (fn() ? 1 : 0), 0);
     const total = checks.length;
     const percent = Math.round((passed / total) * 100);
@@ -52,11 +41,9 @@
 
   // 이벤트 바인딩
   const inputs = [];
-  if (username) inputs.push(username);
-  if (age) inputs.push(age);
-  if (genderSelect) inputs.push(genderSelect);
-  if (genderRadios && genderRadios.length) genderRadios.forEach(r => inputs.push(r));
-  if (phone) inputs.push(phone); 
+  if (province) inputs.push(province);
+  if (city) inputs.push(city);
+  if (district) inputs.push(district); 
   inputs.forEach(el => {
     el.addEventListener('input', updateProgress);
     el.addEventListener('change', updateProgress);
@@ -68,7 +55,7 @@
     const input = form.querySelector('input[name="csrfmiddlewaretoken"]');
     return input ? input.value : '';
   }
-  
+
   const doneClose = document.getElementById('doneClose');
   if (doneClose) {
     doneClose.addEventListener('click',()=>{
