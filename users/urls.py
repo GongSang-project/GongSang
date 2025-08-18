@@ -19,4 +19,6 @@ urlpatterns = [
     path('home/youth/', views.home_youth, name='home_youth'),
     path('home/senior/', views.home_senior, name='home_senior'),
     path('logout/', views.user_logout, name='user_logout'),
+
+    path('senior/<int:senior_id>/room/<int:room_id>/', views.senior_profile, name='senior_profile'),
 ]

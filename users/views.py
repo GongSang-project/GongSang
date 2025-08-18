@@ -1,7 +1,8 @@
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from formtools.wizard.views import SessionWizardView
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
+from matching.utils import calculate_matching_score, WEIGHTS
 from .forms import (
     UserInformationForm,
     SeniorLivingTypeForm,
@@ -19,6 +20,7 @@ from .forms import (
     YouthInterestedRegionForm,
 )
 from .models import User
+from room.models import Room
 from django.contrib.auth import login as auth_login, logout as auth_logout
 
 
@@ -63,7 +65,11 @@ class SurveyWizard(SessionWizardView):
         # 데이터가 없는 필드는 기본값 유지.
         user.preferred_time = form_data.get('preferred_time', user.preferred_time)
         user.conversation_style = form_data.get('conversation_style', user.conversation_style)
-        user.important_points = form_data.get('important_points', user.important_points)
+        if 'important_points' in form_data:
+            selected_points = form_data.get('important_points', [])
+            user.important_points = ','.join(selected_points)
+        else:
+            user.important_points = ''
         user.meal_preference = form_data.get('meal_preference', user.meal_preference)
         user.weekend_preference = form_data.get('weekend_preference', user.weekend_preference)
         user.smoking_preference = form_data.get('smoking_preference', user.smoking_preference)
@@ -176,3 +182,173 @@ def home_youth(request):
 
 def home_senior(request):
     return render(request, 'users/home_senior.html')
+
+
+
+
+FIELD_LABELS = {
+    'preferred_time': '생활리듬',
+    'conversation_style': '대화스타일',
+    'important_points': '중요한점',
+    'noise_level': '소음수준',
+    'meal_preference': '식사',
+    'space_sharing_preference': '공간공유',
+    'pet_preference': '반려동물',
+    'smoking_preference': '흡연',
+    'weekend_preference': '주말성향',
+}
+
+def get_matching_text(score):
+    if score >= 90:
+        return "매우 잘 맞음 👍"
+    elif score >= 70:
+        return "잘 맞음 😊"
+    elif score >= 50:
+        return "보통 😐"
+    else:
+        return "조금 다름 🧐"
+
+
+def senior_profile(request, senior_id, room_id):
+    # 매칭 대상 시니어 유저 객체
+    owner = get_object_or_404(User, id=senior_id, is_youth=False)
+    youth_user = request.user
+
+    # 현재 보고 있는 방의 등기부 등본 인증 여부
+    current_room = get_object_or_404(Room, id=room_id)
+    is_land_register_verified = current_room.is_land_register_verified
+
+    # 매칭 점수 계산
+    matching_score = calculate_matching_score(youth_user, owner)
+    # 점수 구간별 매칭 문구 생성
+    matching_text = get_matching_text(matching_score)
+
+    # 1. 일치하는 항목 중 가중치가 높은 상위 2개 찾기
+    matched_fields = {}
+
+    # 필드 일치 여부 확인
+    for field in WEIGHTS:
+        # important_points는 특별 처리 (다중 선택)
+        if field == 'important_points':
+            youth_points = set(youth_user.important_points.split(',')) if youth_user.important_points else set()
+            owner_points = set(owner.important_points.split(',')) if owner.important_points else set()
+            match_count = len(youth_points.intersection(owner_points))
+            if match_count > 0:
+                matched_fields['important_points'] = WEIGHTS['important_points']
+            continue
+
+        # 소음 수준은 차이가 0일 때 일치로 간주
+        if field == 'noise_level':
+            if youth_user.noise_level == owner.noise_level:
+                matched_fields['noise_level'] = WEIGHTS['noise_level']
+            continue
+
+        # 기타 단일 선택 항목
+        if getattr(youth_user, field) == getattr(owner, field):
+            matched_fields[field] = WEIGHTS[field]
+
+    # 가중치가 높은 순서로 정렬하여 상위 2개 항목 추출
+    top_matches = sorted(matched_fields, key=lambda f: WEIGHTS[f], reverse=True)[:2]
+
+    # 설명 문구 생성
+    top_match_names = [FIELD_LABELS[f] for f in top_matches]
+    explanation = f"'{top_match_names[0]}'과 '{top_match_names[1]}'이 잘 맞아요." if len(top_match_names) >= 2 else ""
+
+    # 2. 잘 맞는 해시태그 3가지 생성
+    hashtags = []
+
+    # 활동 시간대
+    if youth_user.preferred_time == owner.preferred_time:
+        if youth_user.preferred_time == 'A':
+            hashtags.append('아침형')
+        else:
+            hashtags.append('저녁형')
+
+    # 대화 스타일
+    if youth_user.conversation_style == owner.conversation_style:
+        if youth_user.conversation_style == 'A':
+            hashtags.append('조용함')
+        else:
+            hashtags.append('활발함')
+
+    # 중요한 점 (다중 선택)
+    youth_points = set(youth_user.important_points.split(',')) if youth_user.important_points else set()
+    owner_points = set(owner.important_points.split(',')) if owner.important_points else set()
+    for choice in youth_points.intersection(owner_points):
+        if choice == 'A':
+            hashtags.append('깔끔한')
+        elif choice == 'B':
+            hashtags.append('생활리듬')
+        elif choice == 'C':
+            hashtags.append('소통')
+        elif choice == 'D':
+            hashtags.append('배려심')
+        else:
+            hashtags.append('사생활존중')
+
+    # 식사
+    if youth_user.meal_preference == owner.meal_preference:
+        if youth_user.meal_preference == 'A':
+            hashtags.append('함께식사')
+        else:
+            hashtags.append('각자식사')
+
+    # 주말
+    if youth_user.weekend_preference == owner.weekend_preference:
+        if youth_user.weekend_preference == 'A':
+            hashtags.append('집콕')
+        else:
+            hashtags.append('외출')
+
+    # 흡연
+    if youth_user.smoking_preference == owner.smoking_preference:
+        if youth_user.smoking_preference == 'A':
+            hashtags.append('흡연')
+        else:
+            hashtags.append('비흡연')
+
+    # 소음 발생
+    if youth_user.noise_level == owner.noise_level:
+        if youth_user.noise_level == 'A':
+            hashtags.append('소음가능')
+        elif youth_user.noise_level == 'B':
+            hashtags.append('소음일부가능')
+        else:
+            hashtags.append('소음불가')
+
+    # 공간 공유
+    if youth_user.space_sharing_preference == owner.space_sharing_preference:
+        if youth_user.space_sharing_preference == 'A':
+            hashtags.append('공용활발')
+        elif youth_user.space_sharing_preference == 'B':
+            hashtags.append('공용적당')
+        else:
+            hashtags.append('공용적음')
+
+    # 반려동물
+    if youth_user.pet_preference == owner.pet_preference:
+        if youth_user.pet_preference == 'A':
+            hashtags.append('반려동물과')
+        else:
+            hashtags.append('반려동물없이')
+
+    # 중복 제거 및 최대 3개만 선택
+    hashtags = list(dict.fromkeys(hashtags))[:3]
+
+    # 등기부 등본 인증 여부
+    is_land_register_verified = False
+    if owner.owned_rooms.exists():
+        first_room = owner.owned_rooms.first()
+        is_land_register_verified = first_room.is_land_register_verified
+
+    context = {
+        'owner': owner,
+        'youth_user': youth_user,
+        'matching_score': matching_score,
+        'matching_text': matching_text,
+        'explanation': explanation,
+        'hashtags': hashtags,
+        'owner_is_id_card_uploaded': owner.is_id_card_uploaded,
+        'is_land_register_verified': is_land_register_verified,
+    }
+    return render(request, 'users/senior_profile.html', context)
