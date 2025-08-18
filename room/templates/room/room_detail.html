@@ -17,6 +17,10 @@
         <p>로그인 후 매칭 점수를 확인하세요.</p>
     {% endif %}
 
+    <a href="{% url 'users:senior_profile' senior_id=room.owner.id room_id=room.id %}">
+        시니어 프로필 보기
+    </a>
+
     <button>입주 희망 요청하기</button>
 
 </body>
