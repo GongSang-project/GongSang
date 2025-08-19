@@ -47,8 +47,10 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <button class="write-review-button">후기 작성하기</button>
-                    </div>
+                    <a href="{% url 'review:review_write' request.id %}">
+                        <button class="write-review-button">후기 작성하기</button>
+                    </a>
+                </div>
             </div>
         {% endfor %}
     {% else %}
