@@ -11,15 +11,15 @@ def review_list(request):
     if request.user.is_youth:
         return redirect(reverse('users:home_youth'))
 
-    # 로그인한 시니어 유저가 소유한 방들을 가져옵니다.
+    # 로그인한 시니어 유저가 소유한 방들
     senior_rooms = Room.objects.filter(owner=request.user)
 
-    # 이미 후기를 작성한 청년 목록을 가져옵니다.
+    # 이미 후기를 작성한 청년 목록
     reviewed_youth_ids = Review.objects.filter(
         author=request.user
     ).values_list('youth__id', flat=True)
 
-    # 연락처를 확인했고, 아직 후기를 작성하지 않은 청년 목록을 가져옵니다.
+    # 연락처를 확인했고, 아직 후기를 작성하지 않은 청년 목록
     requested_youth = MoveInRequest.objects.filter(
         room__in=senior_rooms,
         is_contacted=True
@@ -34,13 +34,10 @@ def review_list(request):
 
 @login_required
 def review_completed_list(request):
-    """
-    작성된 후기가 있는 청년 목록을 보여주는 뷰
-    """
     if request.user.is_youth:
         return render(request, 'access_denied.html')
 
-    # 현재 로그인된 시니어 유저가 작성한 후기들을 가져옵니다.
+    # 현재 로그인된 시니어 유저가 작성한 후기들
     completed_reviews = Review.objects.filter(author=request.user).select_related('youth', 'room')
 
     context = {
