@@ -1,0 +1,78 @@
+{% load matching_filters %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>입주 희망 요청 보기</title>
+</head>
+<body>
+    <div class="header">
+        <a href="#" class="back-arrow">&lt;</a>
+        <h1 class="heart-icon">💌 입주 희망 요청 보기</h1>
+    </div>
+
+    {% if requests %}
+        <div class="room-info-card">
+            <h2>{{ requests.first.room.address_detailed }}</h2>
+            <p>월세 {{ requests.first.room.deposit }}/{{ requests.first.room.rent_fee }}</p>
+        </div>
+
+        {% for req in requests %}
+            <div class="request-item">
+                <div class="request-item-header">
+                    <div class="profile-icon">👤</div>
+                    <h3>{{ req.youth.username }} ({{ req.youth.age }}세 / {% if req.youth.gender == 'F' %}여성{% else %}남성{% endif %}))</h3>
+                    <p>{{ req.requested_at|korean_timesince }}</p>
+                </div>
+                <div class="request-item-buttons">
+                    <button class="contact-button" data-request-id="{{ req.id }}" data-is-contacted="{{ req.is_contacted }}">
+                        {% if req.is_contacted %}
+                            📞(전화번호 최초 확인 후)
+                        {% else %}
+                            📞(전화번호 최초 확인 전)
+                        {% endif %}
+                    </button>
+                    <button>청년 정보 보기</button>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>받은 입주 요청이 없습니다.</p>
+    {% endif %}
+
+    <!--전화번호 확인 여부 저장을 위해 필요한 임시 js입니다-->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const csrfToken = '{{ csrf_token }}';
+        const contactButtons = document.querySelectorAll('.contact-button');
+
+        contactButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const requestId = this.dataset.requestId;
+                const url = `{% url 'matching:confirm_contact' 0 %}`.replace('0', requestId);
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // 서버 응답과 관계없이 버튼 문구를 '전화번호 확인 후'로 변경
+                    this.innerHTML = '📞(전화번호 확인 후)';
+                    alert(data.message); // 서버 응답 메시지 표시 (프론트에서 팝업으로 대체)
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('요청 처리 중 오류가 발생했습니다.');
+                });
+            });
+        });
+    });
+    </script>
+</body>
+</html>
