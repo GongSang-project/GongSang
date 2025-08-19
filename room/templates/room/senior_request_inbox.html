@@ -33,7 +33,11 @@
                             📞(전화번호 최초 확인 전)
                         {% endif %}
                     </button>
-                    <button>청년 정보 보기</button>
+                    <div class="button-group">
+                        <a href="{% url 'users:youth_profile' req.id %}">
+                            <button class="view-youth-button">청년 정보 보기</button>
+                        </a>
+                    </div>
                 </div>
             </div>
         {% endfor %}
