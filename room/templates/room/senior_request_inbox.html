@@ -1,0 +1,38 @@
+{% load matching_filters %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>입주 희망 요청 보기</title>
+</head>
+<body>
+    <div class="header">
+        <a href="#" class="back-arrow">&lt;</a>
+        <h1 class="heart-icon">💌 입주 희망 요청 보기</h1>
+    </div>
+
+    {% if requests %}
+        <div class="room-info-card">
+            <h2>{{ requests.first.room.address_detailed }}</h2>
+            <p>월세 {{ requests.first.room.deposit }}/{{ requests.first.room.rent_fee }}</p>
+        </div>
+
+        {% for req in requests %}
+            <div class="request-item">
+                <div class="request-item-header">
+                    <div class="profile-icon">👤</div>
+                    <h3>{{ req.youth.username }} ({{ req.youth.age }}세 / {% if req.youth.gender == 'F' %}여성{% else %}남성{% endif %}))</h3>
+                    <p>{{ req.requested_at|korean_timesince }}</p>
+                </div>
+                <div class="request-item-buttons">
+                    <button><span class="phone-icon">📞</span></button>
+                    <button>청년 정보 보기</button>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>받은 입주 요청이 없습니다.</p>
+    {% endif %}
+</body>
+</html>

@@ -21,7 +21,60 @@
         시니어 프로필 보기
     </a>
 
-    <button>입주 희망 요청하기</button>
+    {% if request.user.is_authenticated and request.user.is_youth %}
+        {% if is_requested_before %}
+            <button id="requestButton" data-room-id="{{ room.id }}" disabled>입주 요청을 보냈습니다</button>
+        {% else %}
+            <button id="request-button" data-room-id="{{ room.id }}">입주 희망 요청하기</button>
+        {% endif %}
+        <p id="requestStatus" style="color: green;"></p>
+    {% else %}
+    <p>로그인 후 입주 희망 요청을 할 수 있습니다.</p>
+    {% endif %}
+
+
+
+    <!--입주 희망 요청 버튼 구현을 위해 필요한 임시 js입니다-->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const requestButton = document.getElementById('request-button');
+        const requestedButton = document.getElementById('requestButton');
+        const buttonToUse = requestButton || requestedButton;
+
+        if (!buttonToUse) return;
+
+        const roomId = buttonToUse.dataset.roomId;
+        const csrfToken = '{{ csrf_token }}';
+
+        if (requestButton) { // '입주 희망 요청하기' 버튼이 존재할 때만 이벤트 리스너 추가
+            requestButton.addEventListener('click', function() {
+                // 요청을 보내기만 하고, 서버 응답을 처리하지 않음
+                fetch(`{% url 'matching:request_move_in' 0 %}`.replace('0', roomId), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => {
+                    // 요청이 성공적으로 완료되면 (302 리디렉션 응답을 받으면)
+                    if (response.redirected) {
+                        window.location.reload(); // 페이지를 새로고침하여 Django 뷰를 다시 실행
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('requestStatus').textContent = '네트워크 오류가 발생했습니다.';
+                });
+
+                // 사용자에게 즉각적인 피드백 제공
+                requestButton.textContent = '요청 처리 중...';
+                requestButton.disabled = true;
+            });
+        }
+    });
+    </script>
 
 </body>
 </html>

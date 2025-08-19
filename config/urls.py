@@ -22,8 +22,10 @@ from users import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('matching/', include('matching.urls', namespace='matching')),
+    path('room/', include('room.urls', namespace='room')),
     path('users/', include('users.urls')),
-    path('room/', include('room.urls')),
+    path('users/', include('users.urls', namespace='users')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
