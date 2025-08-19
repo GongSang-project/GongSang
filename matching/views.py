@@ -28,3 +28,26 @@ def request_move_in(request, room_id):
 
     except Exception as e:
         return redirect(reverse('room:room_detail', args=[room_id]))
+
+
+@require_POST
+@login_required
+def confirm_contact(request, request_id):
+    if request.user.is_youth:
+        return redirect(reverse('users:home_youth'))
+
+    try:
+        move_in_request = get_object_or_404(MoveInRequest, pk=request_id, room__owner=request.user)
+
+        # is_contacted가 False일 경우에만 업데이트
+        if not move_in_request.is_contacted:
+            move_in_request.is_contacted = True
+            move_in_request.save()
+            return JsonResponse({'message': '연락처 확인 상태가 업데이트되었습니다.'}, status=200)
+        else:
+            return JsonResponse({'message': '이미 확인된 요청입니다.'}, status=200)
+
+    except MoveInRequest.DoesNotExist:
+        return JsonResponse({'message': '요청을 찾을 수 없습니다.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'message': f'오류 발생: {str(e)}'}, status=500)
