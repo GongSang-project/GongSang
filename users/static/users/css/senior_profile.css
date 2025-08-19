@@ -1,0 +1,235 @@
+/*공통 스타일*/
+
+/* 폰트 불러오기 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* Tmoney RoundWind Regular */
+@font-face {
+    font-family: 'TmoneyRoundWindRegular';
+    src: url('https://cdn.jsdelivr.net/gh/woffz/a1@main/Tmoney/TmoneyRoundWindRegular.woff') format('woff');
+    font-weight: normal;
+    font-style: Regular;
+}
+
+
+/* Tmoney RoundWind ExtraBold */
+@font-face {
+    font-family: 'TmoneyRoundWindExtraBold';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/TmoneyRoundWindExtraBold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 스크롤바 숨김 */
+#app-wrapper { scrollbar-width: none; }
+html, body { -ms-overflow-style: none; }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { display: none; }
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: rgb(0, 0, 0);
+    align-self: stretch;
+    padding: 30px 0;
+    font-family: 'Pretendard', system-ui, '-apple-system', 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+}
+
+#root {
+    width: 375px;
+    height: 812px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    background-color: #fff;
+}
+
+#app-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: block;
+    overflow: auto;
+
+}
+
+.header {
+    width: 100%; 
+    height: 100px;
+    display: flex;
+    background-color: #fff;
+    position: sticky;
+    top:0px;
+    z-index: 1;
+}
+
+.footer {
+    width:100%;
+    height: 115px;
+    background-color: #ffffff;
+    position: sticky;
+    bottom: 0px;
+    z-index: 1;
+}
+
+/* 뒤로가기 버튼 */
+.icon {
+    width: 20px;
+    height: 27px;
+    padding: 6px;
+    position: absolute;
+    top:54px;
+    left:20.6133px;
+
+}
+
+/* '성향 매칭 분석 결과'제목 */
+.header > h1 {
+    color: #111;
+    text-align: center;
+    font-feature-settings: 'liga' off, 'clig' off;
+    font-family: 'Pretendard';
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    width: 137px;
+    height: 21px;
+    position:absolute;
+    top:57px;
+    left:120px;
+    margin: 0px;
+    display:flex;
+    align-items:center;       
+    justify-content:center;    
+}
+
+/* profil-header 안의 요소들 */
+.profile-image {
+width: 58px;
+height: 58px;
+flex-shrink: 0;
+aspect-ratio: 1/1;
+fill: #959595;
+position: absolute;
+top: 101px;
+left:25px;
+}
+
+.user-info > h3 {
+color: var(--Black, #121212);
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px;
+letter-spacing: -0.1px;
+margin: 0 0;
+position: absolute;
+top:111px;
+left:96px;
+}
+
+.user-info > p {
+color: var(--GNB, #959595);
+font-family: 'Pretendard';
+font-size: 13px;
+font-style: normal;
+font-weight: 500;
+line-height: 16px; /* 123.077% */
+letter-spacing: -0.065px;
+margin:0 0;
+}
+
+.age_gender{
+    position: absolute;
+    top:111px;
+    left:156px;
+}
+
+.living_type{
+    position: absolute;
+    top:136px;
+    left:126px;
+}
+
+/* 신분증, 등본 인증 여부 */
+
+.score-bar{
+  position: relative;
+  height: 18px;
+  border-radius: 999px;
+  background: #F2F3F5;         /* 비어있는 영역 */
+  overflow: hidden;
+  margin: 12px 0 8px;
+}
+
+.score-fill{
+  height: 100%;
+  /* 무지개 그라데이션 */
+  background: linear-gradient(90deg,
+      #FF6B6B 0%,
+      #FF9F40 20%,
+      #FFD166 40%,
+      #8FE388 60%,
+      #4DABF7 80%,
+      #C085F7 100%
+  );
+  border-radius: 999px;
+  width: 0;                    /* 기본값 */
+  transition: width .6s ease;  /* 부드럽게 채워짐 */
+}
+
+/* 점수 배지(막대 우측에 동그라미 느낌) */
+.score-badge{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  font-weight: 700;
+  font-size: 12px;
+  color: #fff;
+  background: #FF7A45;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+/* 기본 카드(하양) */
+.trait-value{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #ECEDEF;
+  background: #fff;
+  color: #222;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+
+/* 매칭된 카드(주황) */
+.trait-value-matched{
+  background: #FFF3EC;        /* 연한 주황 배경 */
+  border-color: #FF7A45;       /* 주황 테두리 */
+  color: #E0561A;              /* 글자 주황톤 */
+  box-shadow: 0 0 0 2px rgba(255,122,69,.18) inset;
+}
+
+/* 카드 주변(이름 라벨 등) 간격 정리 예시 */
+.trait-item{ margin: 16px 0 8px; }
+.trait-label{ font-weight: 700; margin-bottom: 8px; }
+.trait-values{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+}
+.trait-user-name{
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: #6B7280;
+}

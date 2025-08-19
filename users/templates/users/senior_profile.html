@@ -1,19 +1,34 @@
+{% load static %}
 {% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ owner.username }}님의 프로필</title>
+    <link rel="stylesheet" href="{% static 'users/css/senior_profile.css' %}">
 </head>
 <body>
-    <div class="container">
+    <div id="root">
+        <div id="app-wrapper">
+
+            <div class="header">
+                <!-- 백 버튼 누르면 '방 상세 페이지로 이동' 현재는 임시 주소로, 최종 수정 필요 -->
+                <a href="http://localhost:8000/room/detail/1/">  
+                    <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
+                </a>
+                <h1>성향 매칭 분석 결과</h1>
+            </div>
+
+    <div class="profile-container">
+
         <div class="profile-header">
-            <img src="{% if owner.profile_image %}{{ owner.profile_image.url }}{% else %}/static/images/default_profile.png{% endif %}" alt="프로필 사진" class="profile-image">
+            <img src="{% if owner.profile_image %}{{ owner.profile_image.url }}{% else %}{% static 'users/images/default_profile.png' %}{% endif %}" alt="프로필 사진" class="profile-image">
             <div class="user-info">
                 <h3>{{ owner.username }}</h3>
-                <p>{{ owner.age }}세 {{ owner.get_gender_display }}</p>
-                <p>
+                <p class="age_gender">{{ owner.age }}세 {{ owner.get_gender_display }}</p>
+                <p class="living_type">
                     {% if owner.living_type_other %}
                         {{ owner.living_type_other }}
                     {% else %}
@@ -36,10 +51,12 @@
             </div>
         </div>
 
+        <div class="line1"></div> 
+
         <div class="matching-result">
             <h4>성향 매칭 분석 결과</h4>
             <p class="matching-text">{{ matching_text }}</p>
-            <div class="score-bar">
+            <div class="score-bar" aria-label="매칭 점수{{ matching_score }}점">
                 <div class="score-fill"></div>
                 <div class="score-text">{{ matching_score }}점</div>
             </div>
@@ -50,6 +67,8 @@
                 {% endfor %}
             </div>
         </div>
+
+        <div class="line2"></div>
 
         <div class="traits-section">
             <h4>각자의 성향</h4>
@@ -218,5 +237,16 @@
 
         </div>
     </div>
+    
+    <!-- nav-bar(입주 희망 요청 버튼) -->
+     <!-- <div class="footer">
+        이따 main merge하고 방 상세 페이지에 있는 버튼 갖다 쓰기.
+     </div> -->
+
+
+        </div>
+    </div>
+    <script>addEventListener('DOMContentLoaded',()=>{const f=document.querySelector('.score-fill'); if(f && !f.style.width) f.style.width='{{ matching_score|default:0 }}%';});</script>
+    <script src="{% static 'users/js/senior_profile.js' %}?v=8"></script>
 </body>
 </html>
