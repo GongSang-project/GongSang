@@ -12,6 +12,7 @@
             <img src="{% if owner.profile_image %}{{ owner.profile_image.url }}{% else %}/static/images/default_profile.png{% endif %}" alt="프로필 사진" class="profile-image">
             <div class="user-info">
                 <h3>{{ owner.username }}</h3>
+                <p>{{ owner.age }}세 {{ owner.get_gender_display }}</p>
                 <p>
                     {% if owner.living_type_other %}
                         {{ owner.living_type_other }}
