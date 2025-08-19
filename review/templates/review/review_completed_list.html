@@ -1,0 +1,41 @@
+{% load static %}
+{% load matching_filters %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>후기 작성 완료</title>
+</head>
+<body>
+    <div class="tab-container">
+        <a href="{% url 'review:review_list' %}" class="tab">후기 작성 전</a>
+        <a href="{% url 'review:review_completed_list' %}" class="tab active">후기 작성 완료</a>
+    </div>
+
+    {% if completed_reviews %}
+        {% for review in completed_reviews %}
+            <div class="card">
+                <p>작성일 {{ review.created_at|date:"Y.m.d" }}</p>
+                <hr>
+                <div class="request-info">
+                    <img src="{% static 'images/room_default.jpg' %}" alt="방 사진" class="room-image">
+                    <div class="youth-info">
+                        <h3>{{ review.youth.username }} ({{ review.youth.age }}세, {% if review.youth.gender == 'F' %}여성{% else %}남성{% endif %})</h3>
+                        <h3>성향 매칭 점수 {{ review.youth|calculate_matching_score_filter:review.room.owner }}점</h3>
+                        <p>{{ review.room.address_detailed }}</p>
+                        <p>월세 {{ review.room.rent_fee }}/{{ review.room.deposit }}</p>
+                        <p>입주 요청</p>
+                        <p>연락처 확인 완료</p>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="view-review-button">작성한 후기 보기</button>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>작성된 후기가 없습니다.</p>
+    {% endif %}
+</body>
+</html>
