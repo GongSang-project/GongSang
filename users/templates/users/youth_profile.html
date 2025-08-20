@@ -38,6 +38,71 @@
             </div>
         </div>
 
+        <div class="reviews-section">
+            <h4>후기 ★<i class="fa-solid fa-star"></i> {{ average_rating|floatformat:"1" }} ({{ review_count }}개)</h4>
+            <div class="review-summary">
+                <h5>AI 후기 요약 분석 <i class="fa-solid fa-robot"></i></h5>
+                <p>{{ ai_summary }}</p>
+            </div>
+
+            <div class="review-hashtags">
+                <div class="review-hashtags-item">
+                    <p>개선되었으면 좋았을 점</p>
+                    <div class="hashtags">
+                        {% for tag in bad_hashtags %}
+                            <span>{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="review-hashtags-item">
+                    <p>좋았던 점</p>
+                    <div class="hashtags">
+                        {% for tag in good_hashtags %}
+                            <span>{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="individual-reviews">
+                {% for review in reviews|slice:":2" %}
+                <div class="review-item">
+                    <div class="review-meta">
+                        <p class="reviewer-name">
+                            {% if review.is_anonymous %}
+                                익명{{ forloop.counter }}
+                            {% else %}
+                                {{ review.author.username }}
+                            {% endif %}
+                        </p>
+                        <p class="residence-period">{{ review.get_lived_period_display }}</p>
+                    </div>
+                    <div class="review-rating">
+                        <span class="star-rating">
+                            {% if review.satisfaction == 'VERY_SATISFIED' %}★★★★★
+                            {% elif review.satisfaction == 'SATISFIED' %}★★★★☆
+                            {% elif review.satisfaction == 'NORMAL' %}★★★☆☆
+                            {% elif review.satisfaction == 'DISSATISFIED' %}★★☆☆☆
+                            {% else %}★☆☆☆☆
+                            {% endif %}
+                        </span>
+                        <span class="review-date">{{ review.created_at|date:"Y년 m월 d일" }} 작성</span>
+                    </div>
+                    <p class="review-text">{{ review.good_points }}</p>
+                </div>
+                {% empty %}
+                <p>아직 등록된 후기가 없습니다.</p>
+                {% endfor %}
+            </div>
+
+            {% if review_count > 0 %}
+            <div class="view-all-reviews">
+                <a href="{% url 'users:all_reviews' youth_user.id %}">
+                    <button>후기 {{ review_count }}개 모두 보기</button>
+                </a>
+            </div>
+            {% endif %}
+
         <div class="traits-section">
           <h4>각자의 성향</h4>
           <div class="trait-item">

@@ -22,6 +22,7 @@ from .models import User
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from matching.models import MoveInRequest
 from room.models import Room
+from review.models import Review
 
 
 FORMS = [
@@ -228,6 +229,27 @@ def youth_profile(request, request_id):
 
     is_id_card_uploaded = youth_user.is_id_card_uploaded
 
+    # 데이터베이스에서 해당 청년에 대한 후기 가져오기
+    reviews = Review.objects.filter(youth=youth_user).order_by('-created_at')
+
+    # 별점 평균 계산
+    total_satisfaction_score = 0
+    satisfaction_map = {
+        'VERY_DISSATISFIED': 1, 'DISSATISFIED': 2, 'NORMAL': 3,
+        'SATISFIED': 4, 'VERY_SATISFIED': 5
+    }
+    for review in reviews:
+        total_satisfaction_score += satisfaction_map.get(review.satisfaction, 0)
+
+    average_rating = 0
+    if reviews.count() > 0:
+        average_rating = total_satisfaction_score / reviews.count()
+
+    # 추후 실제 AI 기능으로 대체, 임시 데이터
+    ai_summary = "시니어 다수가 이 청년의 생활 태도에 만족했습니다."
+    good_hashtags = ["#깔끔한", "#활발함", "#규칙적인"]
+    bad_hashtags = ["#깔끔한", "#활발함"]
+
     context = {
         'youth_user': youth_user,
         'senior_user': senior_user,
@@ -236,6 +258,24 @@ def youth_profile(request, request_id):
         'explanation': matching_details['explanation'],
         'hashtags': matching_details['hashtags'],
         'is_id_card_uploaded': is_id_card_uploaded,
+
+        'reviews': reviews,
+        'average_rating': round(average_rating, 1),
+        'review_count': reviews.count(),
+        'ai_summary': ai_summary,
+        'good_hashtags': good_hashtags,
+        'bad_hashtags': bad_hashtags,
     }
 
     return render(request, 'users/youth_profile.html', context)
+
+
+def all_reviews(request, youth_id):
+    youth_user = get_object_or_404(User, id=youth_id)
+    reviews = Review.objects.filter(youth=youth_user).order_by('-created_at')
+
+    context = {
+        'youth_user': youth_user,
+        'reviews': reviews
+    }
+    return render(request, 'users/all_reviews.html', context)
