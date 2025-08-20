@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>홈</title>
+  <style>
+    .room { display:inline-block; width:150px; margin:10px; text-align:center; }
+    .rooms { display:flex; gap:12px; overflow-x:auto; padding:4px 0; }
+    .rooms .room a { text-decoration:none; color:inherit; }
+    .thumb { width:150px; height:100px; background:#ccc; border-radius:10px; }
+    .categories { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .category { padding:10px 14px; background:#ddd; border-radius:8px; cursor:pointer; }
+
+    /* 자동완성 스타일 */
+    .search-wrap { position:relative; max-width:400px; }
+    #region-search { width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; }
+    #ac-list {
+      position:absolute; top:105%; left:0; right:0;
+      background:#fff; border:1px solid #ddd; border-radius:8px;
+      box-shadow:0 6px 20px rgba(0,0,0,.08);
+      list-style:none; margin:6px 0 0; padding:6px 0; max-height:260px; overflow:auto;
+      z-index:10; display:none;
+    }
+    #ac-list li { padding:10px 12px; cursor:pointer; }
+    #ac-list li:hover { background:#f5f7fa; }
+    #no-result { padding:10px 12px; color:#888; }
+  </style>
+</head>
+<body>
+  <header>
+    <!-- 검색 폼: 자동완성 + 목록 페이지로 이동 -->
+    <form id="search-form" method="get" action="{% url 'room:room_list_page' %}" class="search-wrap">
+      <input id="region-search" name="region" type="text" placeholder="지역을 검색해보세요 (예: 노원, 공릉동)">
+      <ul id="ac-list"></ul>
+    </form>
+  </header>
+
+  <h3>AI가 추천하는 나와 잘 맞는 방</h3>
+  <div class="rooms">
+    {% for room in rooms %}
+      <div class="room">
+        <a href="{% url 'room:room_detail' room.id %}">
+          <div class="thumb"></div>
+          <p>월세 {{ room.rent_fee|default:"-" }} / 보증금 {{ room.deposit|default:"-" }}</p>
+          <p>{{ room.address_city }} {{ room.address_district }}</p>
+        </a>
+      </div>
+    {% empty %}
+      <p>추천할 방이 아직 없어요.</p>
+    {% endfor %}
+  </div>
+
+  <div class="categories">
+    {% for category in categories %}
+      <div class="category"
+           onclick="location.href='{% url 'room:room_list_page' %}?property_type={{ category }}'">
+        {{ category }}
+      </div>
+    {% endfor %}
+  </div>
+
+  <h3 style="margin-top:18px;">최근 본 방이에요</h3>
+  <div class="rooms">
+    {% if recent_rooms %}
+      {% for room in recent_rooms %}
+        <div class="room">
+          <a href="{% url 'room:room_detail' room.id %}">
+            <div class="thumb"></div>
+            <p>월세 {{ room.rent_fee|default:"-" }} / 보증금 {{ room.deposit|default:"-" }}</p>
+            <p>{{ room.address_city }} {{ room.address_district }}</p>
+          </a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>아직 본 방이 없어요. 마음에 드는 방을 눌러보세요!</p>
+    {% endif %}
+  </div>
+
+  <script>
+    const form = document.getElementById('search-form');
+    const input = document.getElementById('region-search');
+    const list  = document.getElementById('ac-list');
+
+    function debounce(fn, delay=250){
+      let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), delay); };
+    }
+
+    function renderSuggestions(items){
+      list.innerHTML = '';
+      if (!items || items.length === 0){
+        list.style.display = 'block';
+        const li = document.createElement('li');
+        li.id = 'no-result';
+        li.textContent = '검색 결과가 없습니다';
+        list.appendChild(li);
+        return;
+      }
+      items.forEach(name=>{
+        const li = document.createElement('li');
+        li.textContent = name;
+        li.addEventListener('click', ()=>{
+          input.value = name;
+          list.style.display = 'none';
+          form.submit();                    // 자동완성 선택하면 목록 페이지로 이동
+        });
+        list.appendChild(li);
+      });
+      list.style.display = 'block';
+    }
+
+    const fetchSuggestions = debounce(async (q)=>{
+      const query = q.trim();
+      if (!query){ list.style.display='none'; return; }
+      try{
+        const res = await fetch(`/search_location/?query=${encodeURIComponent(query)}`, {
+          headers: {'Accept':'application/json'}
+        });
+        if (!res.ok) throw new Error('HTTP '+res.status);
+        const data = await res.json();
+        renderSuggestions(data.results || []);
+      }catch(e){
+        console.error(e);
+        list.style.display='none';
+      }
+    });
+
+    input.addEventListener('input', (e)=> fetchSuggestions(e.target.value));
+
+    // Enter 키로 바로 검색
+    input.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        list.style.display = 'none';
+        form.submit();
+      }
+    });
+
+    // 인풋 밖 클릭 시 자동완성 닫기
+    document.addEventListener('click', (e)=>{
+      if (!document.querySelector('.search-wrap').contains(e.target)){
+        list.style.display='none';
+      }
+    });
+  </script>
+</body>
+</html>
