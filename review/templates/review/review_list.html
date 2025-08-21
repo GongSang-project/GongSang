@@ -1,0 +1,60 @@
+{% load static %}
+{% load matching_filters %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>후기 작성</title>
+</head>
+<body>
+    <div class="tab-container">
+        <a href="{% url 'review:review_list' %}" class="tab active">후기 작성 전</a>
+        <a href="{% url 'review:review_completed_list' %}" class="tab">후기 작성 완료</a>
+    </div>
+
+    <!--임시 js-->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 현재 URL 경로에 따라 탭 활성화 상태 변경
+        const tabs = document.querySelectorAll('.tab');
+        const currentPath = window.location.pathname;
+
+        tabs.forEach(tab => {
+            if (tab.getAttribute('href') === currentPath) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+    });
+    </script>
+
+    {% if requested_youth %}
+        {% for request in requested_youth %}
+            <div class="card">
+                <p>입주 요청일 {{ request.requested_at|date:"Y.m.d" }}</p>
+                <hr>
+                <div class="request-info">
+                    <img src="{% static 'images/room_default.jpg' %}" alt="방 사진" class="room-image">
+                    <div class="youth-info">
+                        <h3>{{ request.youth.username }} ({{ request.youth.age }}세, {% if request.youth.gender == 'F' %}여성{% else %}남성{% endif %})</h3>
+                        <h3>성향 매칭 점수 {{ request.youth|calculate_matching_score_filter:request.room.owner }}점</h3>
+                        <p>{{ requests.first.room.address_detailed }}</p>
+                        <p>월세 {{ request.room.rent_fee }}/{{ request.room.deposit }}</p>
+                        <p>입주 요청</p>
+                        <p>연락처 확인 완료</p>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a href="{% url 'review:review_write' request.id %}">
+                        <button class="write-review-button">후기 작성하기</button>
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>후기를 작성할 수 있는 청년이 없습니다.</p>
+    {% endif %}
+</body>
+</html>

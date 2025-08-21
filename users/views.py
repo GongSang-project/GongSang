@@ -1,8 +1,7 @@
-from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from formtools.wizard.views import SessionWizardView
 from django.shortcuts import redirect, render, get_object_or_404
-from matching.utils import calculate_matching_score, WEIGHTS
+from matching.utils import calculate_matching_score, get_matching_details, WEIGHTS
 from .forms import (
     UserInformationForm,
     SeniorLivingTypeForm,
@@ -20,8 +19,10 @@ from .forms import (
     YouthInterestedRegionForm,
 )
 from .models import User
-from room.models import Room
 from django.contrib.auth import login as auth_login, logout as auth_logout
+from matching.models import MoveInRequest
+from room.models import Room
+from review.models import Review
 
 # 프론트에서 추가: 맵핑 임포트
 from .models import get_choice_parts, important_points_parts 
@@ -186,8 +187,6 @@ def home_senior(request):
     return render(request, 'users/home_senior.html')
 
 
-
-
 FIELD_LABELS = {
     'preferred_time': '생활리듬',
     'conversation_style': '대화스타일',
@@ -236,128 +235,8 @@ def senior_profile(request, senior_id, room_id):
     current_room = get_object_or_404(Room, id=room_id)
     is_land_register_verified = current_room.is_land_register_verified
 
-    # 매칭 점수 계산
-    matching_score = calculate_matching_score(youth_user, owner)
-    # 점수 구간별 매칭 문구 생성
-    matching_text = get_matching_text(matching_score)
-
-    # 1. 일치하는 항목 중 가중치가 높은 상위 2개 찾기
-    matched_fields = {}
-
-    # 필드 일치 여부 확인
-    for field in WEIGHTS:
-        # important_points는 특별 처리 (다중 선택)
-        if field == 'important_points':
-            youth_points = set(youth_user.important_points.split(',')) if youth_user.important_points else set()
-            owner_points = set(owner.important_points.split(',')) if owner.important_points else set()
-            match_count = len(youth_points.intersection(owner_points))
-            if match_count > 0:
-                matched_fields['important_points'] = WEIGHTS['important_points']
-            continue
-
-        # 소음 수준은 차이가 0일 때 일치로 간주
-        if field == 'noise_level':
-            if youth_user.noise_level == owner.noise_level:
-                matched_fields['noise_level'] = WEIGHTS['noise_level']
-            continue
-
-        # 기타 단일 선택 항목
-        if getattr(youth_user, field) == getattr(owner, field):
-            matched_fields[field] = WEIGHTS[field]
-
-    # 가중치가 높은 순서로 정렬하여 상위 2개 항목 추출
-    top_matches = sorted(matched_fields, key=lambda f: WEIGHTS[f], reverse=True)[:2]
-
-    # 설명 문구 생성
-    top_match_names = [FIELD_LABELS[f] for f in top_matches]
-    explanation = f"'{top_match_names[0]}'과 '{top_match_names[1]}'이 잘 맞아요." if len(top_match_names) >= 2 else ""
-
-    # 2. 잘 맞는 해시태그 3가지 생성
-    hashtags = []
-
-    # 활동 시간대
-    if youth_user.preferred_time == owner.preferred_time:
-        if youth_user.preferred_time == 'A':
-            hashtags.append('아침형')
-        else:
-            hashtags.append('저녁형')
-
-    # 대화 스타일
-    if youth_user.conversation_style == owner.conversation_style:
-        if youth_user.conversation_style == 'A':
-            hashtags.append('조용함')
-        else:
-            hashtags.append('활발함')
-
-    # 중요한 점 (다중 선택)
-    youth_points = set(youth_user.important_points.split(',')) if youth_user.important_points else set()
-    owner_points = set(owner.important_points.split(',')) if owner.important_points else set()
-    for choice in youth_points.intersection(owner_points):
-        if choice == 'A':
-            hashtags.append('깔끔한')
-        elif choice == 'B':
-            hashtags.append('생활리듬')
-        elif choice == 'C':
-            hashtags.append('소통')
-        elif choice == 'D':
-            hashtags.append('배려심')
-        else:
-            hashtags.append('사생활존중')
-
-    # 식사
-    if youth_user.meal_preference == owner.meal_preference:
-        if youth_user.meal_preference == 'A':
-            hashtags.append('함께식사')
-        else:
-            hashtags.append('각자식사')
-
-    # 주말
-    if youth_user.weekend_preference == owner.weekend_preference:
-        if youth_user.weekend_preference == 'A':
-            hashtags.append('집콕')
-        else:
-            hashtags.append('외출')
-
-    # 흡연
-    if youth_user.smoking_preference == owner.smoking_preference:
-        if youth_user.smoking_preference == 'A':
-            hashtags.append('흡연')
-        else:
-            hashtags.append('비흡연')
-
-    # 소음 발생
-    if youth_user.noise_level == owner.noise_level:
-        if youth_user.noise_level == 'A':
-            hashtags.append('소음가능')
-        elif youth_user.noise_level == 'B':
-            hashtags.append('소음일부가능')
-        else:
-            hashtags.append('소음불가')
-
-    # 공간 공유
-    if youth_user.space_sharing_preference == owner.space_sharing_preference:
-        if youth_user.space_sharing_preference == 'A':
-            hashtags.append('공용활발')
-        elif youth_user.space_sharing_preference == 'B':
-            hashtags.append('공용적당')
-        else:
-            hashtags.append('공용적음')
-
-    # 반려동물
-    if youth_user.pet_preference == owner.pet_preference:
-        if youth_user.pet_preference == 'A':
-            hashtags.append('반려동물과')
-        else:
-            hashtags.append('반려동물없이')
-
-    # 중복 제거 및 최대 3개만 선택
-    hashtags = list(dict.fromkeys(hashtags))[:3]
-
-    # 등기부 등본 인증 여부
-    is_land_register_verified = False
-    if owner.owned_rooms.exists():
-        first_room = owner.owned_rooms.first()
-        is_land_register_verified = first_room.is_land_register_verified
+    # 매칭 상세 정보 가져오기
+    matching_details = get_matching_details(youth_user, owner)
 
     owner_parts = _build_profile_parts(owner)
     youth_parts = _build_profile_parts(youth_user)
@@ -365,10 +244,10 @@ def senior_profile(request, senior_id, room_id):
     context = {
         'owner': owner,
         'youth_user': youth_user,
-        'matching_score': matching_score,
-        'matching_text': matching_text,
-        'explanation': explanation,
-        'hashtags': hashtags,
+        'matching_score': matching_details['matching_score'],
+        'matching_text': matching_details['matching_text'],
+        'explanation': matching_details['explanation'],
+        'hashtags': matching_details['hashtags'],
         'owner_is_id_card_uploaded': owner.is_id_card_uploaded,
         'is_land_register_verified': is_land_register_verified,
 
@@ -376,3 +255,74 @@ def senior_profile(request, senior_id, room_id):
         'youth_parts': youth_parts,
     }
     return render(request, 'users/senior_profile.html', context)
+
+@login_required
+def youth_profile(request, request_id):
+    if request.user.is_youth:
+        return redirect('users:home_youth')
+
+    move_in_request = get_object_or_404(
+        MoveInRequest,
+        id=request_id,
+        room__owner=request.user
+    )
+
+    senior_user = request.user
+    youth_user = move_in_request.youth
+
+    # 매칭 점수 및 상세 분석 결과 계산
+    matching_score = calculate_matching_score(senior_user, youth_user)
+    matching_details = get_matching_details(senior_user, youth_user)
+
+    is_id_card_uploaded = youth_user.is_id_card_uploaded
+
+    # 데이터베이스에서 해당 청년에 대한 후기 가져오기
+    reviews = Review.objects.filter(youth=youth_user).order_by('-created_at')
+
+    # 별점 평균 계산
+    total_satisfaction_score = 0
+    satisfaction_map = {
+        'VERY_DISSATISFIED': 1, 'DISSATISFIED': 2, 'NORMAL': 3,
+        'SATISFIED': 4, 'VERY_SATISFIED': 5
+    }
+    for review in reviews:
+        total_satisfaction_score += satisfaction_map.get(review.satisfaction, 0)
+
+    average_rating = 0
+    if reviews.count() > 0:
+        average_rating = total_satisfaction_score / reviews.count()
+
+    # 추후 실제 AI 기능으로 대체, 임시 데이터
+    ai_summary = "시니어 다수가 이 청년의 생활 태도에 만족했습니다."
+    good_hashtags = ["#깔끔한", "#활발함", "#규칙적인"]
+    bad_hashtags = ["#깔끔한", "#활발함"]
+
+    context = {
+        'youth_user': youth_user,
+        'senior_user': senior_user,
+        'matching_score': matching_score,
+        'matching_text': matching_details['matching_text'],
+        'explanation': matching_details['explanation'],
+        'hashtags': matching_details['hashtags'],
+        'is_id_card_uploaded': is_id_card_uploaded,
+
+        'reviews': reviews,
+        'average_rating': round(average_rating, 1),
+        'review_count': reviews.count(),
+        'ai_summary': ai_summary,
+        'good_hashtags': good_hashtags,
+        'bad_hashtags': bad_hashtags,
+    }
+
+    return render(request, 'users/youth_profile.html', context)
+
+
+def all_reviews(request, youth_id):
+    youth_user = get_object_or_404(User, id=youth_id)
+    reviews = Review.objects.filter(youth=youth_user).order_by('-created_at')
+
+    context = {
+        'youth_user': youth_user,
+        'reviews': reviews
+    }
+    return render(request, 'users/all_reviews.html', context)
