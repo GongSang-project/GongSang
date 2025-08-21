@@ -23,6 +23,8 @@ from .models import User
 from room.models import Room
 from django.contrib.auth import login as auth_login, logout as auth_logout
 
+# 프론트에서 추가: 맵핑 임포트
+from .models import get_choice_parts, important_points_parts 
 
 FORMS = [
     ("step1", SurveyStep1Form),
@@ -207,7 +209,23 @@ def get_matching_text(score):
         return "보통 😐"
     else:
         return "조금 다름 🧐"
+    
+# 프론트에서 추가: 사용자에 대해 emoji/label을 하나로
 
+def _build_profile_parts(user_obj):
+    if not user_obj:
+        return None
+    return {
+        "preferred_time":            get_choice_parts(user_obj, "preferred_time"),
+        "conversation_style":        get_choice_parts(user_obj, "conversation_style"),
+        "important_points":          important_points_parts(user_obj),  # 리스트
+        "noise_level":               get_choice_parts(user_obj, "noise_level"),
+        "meal_preference":           get_choice_parts(user_obj, "meal_preference"),
+        "space_sharing_preference":  get_choice_parts(user_obj, "space_sharing_preference"),
+        "pet_preference":            get_choice_parts(user_obj, "pet_preference"),
+        "smoking_preference":        get_choice_parts(user_obj, "smoking_preference"),
+        "weekend_preference":        get_choice_parts(user_obj, "weekend_preference"),
+    }
 
 def senior_profile(request, senior_id, room_id):
     # 매칭 대상 시니어 유저 객체
@@ -341,6 +359,9 @@ def senior_profile(request, senior_id, room_id):
         first_room = owner.owned_rooms.first()
         is_land_register_verified = first_room.is_land_register_verified
 
+    owner_parts = _build_profile_parts(owner)
+    youth_parts = _build_profile_parts(youth_user)
+
     context = {
         'owner': owner,
         'youth_user': youth_user,
@@ -350,5 +371,8 @@ def senior_profile(request, senior_id, room_id):
         'hashtags': hashtags,
         'owner_is_id_card_uploaded': owner.is_id_card_uploaded,
         'is_land_register_verified': is_land_register_verified,
+
+        'owner_parts': owner_parts,
+        'youth_parts': youth_parts,
     }
     return render(request, 'users/senior_profile.html', context)

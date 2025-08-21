@@ -10,5 +10,5 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     splash.classList.add('hidden');
     document.body.classList.remove('splashing');
-  }, 2000);
+  }, 1500);
 });

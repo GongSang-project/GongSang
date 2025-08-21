@@ -11,17 +11,24 @@
   const city = document.getElementById('id_interested_city') || form.querySelector('[name="interested_city"]');
   const district = document.getElementById('id_interested_district') || form.querySelector('[name="interested_district"]');
 
+  // 각 요소가 채워졌는 지 확인하는 함수
+  // 관심 시/도 입력란
   function provinceFilled() {
     return !!province && String(province.value || '').trim().length > 0;
   }
+  // 관심 시/군/구 입력란
   function cityFilled() {
     return !!city && String(city.value || '').trim().length > 0;
   }
+  // 관심 읍/면/동 입력란
   function districtFilled() {
     return !!district && String(district.value || '').trim().length > 0;
   }
 
+  // 상단 진행바 
   function updateProgress() {
+
+    //각요소가 채워졌는지 확인
     const checks = [
       () => provinceFilled(),
       () => cityFilled(), 
@@ -39,7 +46,6 @@
     if (submitBtn) submitBtn.disabled = percent < 100;
   }
 
-  // 이벤트 바인딩
   const inputs = [];
   if (province) inputs.push(province);
   if (city) inputs.push(city);
@@ -56,6 +62,7 @@
     return input ? input.value : '';
   }
 
+  // 다음 버튼
   const doneClose = document.getElementById('doneClose');
   if (doneClose) {
     doneClose.addEventListener('click',()=>{
