@@ -1,15 +1,65 @@
+{% load static %}
 {% load matching_filters %}
 
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>입주 희망 요청 보기</title>
+    <link rel="stylesheet" href="{% static '/room/css/senior_request_inbox.css' %}">
+
 </head>
 <body>
-    <div class="header">
-        <a href="#" class="back-arrow">&lt;</a>
-        <h1 class="heart-icon">💌 입주 희망 요청 보기</h1>
+    <div id="root">
+        <div id="app-wrapper">
+        
+            <!-- 상단 헤더 -->
+            <div class="header">
+              <a href="/users/home/senior/">
+              <img src="{% static '/room/images/Vector.png' %}" alt="" class="icon">
+              </a>
+              <h1 class="heart-icon">💌 입주 희망 요청 보기</h1>
+            </div>
+
+                {% if requests %}
+
+        <div class="room-info-card">
+            <h2>{{ requests.first.room.address_detailed }}</h2>
+            <p>월세 {{ requests.first.room.deposit }}/{{ requests.first.room.rent_fee }}</p>
+        </div>
+
+        {% for req in requests %}
+            <div class="request-item">
+                <div class="request-item-header">
+                    <div class="profile-icon">👤</div>
+                    <h3>{{ req.youth.username }} ({{ req.youth.age }}세 / {% if req.youth.gender == 'F' %}여성{% else %}남성{% endif %}))</h3>
+                    <p>{{ req.requested_at|korean_timesince }}</p>
+                </div>
+                <div class="request-item-buttons">
+                    <button class="contact-button" data-request-id="{{ req.id }}" data-is-contacted="{{ req.is_contacted }}">
+                        {% if req.is_contacted %}
+                            📞(전화번호 최초 확인 후)
+                        {% else %}
+                            📞(전화번호 최초 확인 전)
+                        {% endif %}
+                    </button>
+                    <div class="button-group">
+                        <a href="{% url 'users:youth_profile' req.id %}">
+                            <button class="view-youth-button">청년 정보 보기</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>받은 입주 요청이 없습니다.</p>
+    {% endif %}
+             
+                
+
+
+        </div>
     </div>
 
     {% if requests %}
