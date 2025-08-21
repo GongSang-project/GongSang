@@ -1,83 +1,73 @@
 
-(() => {
-  const form = document.getElementById('userInfoForm');
-  if (!form) return;
 
-  const bar = document.getElementById('progressBar');
-  const submitBtn = document.getElementById('submitBtn');
+document.addEventListener('DOMContentLoaded', () => {
+  const form       = document.getElementById('userInfoForm');
+  if (!form) return; // 폼 없으면 종료
 
-  const livingRadios = form.querySelectorAll('input[name="living_type"]');
+  const progressBar = document.getElementById('progressBar');         
+  const submitBtn   = document.getElementById('submitBtn');           
+  const otherCard   = document.getElementById('otherCard');         
+  const otherInput  = document.getElementById('id_living_type_other');
+  const radios      = document.querySelectorAll('.radio-card input[type="radio"]'); 
 
-  function isSelected() {
-    return Array.from(livingRadios).some(r => r.checked);
-  }
+  const anyRadioChecked = () => Array.from(radios).some(r => r.checked);
+  const otherHasValue   = () => !!(otherInput && otherInput.value.trim());
 
-  function updateUI() {
-    const ok = isSelected();
-    if (bar) {
-      bar.style.width = ok ? '100%' : '0%';
-      bar.setAttribute('aria-valuenow', ok ? '100' : '0');
-    }
-    if (submitBtn) submitBtn.disabled = !ok;
-  }
+  // 진행바
+  const setProgress = (on) => {
+    if (!progressBar) return;
+    progressBar.style.width = on ? '100%' : '0%';
+    progressBar.setAttribute('aria-valuenow', on ? '100' : '0');
+  };
 
-  updateUI();
+  // 제출 버튼
+  const setSubmitEnabled = (on) => {
+    if (submitBtn) submitBtn.disabled = !on;
+  };
 
-  livingRadios.forEach(r => {
-    r.addEventListener('change', updateUI);
-    r.addEventListener('input', updateUI);
+  // 입력 상태와 진행바, 제출버튼 동기화
+  const syncSubmitAndProgress = () => {
+    const ok = anyRadioChecked() || otherHasValue();
+    setProgress(ok);
+    setSubmitEnabled(ok);
+  };
+ 
+  // 기타 카드 활성 상태 시 동작
+  const activateOtherCardIfNeeded = () => {
+    if (!otherCard) return;
+
+    const active =
+      (document.activeElement === otherInput) || otherHasValue();
+    otherCard.classList.toggle('active', active);
+
+    // 기타에 값이 있으면 라디오 해제
+    if (otherHasValue()) radios.forEach(r => (r.checked = false));
+
+    // 진행바, 제출버튼 재동기화 
+    syncSubmitAndProgress();
+  };
+
+  //라디오 선택 시 기타 비우기, 동시에 선택 되지 않게 함
+  const onRadioChange = () => {
+    if (otherCard) otherCard.classList.remove('active');
+    if (otherInput) otherInput.value = '';
+    syncSubmitAndProgress();
+  };
+
+
+  radios.forEach(r => {
+    r.addEventListener('change', onRadioChange);
+    r.addEventListener('input',  onRadioChange);
   });
-})();
 
-(function () {
-  const otherCard = document.getElementById('otherCard');
-  const otherInput = document.getElementById('id_living_type_other');
-  const radioInputs = document.querySelectorAll('.radio-card input[type="radio"]');
-  const submitBtn = document.getElementById('submitBtn');
-
-  // 카드 클릭 → 입력창 포커스
   if (otherCard && otherInput) {
-    otherCard.addEventListener('click', () => {
-      otherInput.focus();
-    });
-
-    const syncOtherActive = () => {
-      const hasValue = otherInput.value && otherInput.value.trim().length > 0;
-      if (document.activeElement === otherInput || hasValue) {
-        otherCard.classList.add('active');
-        // 라디오가 이미 선택되어 있다면 해제(선택은 기타로 대체하는 UX)
-        if (hasValue) {
-          radioInputs.forEach(r => (r.checked = false));
-        }
-      } else {
-        otherCard.classList.remove('active');
-      }
-      updateSubmitState();
-    };
-
-    otherInput.addEventListener('focus', syncOtherActive);
-    otherInput.addEventListener('blur', syncOtherActive);
-    otherInput.addEventListener('input', syncOtherActive);
+    otherCard.addEventListener('click', () => otherInput.focus());
+    otherInput.addEventListener('focus', activateOtherCardIfNeeded);
+    otherInput.addEventListener('blur',  activateOtherCardIfNeeded);
+    otherInput.addEventListener('input', activateOtherCardIfNeeded);
   }
 
-  // 라디오 선택 시 기타 카드 비활성화/입력 비움(서로 배타적으로 동작)
-  radioInputs.forEach(r => {
-    r.addEventListener('change', () => {
-      if (r.checked && otherCard && otherInput) {
-        otherCard.classList.remove('active');
-        otherInput.value = '';
-      }
-      updateSubmitState();
-    });
-  });
-
-  // 제출 버튼 활성화: 라디오 선택 또는 기타 입력값 존재하면 활성화
-  function updateSubmitState() {
-    const anyRadioChecked = Array.from(radioInputs).some(r => r.checked);
-    const otherHasValue = otherInput && otherInput.value.trim().length > 0;
-    submitBtn.disabled = !(anyRadioChecked || otherHasValue);
-  }
-
-  // 초기 상태 동기화
-  updateSubmitState();
-})();
+  // ---- 초기 동기화 ----
+  activateOtherCardIfNeeded();
+  syncSubmitAndProgress();
+});
