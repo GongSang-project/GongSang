@@ -148,6 +148,9 @@ venv.bak/
 .spyderproject
 .spyproject
 
+# IDE 설정 파일 (IntelliJ, PyCharm 등)
+.idea/
+
 # Rope project settings
 .ropeproject
 
