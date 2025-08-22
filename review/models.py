@@ -30,10 +30,12 @@ RE_LIVING_CHOICES = [
 
 
 class Review(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='senior_reviews',
-                               verbose_name="후기 작성자(시니어)", null=True, blank=True)
-    youth = models.ForeignKey(User, on_delete=models.CASCADE, related_name='youth_reviews',
-                              verbose_name="후기 대상(청년)", null=True, blank=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews_written',
+                               verbose_name="후기 작성자")
+    target_senior = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='reviews_received_senior',
+                                      verbose_name="후기 대상(시니어)", null=True, blank=True)
+    target_youth = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='reviews_received_youth',
+                                     verbose_name="후기 대상(청년)", null=True, blank=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='room_reviews',
                              verbose_name="후기 대상 방", null=True, blank=True)
     contract_document = models.FileField(verbose_name="임대차 계약서", upload_to='contracts/',
@@ -50,9 +52,13 @@ class Review(models.Model):
     created_at = models.DateTimeField(verbose_name="작성일", auto_now_add=True)
 
     def __str__(self):
-        return f"[{self.room.id}] {self.youth.username}에 대한 {self.author.username}의 후기"
+        if self.target_senior:
+            return f"[{self.room.id}] {self.target_senior.username}에 대한 {self.author.username}의 후기"
+        elif self.target_youth:
+            return f"[{self.room.id}] {self.target_youth.username}에 대한 {self.author.username}의 후기"
+        return "알 수 없는 후기"
 
     class Meta:
         verbose_name = "후기"
         verbose_name_plural = "후기 목록"
-        unique_together = ('author', 'youth', 'room')
+        unique_together = ('author', 'room')
