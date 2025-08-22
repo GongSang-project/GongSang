@@ -12,10 +12,13 @@
   <div id="root">
     <div id="app-wrapper">
 
+      <!-- 해더 -->
       <div class="header">
+        <!-- 뒤로가기 버튼 : user_info(기본 정보 입력 step1으로) -->
         <a href="/users/user_info/">
           <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
         </a>
+
         <h1>기본 정보</h1>
       </div>
 
@@ -24,30 +27,36 @@
         <div id="progressBar" class="progress-bar" style="width:0%"></div>
       </div>
 
+      <!-- 질문 -->
       <h1 class="num">2/2</h1>
       <h2>어떤 형태로 살고 계신가요?</h2>
       <h1 class="qu1">함께 사는 분이 있다면 </h1>
       <h1 class="qu2">관계를 선택해주세요</h1>
 
+      <!--질문 폼-->
       <form method="post" id="userInfoForm" novalidate>
       {% csrf_token %}
       <div>
+
         <div class="radio-cards">
           {% for opt in form.living_type %}
           <label class="radio-card">
-           {{ opt.tag }}  <!-- 실제 라디오 input -->
+           {{ opt.tag }}  
             <div class="card">
               <span class="dot" aria-hidden="true"></span>
-              <!-- 필요하면 이모지 붙이기 -->
+              <!-- 텍스트 앞 이미지 -->
               <span class="emoji" aria-hidden="true">
               {% if "혼자" in opt.choice_label %}🧓
               {% elif "부부" in opt.choice_label %}👵👴
               {% elif "손자" in opt.choice_label %}👧👦
               {% endif %}
               </span>
+              <!-- 텍스트 -->
               <span class="txt">{{ opt.choice_label }}</span>
             </div>
           </label>
+
+          <!-- 기타: 텍스트 필드 -->
           {% endfor %}
           <div id="otherWrap" class="radio-card other">
             <div class="card" id="otherCard">
@@ -60,8 +69,9 @@
 
       </div>
     </form>
-
-<button id="submitBtn" type="submit" form="userInfoForm" disabled>다음</button>
+    
+    <!-- 다음 버튼 -->
+    <button id="submitBtn" type="submit" form="userInfoForm" disabled>다음</button>
 
     </div>
   </div>
