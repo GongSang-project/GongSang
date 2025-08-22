@@ -101,9 +101,6 @@ class Room(models.Model):
     owner_living_status = models.CharField(verbose_name="거주 형태", max_length=50, blank=True,
                                            null=True)  # '부부 거주', '혼자 거주' 등
 
-    # 방 상세페이지에 해시태그 표시하는 과정은 room/views.py 파일 room_detail()에 정의되어 있습니다
-    # room_detail() 함수에다가 방 상세페이지에 띄울 정보들 더 추가하시면 됩니다!
-
     # 시설 정보
     options = models.JSONField(verbose_name="생활 시설", default=list)
     security_facilities = models.JSONField(verbose_name="보안 시설", default=list)

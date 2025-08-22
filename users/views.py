@@ -24,8 +24,6 @@ from matching.models import MoveInRequest
 from room.models import Room
 from review.models import Review
 
-# 프론트에서 추가: 맵핑 임포트
-from .models import get_choice_parts, important_points_parts 
 
 FORMS = [
     ("step1", SurveyStep1Form),
@@ -187,45 +185,6 @@ def home_senior(request):
     return render(request, 'users/home_senior.html')
 
 
-FIELD_LABELS = {
-    'preferred_time': '생활리듬',
-    'conversation_style': '대화스타일',
-    'important_points': '중요한점',
-    'noise_level': '소음수준',
-    'meal_preference': '식사',
-    'space_sharing_preference': '공간공유',
-    'pet_preference': '반려동물',
-    'smoking_preference': '흡연',
-    'weekend_preference': '주말성향',
-}
-
-def get_matching_text(score):
-    if score >= 90:
-        return "매우 잘 맞음 👍"
-    elif score >= 70:
-        return "잘 맞음 😊"
-    elif score >= 50:
-        return "보통 😐"
-    else:
-        return "조금 다름 🧐"
-    
-# 프론트에서 추가: 사용자에 대해 emoji/label을 하나로
-
-def _build_profile_parts(user_obj):
-    if not user_obj:
-        return None
-    return {
-        "preferred_time":            get_choice_parts(user_obj, "preferred_time"),
-        "conversation_style":        get_choice_parts(user_obj, "conversation_style"),
-        "important_points":          important_points_parts(user_obj),  # 리스트
-        "noise_level":               get_choice_parts(user_obj, "noise_level"),
-        "meal_preference":           get_choice_parts(user_obj, "meal_preference"),
-        "space_sharing_preference":  get_choice_parts(user_obj, "space_sharing_preference"),
-        "pet_preference":            get_choice_parts(user_obj, "pet_preference"),
-        "smoking_preference":        get_choice_parts(user_obj, "smoking_preference"),
-        "weekend_preference":        get_choice_parts(user_obj, "weekend_preference"),
-    }
-
 def senior_profile(request, senior_id, room_id):
     # 매칭 대상 시니어 유저 객체
     owner = get_object_or_404(User, id=senior_id, is_youth=False)
@@ -238,9 +197,6 @@ def senior_profile(request, senior_id, room_id):
     # 매칭 상세 정보 가져오기
     matching_details = get_matching_details(youth_user, owner)
 
-    owner_parts = _build_profile_parts(owner)
-    youth_parts = _build_profile_parts(youth_user)
-
     context = {
         'owner': owner,
         'youth_user': youth_user,
@@ -250,9 +206,6 @@ def senior_profile(request, senior_id, room_id):
         'hashtags': matching_details['hashtags'],
         'owner_is_id_card_uploaded': owner.is_id_card_uploaded,
         'is_land_register_verified': is_land_register_verified,
-
-        'owner_parts': owner_parts,
-        'youth_parts': youth_parts,
     }
     return render(request, 'users/senior_profile.html', context)
 
