@@ -1,0 +1,64 @@
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>후기 모두 보기</title>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>후기 모두 보기</h2>
+        </div>
+
+        <div class="all-reviews-list">
+            {% for review in reviews %}
+            <div class="review-item">
+                <div class="review-meta">
+                    <div class="profile-info">
+                        <i class="fas fa-user-circle"></i>
+                        <p class="reviewer-name">
+                            {% if review.is_anonymous %}
+                                익명{{ forloop.counter }}
+                            {% else %}
+                                {{ review.author.username }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <p class="residence-period">{{ review.get_lived_period_display }} 거주</p>
+                </div>
+                <div class="review-rating">
+                    <span class="star-rating">
+                        {% if review.satisfaction == 'VERY_SATISFIED' %}★★★★★
+                        {% elif review.satisfaction == 'SATISFIED' %}★★★★☆
+                        {% elif review.satisfaction == 'NORMAL' %}★★★☆☆
+                        {% elif review.satisfaction == 'DISSATISFIED' %}★★☆☆☆
+                        {% else %}★☆☆☆☆
+                        {% endif %}
+                    </span>
+                    <p class="satisfaction-text">{{ review.get_satisfaction_display }}</p>
+                    <p class="review-date">{{ review.created_at|date:"Y년 m월 d일" }} 작성</p>
+                </div>
+
+                {% if review.good_points %}
+                <div class="review-points">
+                    <p class="points-label"><i class="fas fa-check-circle"></i> 좋았던 점</p>
+                    <p class="points-text">{{ review.good_points }}</p>
+                </div>
+                {% endif %}
+
+                {% if review.bad_points %}
+                <div class="review-points">
+                    <p class="points-label"><i class="fas fa-pencil-alt"></i> 개선되었으면 좋겠는 점</p>
+                    <p class="points-text">{{ review.bad_points }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p>아직 등록된 후기가 없습니다.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
