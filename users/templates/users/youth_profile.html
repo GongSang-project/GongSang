@@ -97,8 +97,8 @@
 
             {% if review_count > 0 %}
             <div class="view-all-reviews">
-                <a href="{% url 'users:all_reviews' youth_user.id %}">
-                    <button>후기 {{ review_count }}개 모두 보기</button>
+                <a href="{% url 'users:all_reviews_for_youth' youth_user.id %}">
+                    <button>후기 모두 보기</button>
                 </a>
             </div>
             {% endif %}

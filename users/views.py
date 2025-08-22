@@ -330,7 +330,7 @@ def youth_profile(request, request_id):
     return render(request, 'users/youth_profile.html', context)
 
 
-def all_reviews(request, youth_id):
+def all_reviews_for_youth(request, youth_id):
     youth_user = get_object_or_404(User, id=youth_id)
     reviews = Review.objects.filter(youth=youth_user).order_by('-created_at')
 
@@ -338,4 +338,4 @@ def all_reviews(request, youth_id):
         'youth_user': youth_user,
         'reviews': reviews
     }
-    return render(request, 'users/all_reviews.html', context)
+    return render(request, 'users/all_reviews_for_youth.html', context)
