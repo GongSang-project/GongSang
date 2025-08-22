@@ -1,0 +1,82 @@
+{% load static %}
+{% load matching_filters %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>후기 작성</title>
+    <style>
+        /* CSS를 사용하여 각 단계를 숨기고 보이게 함 */
+        .step { display: none; }
+        .step.active { display: block; }
+    </style>
+</head>
+<body>
+    <form id="reviewForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div id="step1" class="step active">
+            <p>1/6</p>
+            <h2>실거주 인증이 필요해요</h2>
+            <p>임대차계약서를 첨부해주세요</p>
+            <p>인증 후 후기 등록이 가능해요</p>
+            {{ form1.as_p }}
+            <button type="button" onclick="nextStep(2)">다음</button>
+        </div>
+
+        <div id="step2" class="step">
+            <p>2/6</p>
+            <h2>함께 지낸 기간은<br> 얼마나 되나요?</h2>
+            {{ form2.as_p }}
+            <button type="button" onclick="nextStep(1)">이전</button>
+            <button type="button" onclick="nextStep(3)">다음</button>
+        </div>
+
+        <div id="step3" class="step">
+            <p>3/6</p>
+            <h2>전반적인 만족도는 어땠나요?</h2>
+            {{ form3.as_p }}
+            <button type="button" onclick="nextStep(2)">이전</button>
+            <button type="button" onclick="nextStep(4)">다음</button>
+        </div>
+
+        <div id="step4" class="step">
+            <p>4/6</p>
+            <h2>좋았던 점은<br> 무엇이었나요?</h2>
+            <p>자유롭게 작성해주세요</p>
+            {{ form4.as_p }}
+            <button type="button" onclick="nextStep(3)">이전</button>
+            <button type="button" onclick="nextStep(5)">다음</button>
+        </div>
+
+        <div id="step5" class="step">
+            <p>5/6</p>
+            <h2>개선되었으면 좋을 점은<br> 무엇이었나요?</h2>
+            <p>자유롭게 작성해주세요</p>
+            {{ form5.as_p }}
+            <button type="button" onclick="nextStep(4)">이전</button>
+            <button type="button" onclick="nextStep(6)">다음</button>
+        </div>
+
+        <div id="step6" class="step">
+            <p>6/6</p>
+            {% if request.user.is_youth %}
+                <h2>이 집에서<br>다시 살고 싶으신가요?</h2>
+            {% else %}
+                <h2>{{ youth.username }}님과 다시 함께<br>살고 싶으신가요?</h2>
+            {% endif %} {{ form6.as_p }}
+            <button type="button" onclick="nextStep(5)">이전</button>
+            <button type="submit">후기 작성 완료</button>
+        </div>
+    </form>
+
+    <script>
+        function nextStep(step) {
+            const steps = document.querySelectorAll('.step');
+            steps.forEach(s => s.classList.remove('active'));
+            document.getElementById(`step${step}`).classList.add('active');
+        }
+    </script>
+</body>
+</html>
