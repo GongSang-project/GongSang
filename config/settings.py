@@ -138,3 +138,7 @@ LOGIN_URL = '/users/select_user/'
 #실제 서비스 배포 시에는 반드시 수정!!
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_DOMAIN = None
+
+FIXTURE_DIRS = [
+    os.path.join(BASE_DIR, 'fixtures'),
+]
