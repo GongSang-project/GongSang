@@ -53,7 +53,6 @@
 
         <div class="traits-section">
             <h4>각자의 성향</h4>
-
             <div class="trait-item">
                 <div class="trait-label">활동 시간대</div>
                 <div class="trait-values">
@@ -71,9 +70,8 @@
                     </div>
                 </div>
             </div>
-
             <div class="trait-item">
-                <div class="trait-label">대화 스타일</div>
+                <div class="trait-label">대화 빈도</div>
                 <div class="trait-values">
                     <div class="trait-user">
                         <p class="trait-user-name">{{ owner.username }}(시니어)</p>
@@ -89,117 +87,8 @@
                     </div>
                 </div>
             </div>
-
             <div class="trait-item">
-                <div class="trait-label">식사</div>
-                <div class="trait-values">
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
-                        <p class="trait-value {% if owner.meal_preference == youth_user.meal_preference %}trait-value-matched{% endif %}">
-                            {{ owner.get_meal_preference_display }}
-                        </p>
-                    </div>
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
-                        <p class="trait-value {% if owner.meal_preference == youth_user.meal_preference %}trait-value-matched{% endif %}">
-                            {{ youth_user.get_meal_preference_display }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="trait-item">
-                <div class="trait-label">주말</div>
-                <div class="trait-values">
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
-                        <p class="trait-value {% if owner.weekend_preference == youth_user.weekend_preference %}trait-value-matched{% endif %}">
-                            {{ owner.get_weekend_preference_display }}
-                        </p>
-                    </div>
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
-                        <p class="trait-value {% if owner.weekend_preference == youth_user.weekend_preference %}trait-value-matched{% endif %}">
-                            {{ youth_user.get_weekend_preference_display }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="trait-item">
-                <div class="trait-label">흡연</div>
-                <div class="trait-values">
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
-                        <p class="trait-value {% if owner.smoking_preference == youth_user.smoking_preference %}trait-value-matched{% endif %}">
-                            {{ owner.get_smoking_preference_display }}
-                        </p>
-                    </div>
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
-                        <p class="trait-value {% if owner.smoking_preference == youth_user.smoking_preference %}trait-value-matched{% endif %}">
-                            {{ youth_user.get_smoking_preference_display }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="trait-item">
-                <div class="trait-label">소음 발생</div>
-                <div class="trait-values">
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
-                        <p class="trait-value {% if owner.noise_level == youth_user.noise_level %}trait-value-matched{% endif %}">
-                            {{ owner.get_noise_level_display }}
-                        </p>
-                    </div>
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
-                        <p class="trait-value {% if owner.noise_level == youth_user.noise_level %}trait-value-matched{% endif %}">
-                            {{ youth_user.get_noise_level_display }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="trait-item">
-                <div class="trait-label">공간 공유</div>
-                <div class="trait-values">
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
-                        <p class="trait-value {% if owner.space_sharing_preference == youth_user.space_sharing_preference %}trait-value-matched{% endif %}">
-                            {{ owner.get_space_sharing_preference_display }}
-                        </p>
-                    </div>
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
-                        <p class="trait-value {% if owner.space_sharing_preference == youth_user.space_sharing_preference %}trait-value-matched{% endif %}">
-                            {{ youth_user.get_space_sharing_preference_display }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="trait-item">
-                <div class="trait-label">반려동물</div>
-                <div class="trait-values">
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
-                        <p class="trait-value {% if owner.pet_preference == youth_user.pet_preference %}trait-value-matched{% endif %}">
-                            {{ owner.get_pet_preference_display }}
-                        </p>
-                    </div>
-                    <div class="trait-user">
-                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
-                        <p class="trait-value {% if owner.pet_preference == youth_user.pet_preference %}trait-value-matched{% endif %}">
-                            {{ youth_user.get_pet_preference_display }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="trait-item">
-                <div class="trait-label">중요한 점</div>
+                <div class="trait-label">생활공간 중요 포인트</div>
                 <div class="trait-values">
                     <div class="trait-user">
                         <p class="trait-user-name">{{ owner.username }}(시니어)</p>
@@ -215,7 +104,108 @@
                     </div>
                 </div>
             </div>
-
+            <div class="trait-item">
+                <div class="trait-label">소음 허용도</div>
+                <div class="trait-values">
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
+                        <p class="trait-value {% if owner.noise_level == youth_user.noise_level %}trait-value-matched{% endif %}">
+                            {{ owner.get_noise_level_display }}
+                        </p>
+                    </div>
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
+                        <p class="trait-value {% if owner.noise_level == youth_user.noise_level %}trait-value-matched{% endif %}">
+                            {{ youth_user.get_noise_level_display }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="trait-item">
+                <div class="trait-label">식사 여부</div>
+                <div class="trait-values">
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
+                        <p class="trait-value {% if owner.meal_preference == youth_user.meal_preference %}trait-value-matched{% endif %}">
+                            {{ owner.get_meal_preference_display }}
+                        </p>
+                    </div>
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
+                        <p class="trait-value {% if owner.meal_preference == youth_user.meal_preference %}trait-value-matched{% endif %}">
+                            {{ youth_user.get_meal_preference_display }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="trait-item">
+                <div class="trait-label">공용공간 사용</div>
+                <div class="trait-values">
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
+                        <p class="trait-value {% if owner.space_sharing_preference == youth_user.space_sharing_preference %}trait-value-matched{% endif %}">
+                            {{ owner.get_space_sharing_preference_display }}
+                        </p>
+                    </div>
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
+                        <p class="trait-value {% if owner.space_sharing_preference == youth_user.space_sharing_preference %}trait-value-matched{% endif %}">
+                            {{ youth_user.get_space_sharing_preference_display }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="trait-item">
+                <div class="trait-label">반려동물 여부</div>
+                <div class="trait-values">
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
+                        <p class="trait-value {% if owner.pet_preference == youth_user.pet_preference %}trait-value-matched{% endif %}">
+                            {{ owner.get_pet_preference_display }}
+                        </p>
+                    </div>
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
+                        <p class="trait-value {% if owner.pet_preference == youth_user.pet_preference %}trait-value-matched{% endif %}">
+                            {{ youth_user.get_pet_preference_display }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="trait-item">
+                <div class="trait-label">흡연 여부</div>
+                <div class="trait-values">
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
+                        <p class="trait-value {% if owner.smoking_preference == youth_user.smoking_preference %}trait-value-matched{% endif %}">
+                            {{ owner.get_smoking_preference_display }}
+                        </p>
+                    </div>
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
+                        <p class="trait-value {% if owner.smoking_preference == youth_user.smoking_preference %}trait-value-matched{% endif %}">
+                            {{ youth_user.get_smoking_preference_display }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="trait-item">
+                <div class="trait-label">주요 생활 패턴</div>
+                <div class="trait-values">
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ owner.username }}(시니어)</p>
+                        <p class="trait-value {% if owner.weekend_preference == youth_user.weekend_preference %}trait-value-matched{% endif %}">
+                            {{ owner.get_weekend_preference_display }}
+                        </p>
+                    </div>
+                    <div class="trait-user">
+                        <p class="trait-user-name">{{ youth_user.username }}(나)</p>
+                        <p class="trait-value {% if owner.weekend_preference == youth_user.weekend_preference %}trait-value-matched{% endif %}">
+                            {{ youth_user.get_weekend_preference_display }}
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>
