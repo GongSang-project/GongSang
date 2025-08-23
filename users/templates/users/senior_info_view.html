@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시니어 내 정보 보기</title>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+        <h1>내 정보 보기</h1>
+        <a href="{% url 'users:user_info' %}" class="edit-link">수정하기</a>
+    </div>
+
+    <div class="profile-section">
+        <div class="profile-image">
+            {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="프로필 사진" style="width: 100%; height: 100%; border-radius: 50%;">
+            {% else %}
+                <span>👵</span>
+            {% endif %}
+        </div>
+        <div class="profile-details">
+            <h2>{{ user.username }} 님</h2>
+            <p>{{ user.age }}세 / {{ user.get_gender_display }}</p>
+            <p>{{ user.phone_number|default:"전화번호를 입력해주세요" }}</p>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-header">
+            <h3>거주 형태</h3>
+            <a href="{% url 'users:senior_living_type' %}" class="edit-link">수정하기</a>
+        </div>
+        <div class="info-content">
+            <p class="living-type-text">
+                {% if user.living_type == 'senior_couple' %}
+                    <span role="img" aria-label="시니어 부부">👵👴</span>
+                {% elif user.living_type == 'alone_female_senior' %}
+                    <span role="img" aria-label="혼자">👩‍🦳</span>
+                {% else %}
+                    <span role="img" aria-label="기타">🏡</span>
+                {% endif %}
+                {{ living_type_display }}
+            </p>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-header">
+            <h3>선택한 성향</h3>
+            <a href="{% url 'users:survey_wizard_start' %}" class="edit-link">수정하기</a>
+        </div>
+        <div class="info-content tags-container">
+            {% for preference in user_preferences %}
+                <span class="tag">{{ preference }}</span>
+            {% endfor %}
+        </div>
+    </div>
+  </div>
+</body>
+</html>
