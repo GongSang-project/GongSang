@@ -4,55 +4,275 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>후기 작성</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>후기 작성</title>
+  <style>
+    :root{
+      --primary:#F26430;
+      --black:#121212;
+      --gray:#959595;
+      --white:#fff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:-apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color:var(--black);
+      background:#fff;
+    }
+
+    /* 페이지 프레임 (375px 뷰) */
+    .screen{
+      max-width:375px;
+      margin:0 auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      /* 하단 GNB가 겹치지 않도록 */
+      padding-bottom:100px;
+    }
+
+    /* 헤더 */
+    .title{
+      text-align:center;
+      font-size:20px;
+      font-weight:500;
+      line-height:15px;
+      padding:16px 0 8px;
+    }
+
+    /* 탭 */
+    .tab-container{
+      display:flex;
+      width:100%;
+    }
+    .tab{
+      flex:1 0 50%;
+      text-decoration:none;
+      text-align:center;
+      color:var(--gray);
+      font-weight:600;
+      font-size:16px;
+      padding:8px 0 6px;
+      border-bottom:2px solid transparent;
+    }
+    .tab.active{
+      color:var(--primary);
+      border-bottom-color:var(--primary);
+    }
+
+    /* 내용 */
+    .content{
+      flex:1 0 auto;
+      padding-top:8px;
+    }
+    .date{
+      color:var(--gray);
+      font-size:15px;
+      padding:8px 24px 12px;
+    }
+
+    /* 카드 */
+    .card{
+      padding:0 16px;
+    }
+    .request-info{
+      display:flex;
+      gap:16px;
+      align-items:flex-start;
+    }
+    .room-image{
+      width:135px;
+      height:173px;
+      border-radius:6px;
+      object-fit:cover;
+      background:#d2d2d2;
+      display:block;
+    }
+
+    .info{
+      flex:1;
+    }
+    .score, .rent{
+      font-size:15px;
+      font-weight:500;
+      line-height:15px;
+      margin-bottom:10px;
+    }
+    .meta{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      margin-top:6px;
+      font-size:11px;
+      line-height:15px;
+      color:var(--gray);
+    }
+    .meta .chip{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:11px;
+      line-height:15px;
+      color:var(--gray);
+    }
+
+    /* CTA */
+    .button-group{
+      padding:16px;
+    }
+    .write-review-button{
+      width:100%;
+      height:56px;
+      border:none;
+      border-radius:12px;
+      background:var(--primary);
+      color:#fff;
+      font-size:20px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    /* 하단 GNB */
+    .gnb{
+      position:fixed;
+      left:50%;
+      bottom:0;
+      transform:translateX(-50%);
+      width:100%;
+      max-width:375px;
+      height:83px;
+      background:#fff;
+      border-top:0.65px solid var(--gray);
+      box-shadow:0 -3.73px 7.46px rgba(0,0,0,.05);
+      display:flex;
+      align-items:flex-start;
+      padding-top:10px;
+      z-index:10;
+    }
+    .gnb-inner{
+      width:100%;
+      display:flex;
+      justify-content:space-around;
+      align-items:flex-start;
+      padding:0 20px;
+    }
+    .gnb-item{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+      text-decoration:none;
+      color:var(--gray);
+      width:75px;
+    }
+    .gnb-item svg{
+      width:24px; height:24px;
+      display:block;
+    }
+    .gnb-item .label{
+      font-size:12px;
+      font-weight:500;
+    }
+    .gnb-item.active{ color:var(--primary); }
+    .gnb-item.active svg path,
+    .gnb-item.active svg circle,
+    .gnb-item.active svg rect{
+      stroke:var(--primary) !important;
+      fill:var(--primary) !important;
+    }
+
+    @media (max-width:374px){
+      .room-image{width:120px;height:154px}
+    }
+  </style>
 </head>
 <body>
+  <div class="screen">
+    <h1 class="title">후기 작성</h1>
+
     <div class="tab-container">
-        <a href="{% url 'review:review_list_youth' %}" class="tab active">후기 작성 전</a>
-        <a href="{% url 'review:review_completed_list_youth' %}" class="tab">후기 작성 완료</a>
+      <a href="{% url 'review:review_list_youth' %}" class="tab active">후기 작성 전</a>
+      <a href="{% url 'review:review_completed_list_youth' %}" class="tab">후기 작성 완료</a>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // 현재 URL 경로에 따라 탭 활성화 상태 변경
-        const tabs = document.querySelectorAll('.tab');
-        const currentPath = window.location.pathname;
-
-        tabs.forEach(tab => {
-            if (tab.getAttribute('href') === currentPath) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
-        });
-    });
-    </script>
-
-    {% if reviewable_requests %}
+    <div class="content">
+      {% if reviewable_requests %}
         {% for request in reviewable_requests %}
-            <div class="card">
-                <p>입주 요청일 {{ request.requested_at|date:"Y.m.d" }}</p>
-                <hr>
-                <div class="request-info">
-                    <img src="{% static 'images/room_default.jpg' %}" alt="방 사진" class="room-image">
-                    <div class="senior-info">
-                        <h3>{{ request.room.owner.username }} ({{ request.room.owner.age }}세, {% if request.room.owner.gender == 'F' %}여성{% else %}남성{% endif %})</h3>
-                        <h3>성향 매칭 점수 {{ request.youth|calculate_matching_score_filter:request.room.owner }}점</h3>
-                        <p>{{ request.room.address_city }} {{ request.room.address_district }}</p>
-                        <p>월세 {{ request.room.rent_fee|floatformat:"0" }}/{{ request.room.deposit|floatformat:"0" }}</p>
-                        <p>{{ request.room.owner.get_living_type_display }}</p>
-                    </div>
+          <div class="date">입주 요청일 {{ request.requested_at|date:"Y.m.d" }}</div>
+
+          <div class="card">
+            <div class="request-info">
+              <img src="{% static 'images/room_default.jpg' %}" alt="방 사진" class="room-image" />
+
+              <div class="info">
+                <div class="score">성향 매칭 점수 {{ request.youth|calculate_matching_score_filter:request.room.owner }}점</div>
+                <div class="rent">월세 {{ request.room.rent_fee|floatformat:"0" }}/{{ request.room.deposit|floatformat:"0" }}</div>
+
+                <div class="meta">
+                  <div>{{ request.room.address_city }} {{ request.room.address_district }}</div>
+                  <div>{{ request.room.owner.username }} ({{ request.room.owner.age }}세 / {% if request.room.owner.gender == 'F' %}여성{% else %}남성{% endif %})</div>
+                  <div class="chip">👵👨‍ <span>{{ request.room.owner.get_living_type_display }}</span></div>
                 </div>
-                <div class="button-group">
-                    <a href="{% url 'review:review_write' request.id %}">
-                        <button class="write-review-button">후기 작성하기</button>
-                    </a>
-                </div>
+              </div>
             </div>
+          </div>
+
+          <div class="button-group">
+            <a href="{% url 'review:review_write' request.id %}">
+              <button type="button" class="write-review-button">후기 작성하기</button>
+            </a>
+          </div>
         {% endfor %}
-    {% else %}
-        <p>후기를 작성할 수 있는 시니어-방이 없습니다.</p>
-    {% endif %}
+      {% else %}
+        <div class="date" style="padding-top:24px;">후기를 작성할 수 있는 시니어-방이 없습니다.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 하단 GNB (이 페이지 전용 포함) -->
+  <nav class="gnb" aria-label="하단 내비게이션">
+    <div class="gnb-inner">
+      <!-- 검색 -->
+      <a class="gnb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="10.5" cy="10.5" r="6.5" stroke="#A9A9A9" stroke-width="2"></circle>
+          <path d="M15.5 15.5 L21 21" stroke="#A9A9A9" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+        <div class="label">검색</div>
+      </a>
+
+      <!-- 홈 -->
+      <a class="gnb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M3 10.5L12 3l9 7.5V20a1.5 1.5 0 0 1-1.5 1.5H14v-6h-4v6H4.5A1.5 1.5 0 0 1 3 20v-9.5z" fill="none" stroke="#A9A9A9" stroke-width="2" stroke-linejoin="round"></path>
+        </svg>
+        <div class="label" style="font-weight:700">홈</div>
+      </a>
+
+      <!-- 마이페이지 (현재 탭 활성) -->
+      <a class="gnb-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="7.5" r="4.5" fill="#F26430"></circle>
+          <path d="M3 20.5c2.7-3.5 6-5.25 9-5.25s6.3 1.75 9 5.25" stroke="#F26430" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+        <div class="label">마이페이지</div>
+      </a>
+    </div>
+  </nav>
+
+  <script>
+    // (옵션) 현재 URL에 따라 상단 탭 활성화
+    (function(){
+      const tabs = document.querySelectorAll('.tab');
+      const currentPath = window.location.pathname;
+      tabs.forEach(tab => {
+        if (tab.getAttribute('href') === currentPath) tab.classList.add('active');
+        else tab.classList.remove('active');
+      });
+    })();
+  </script>
 </body>
 </html>
