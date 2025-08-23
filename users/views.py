@@ -310,6 +310,10 @@ def youth_profile(request, request_id):
     good_hashtags = ["#깔끔한", "#활발함", "#규칙적인"]
     bad_hashtags = ["#깔끔한", "#활발함"]
 
+    # 프론트에서 추가
+    owner_parts = _build_profile_parts(senior_user)   
+    youth_parts = _build_profile_parts(youth_user) 
+
     context = {
         'youth_user': youth_user,
         'senior_user': senior_user,
@@ -325,6 +329,9 @@ def youth_profile(request, request_id):
         'ai_summary': ai_summary,
         'good_hashtags': good_hashtags,
         'bad_hashtags': bad_hashtags,
+
+        'owner_parts': owner_parts,
+        'youth_parts': youth_parts,
     }
 
     return render(request, 'users/youth_profile.html', context)

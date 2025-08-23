@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Room
 from users.models import User
@@ -70,12 +71,31 @@ def room_detail(request, room_id):
 
 @login_required
 def senior_request_inbox(request):
+    print(f"User authenticated: {request.user.is_authenticated}")
+    print(f"User is youth: {request.user.is_youth}")
+
     if not request.user.is_authenticated or request.user.is_youth:
+        print(request.user.is_youth)
+        print("로그인된 사용자가 청년 유형이므로 청년 홈으로 이동")
         return redirect(reverse('users:home_youth'))
+    try:
+        print("로그인된 사용자가 시니어 유형이므로 시니어 전용 '입주 희망 요청 보기' 로 이동")
+        senior_rooms = Room.objects.filter(owner=request.user)
+        requests = MoveInRequest.objects.filter(room__in=senior_rooms).order_by('-requested_at')
 
+        context = {
+            'requests': requests,
+        }
+        return render(request, 'room/senior_request_inbox.html', context)
+    except Exception as e:
+        print(f"오류가 발생했습니다: {e}")
+        return HttpResponse(f"디버깅 중 오류 발생: {e}", status=500)
+
+    print("로그인된 사용자가 시니어 유형이므로 시니어 전용 '입주 희망 요청 보기' 로 이동")
+    
     senior_rooms = Room.objects.filter(owner=request.user)
-    requests = MoveInRequest.objects.filter(room__in=senior_rooms).order_by('-requested_at')
-
+    requests = MoveInRequest.objects.filter(roomin=senior_rooms).order_by('-requested_at')
+    
     context = {
         'requests': requests,
     }

@@ -1,0 +1,732 @@
+/*공통 스타일*/
+
+/* 폰트 불러오기 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* Tmoney RoundWind Regular */
+@font-face {
+    font-family: 'TmoneyRoundWindRegular';
+    src: url('https://cdn.jsdelivr.net/gh/woffz/a1@main/Tmoney/TmoneyRoundWindRegular.woff') format('woff');
+    font-weight: normal;
+    font-style: Regular;
+}
+
+
+/* Tmoney RoundWind ExtraBold */
+@font-face {
+    font-family: 'TmoneyRoundWindExtraBold';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/TmoneyRoundWindExtraBold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 스크롤바 숨김 */
+#app-wrapper { scrollbar-width: none; }
+html, body { -ms-overflow-style: none; }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { display: none; }
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: rgb(0, 0, 0);
+    align-self: stretch;
+    padding: 30px 0;
+    font-family: 'Pretendard', system-ui, '-apple-system', 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+}
+
+#root {
+    width: 375px;
+    height: 812px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    background-color: #fff;
+}
+
+#app-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: block;
+    overflow: auto;
+
+}
+
+.header {
+    width: 100%; 
+    height: 99px;
+    display: flex;
+    background-color: #fff;
+    position: sticky;
+    top:0px;
+    z-index: 1;
+}
+
+.footer {
+    width:100%;
+    height: 115px;
+    background-color: #ffffff;
+    position: sticky;
+    top:695px;
+    z-index: 1;
+}
+
+/* 뒤로가기 버튼 */
+.icon {
+    width: 20px;
+    height: 27px;
+    padding: 6px;
+    position: absolute;
+    top:54px;
+    left:20px;
+
+}
+
+/* '청년 정보'제목 */
+.header > h1 {
+color: var(--Black, #121212);
+text-align: center;
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 150%; 
+letter-spacing: -0.46px;
+position: absolute;
+top:52px;
+left:152px;
+margin: 0 0px;
+}
+
+/* profile-header 안의 요소들 */
+.profile-image {
+width: 58px;
+height: 58px;
+flex-shrink: 0;
+aspect-ratio: 1/1;
+fill: #959595;
+position: absolute;
+top: 101px;
+left:25px;
+}
+
+/* 이름 */
+.user-info > h3 {
+color: var(--Black, #121212);
+
+/* H2 */
+font-family: 'Pretendard';
+font-size: 24px;
+font-style: normal;
+font-weight: 600;
+line-height: 15px; /* 62.5% */
+letter-spacing: -0.12px;
+position: absolute;
+top:113px;
+left:97px;
+margin: 0 0;
+}
+
+/*나이, 성별*/
+.user-info > p {
+color:#959595;
+font-family: 'Pretendard';
+font-size: 18px;
+font-style: normal;
+font-weight: 600;
+line-height: 15px; /* 83.333% */
+letter-spacing: -0.09px;
+position: absolute;
+top: 140px;
+left: 97px;
+margin: 0 0;
+}
+
+
+/* 신분증 인증 여부 */
+.verification > span {
+color: #B3B3B3;
+font-family: 'Pretendard';
+font-size: 15px;
+font-style: normal;
+font-weight: 400;
+line-height: 10px;
+letter-spacing: -0.521px;
+display: flex;
+align-items: center;
+gap: 3px;
+position: absolute;
+top:171px;
+left:25px;
+margin: 0 0;
+}
+
+.verified_mark{
+width: 16px;
+height: 16px;
+flex-shrink: 0;
+}
+
+/* 구분선 1 */
+.line1 {
+width: 326px;
+border-top: 1px solid #E9E9E9;
+position: absolute;
+top: 199px;
+left: 25px;
+}
+
+/* '성향매칭분석결과,후기,각자의 성향' 제목 텍스트 */
+h4{
+color:#515151;
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 75% */
+letter-spacing: -0.1px;
+margin: 0 0;
+}
+
+/* 매칭 분석 결과(matching-result) 안 요소들 */
+/* '성향 매칭 분석 결과 */
+.matching-result > h4{
+  position: absolute;
+  top:218px;
+  left: 26px;
+}
+
+.matching-text {
+color: #121212;
+font-family: 'Pretendard';
+font-size: 24px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 125% */
+letter-spacing: -0.12px;
+margin: 0 0;
+position: absolute;
+top:249px;
+left:25px;
+}
+
+.explanation {
+color: #121212;
+font-family: 'Pretendard';
+font-size: 16px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 93.75% */
+letter-spacing: -0.08px;
+margin: 0 0;
+position: absolute;
+top:281.0913px;
+left:26px;
+}
+
+
+.score-bar{
+  position: absolute;
+  top:377.4023px;
+  left:49px;
+  width: 294px;
+  height: 33px;
+  border-radius: 150.9434px;
+  background: var(--White, #FFF);
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.score-fill{
+  height: 100%;
+  background: linear-gradient(90deg, #F28730 10.07%, #F99E49 21.31%, var(--Yellow, #FECA5C) 54.6%, var(--Green2, #2AC195) 100%);
+  border-radius: 150.9434px;
+  width: 0;                    /* 기본값 */
+  transition: width .6s ease;  /* 부드럽게 채워짐 */
+}
+
+.heart {
+width: 80px;
+height: 80px;
+position: absolute;
+top:353.4023px;
+left:13px;
+}
+
+.score {
+  width: 73px;
+  height: 50.5723px;
+  position: absolute;
+  top: 331.9082px;
+  left: 0px;
+  transform: translateX(-50%);
+}
+
+.score-text {
+color: var(--grayscale-white, #FFF);
+text-align: center;
+font-family: 'Pretendard';
+font-size: 24px;
+font-style: normal;
+font-weight: 600;
+line-height: 15px; /* 62.5% */
+letter-spacing: -0.12px;
+margin:0 0 ;
+position: absolute;
+top: 343.4805px;
+left: 0px;
+transform: translateX(-50%);
+
+}
+
+/* 성향 매칭 분석 결과의 태그들 */
+.matching-result .hashtags {
+  position: absolute;
+  top: 436.4023px;
+  left: 25px;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;     
+}
+
+.matching-result .hashtags .tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6.353px;  
+  height: 34px;
+
+  white-space: nowrap;    
+  border-radius: 9.529px;
+  background: var(--Secondary, #FFEBD9);
+  color: var(--Primary, #F26430);
+  font-family: 'Pretendard';
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.matching-result .hashtags .break {
+  flex-basis: 100%;
+  width: 0;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  content: "";
+}
+
+/* 구분선2 */
+.line2{
+width: 326px;
+border-top: 1px solid #E9E9E9;
+position: absolute;
+top: 497px;
+left: 25px;
+}
+
+/* 후기 관련 css */
+
+
+.reviews-section{
+  position: absolute;
+  top:497px;
+  left:25px;
+  display: flex;
+  flex-direction:column;
+}
+
+.review-title {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top:22px;
+  left:1px;
+  margin: 0 0;
+  height: 20px;
+  min-width: 134px;
+}
+.review-title>img {
+width: 20px;
+height: 20px;
+aspect-ratio: 1/1;
+margin-left:9px;
+margin-right:2px;
+}
+
+.review-score {
+color: var(--Black, #121212);
+font-family: 'Pretendard';
+font-size: 18px;
+font-style: normal;
+font-weight: 600;
+line-height: 15px; /* 83.333% */
+letter-spacing: -0.09px;
+margin-right: 5px;
+}
+
+/* ai 후기 요약 분석 */
+.review-summary {
+  position: absolute;
+  top:59px;
+  left:1px;
+  display: flex;
+  flex-direction: column;
+  gap:8px;
+}
+
+.review-summary>p{
+color: var(--Black, #121212);
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 20px; /* 100% */
+letter-spacing: -0.1px;
+width: 325px;
+margin: 0 0;
+}
+
+.review-hashtags {
+  position: absolute;
+  top:140px;  
+  left:1px;
+  display: flex;
+  gap:8px;
+  flex-direction: column;
+}
+
+.review-hashtags-item {
+  width:324px;
+  display: flex;
+  align-items: center;
+  gap:12px;
+}
+
+.review-hashtags-item >p{
+color: var(--Black, #121212);
+font-family: 'Pretendard';
+font-size: 18px;
+font-style: normal;
+font-weight: 600;
+line-height: 15px; /* 83.333% */
+letter-spacing: -0.09px;
+height: 15px;
+margin:0 0;
+flex: 0 0 auto;
+white-space: nowrap;
+}
+
+.review-hashtags-item> .hashtags{
+display: flex;
+align-items: center;
+height: 32px;
+gap: 8px;
+flex: 1 1 auto;
+flex-wrap:nowrap;
+min-width: 0;
+overflow-x: auto;
+overflow-y: hidden;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;    
+-ms-overflow-style: none;    
+}
+
+.review-hashtags-item .hashtags::-webkit-scrollbar {
+  display: none;               
+}
+
+.review-hashtags-item .hashtags span {
+  flex: 0 0 auto;        
+  white-space: nowrap;   
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  width: auto;
+  padding: 4px 12px;
+  color: #515151;
+  font-family: 'Pretendard';
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 15px; /* 83.333% */
+  letter-spacing: -0.09px;
+  border-radius: 100px;
+  background: #F3F3F3;
+}
+
+/*후기 박스*/
+.individual-reviews {
+  position: absolute;
+  top:246px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width:318px;
+  gap:22px;
+  height: auto;
+}
+
+.review-item {
+  position: relative;
+  padding-top: 63px;
+}
+
+.reviewer-profile {
+width: 36px;
+height: 36px;
+flex-shrink: 0;
+aspect-ratio: 1/1;
+position: absolute;
+top:0px;
+left:0px;
+}
+
+.reviewer-name {
+color: var(--Black, #121212);
+font-family: 'Pretendard';
+font-size: 16px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 93.75% */
+letter-spacing: -0.08px;
+align-self: stretch;
+position: absolute;
+top:2px;
+left:46px;
+margin:0 0;
+}
+
+.residence-period {
+color: var(--GNB, #959595);
+font-family: 'Pretendard';
+font-size: 14px;
+font-style: normal;
+font-weight: 400;
+line-height: 15px; /* 107.143% */
+letter-spacing: -0.07px;
+position: absolute;
+top:20px;
+left:46px;
+margin: 0 0;
+}
+
+.review-rating{
+  position: absolute;
+  top:48px;
+  left:0px;
+  display: flex;
+  align-items: center;
+  margin: 0 0;
+  gap:10px;
+}
+
+.star-rating{
+  width: 75px;
+  margin: 0 0;
+}
+
+.review-date {
+color: var(--GNB, #959595);
+font-family: 'Pretendard';
+font-size: 14px;
+font-style: normal;
+font-weight: 400;
+line-height: 15px; /* 107.143% */
+letter-spacing: -0.07px;
+margin:0 0;
+}
+
+.review-text{
+  display: block;
+  margin-top: 12px;
+  width: 318px;       
+  line-height: 1.5;
+  white-space: normal;
+}
+
+/* 후기 더보기 버튼 */
+.view-all-reviews{
+  width: 343px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1px solid #E9E9E9;
+  background:  #E9E9E9;
+  text-decoration:none;
+  color: #515151;
+  text-align: center;
+  align-content: center;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-family: 'Pretendard';
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  margin-left: -10px;
+}
+
+.line3{
+width: 326px;
+border-top: 1px solid #E9E9E9;
+position: absolute;
+top: 1216px;
+left: 25px;
+}
+
+/* 각자의 성향 */
+.traits-section{
+  position: absolute;
+  top:1269px;
+  left:25px;
+  display: flex;
+  flex-direction: column;
+  gap:16px;
+}
+
+/* '각자의 성향 제목 위치 */
+.trait-title {
+  position: absolute;
+  top:1238px;
+  left:26px;
+}
+
+.trait-item{
+  width: 234px;
+  height: 129px;
+  margin:0px 0px;
+  display: flex;
+  gap:9px;
+  flex-direction: column;
+}
+
+.trait-item.ip-item { height: 257px; }
+
+.trait-item.ip-item .trait-values {
+  flex-wrap: wrap;
+  align-content: flex-start;
+}
+.trait-label{
+color:#121212;
+font-family: 'Pretendard';
+font-size: 16px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 93.75% */
+letter-spacing: -0.08px;
+margin:0px 0px;
+}
+
+.trait-values {
+  display: flex;
+  justify-content: flex-start;
+  gap:24px;
+}
+
+
+/* 기본 카드(하양) */
+.card{
+width: 105px;
+height: 105px;
+flex-shrink: 0;
+aspect-ratio: 1/1;
+border-radius: 25px;
+background: var(--White, #FFF);
+box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.15);
+position: relative;
+}
+
+
+/* 매칭된 카드(주황) */
+.card-value-matched{
+width: 105px;
+height: 105px;
+flex-shrink: 0;
+aspect-ratio: 1/1;
+border-radius: 25px;
+border: 2px solid var(--Primary, #F26430);
+background: var(--Secondary, #FFEBD9);
+box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.15);
+position: relative;
+
+}
+
+.card, .card-value-matched{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+
+/* 카드 속 유저 이름과 키워드 */
+
+.trait-user-name {
+font-family: 'Pretendard';
+font-size: 11px;
+font-style: normal;
+font-weight: 400;
+line-height: 15px; /* 136.364% */
+letter-spacing: -0.055px;
+text-align: center;
+margin:0 0;
+}
+
+.trait-label-text{
+text-align: center;
+font-family: 'Pretendard';
+font-size: 14px;
+font-style: normal;
+font-weight: 400;
+line-height: 150%; /* 21px */
+letter-spacing: -0.521px;
+margin: 0 0;
+}
+
+.card >.trait-user-name{
+color: #515151;
+text-align: center;
+}
+.card >.trait-label-text{
+color: #515151;
+text-align: center;
+}
+
+.card-value-matched >.trait-user-name{
+color:#F26430;
+text-align: center;
+}
+.card-value-matched >.trait-label-text{
+color:#F26430;
+text-align: center;
+}
+
+/* 카드 속 이모지 */
+.trait-emoji {
+text-align: center;
+font-family: 'Pretendard';
+font-size: 38px;
+font-style: normal;
+font-weight: 400;
+line-height: 2px; /* 5.263% */
+letter-spacing: -0.521px;
+padding: 0 0;
+margin:22px;
+}
+
+/* 카드 두개인 경우 */
+.ip-values{
+  flex-wrap: wrap;        /* 두 줄로 흐름 */
+  width:234px;           
+}
+
+.card.card-empty{
+  border:2px dashed #EEE;
+  background:#FAFAFA;
+  color:#BDBDBD;
+}
+
