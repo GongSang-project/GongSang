@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django import forms
+from django.urls import reverse
 
 from .models import Room
 
@@ -35,23 +36,13 @@ class RoomOwnerEditForm(forms.ModelForm):
         widgets = {"available_date": forms.DateInput(attrs={"type": "date"})}
 
 @login_required
-def owner_room_update(request, room_id: int):        # ← 함수 이름 정확히 맞추기
+def owner_room_update(request, room_id: int):
     if not _senior_guard(request):
         messages.error(request, "시니어 회원만 접근할 수 있어요.")
         return redirect("users:home_youth")
+    # 새 편집 플로우 진입점으로 넘기기
+    return redirect("room:edit_start", room_id=room_id)
 
-    room = get_object_or_404(Room, pk=room_id, owner=request.user)
-
-    if request.method == "POST":
-        form = RoomOwnerEditForm(request.POST, instance=room)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "방 정보가 수정되었습니다.")
-            return redirect("room:owner_room_list")
-    else:
-        form = RoomOwnerEditForm(instance=room)
-
-    return render(request, "room/owner_update.html", {"form": form, "room": room})
 
 @login_required
 @require_POST

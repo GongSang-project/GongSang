@@ -1,5 +1,3 @@
-# room/views_register.py
-
 import os
 import csv
 import json
@@ -14,6 +12,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
+from django.urls import reverse
+from django.http import HttpResponseRedirect
 
 from .forms import (
     DeedUploadRawForm,
@@ -291,8 +291,69 @@ def _get_addr_error():
 
 
 # ─────────────────────────────────────────────────────────────
-# 0. 등기부 업로드 시작 (카메라/파일 한 화면, 선택 즉시 업로드)
+# 0-A. 수정 시작 진입점 (새로 추가)
+@login_required
+@never_cache
+def owner_room_update_start(request, room_id):
+    """수정 버튼이 누르는 진입점: 세션에 EDIT_ROOM_ID 및 초기값 주입 후 주소 스텝부터 시작."""
+    if not _senior_guard(request):
+        return redirect("users:home_youth")
 
+    room = get_object_or_404(Room, pk=room_id, owner=request.user)
+
+    # 수정 모드 마킹
+    request.session[EDIT_ROOM_ID] = room.id
+
+    # 위저드 초기값 주입
+    wiz = {
+        "address": {
+            "address_province": room.address_province or "",
+            "address_city": room.address_city or "",
+            "address_district": room.address_district or "",
+            "address_detailed": room.address_detailed or "",
+            "nearest_subway": room.nearest_subway or "",
+        },
+        "detail": {
+            "floor": room.floor,
+            "area": room.area,
+            "toilet_count": room.toilet_count,
+            # 필요 시 property_type/rooms_count도 추가 가능
+        },
+        "contract": {
+            "deposit": room.deposit,
+            "rent_fee": room.rent_fee,
+            "utility_fee": room.utility_fee,
+            "contract_type": "단기거주" if room.can_short_term else "월세",
+            "can_short_term": room.can_short_term,
+        },
+        "period": {
+            "available_date": room.available_date.isoformat() if room.available_date else "",
+            "stay_term": "1개월",
+            "trial_ok": "예",
+        },
+        "fac1": {
+            "options": room.options or [],
+            "security_facilities": room.security_facilities or [],
+        },
+        "fac2": {
+            "other_facilities": room.other_facilities or [],
+            "parking_available": room.parking_available,
+            "pet_allowed": room.pet_allowed,
+            "heating_type": room.heating_type or None,
+        },
+    }
+    request.session[WIZARD_DATA] = wiz
+    request.session[PHOTOS_DATA] = {"COMMON": [], "YOUTH": [], "BATHROOM": []}  # 새 업로드만 추가
+    request.session[INTRO_TEXT] = getattr(getattr(room, "extra", None), "description", "") or ""
+    request.session.modified = True
+
+    # 수정 모드는 등기부 스킵 → 주소 스텝부터
+    return redirect("room:register_step_address")
+
+
+# ─────────────────────────────────────────────────────────────
+# 0-B. 등기부 업로드 시작 (카메라/파일 한 화면, 선택 즉시 업로드)
+#     ※ '방 등록하기' 버튼의 진입점은 반드시 여기로!
 @login_required
 @never_cache
 @require_http_methods(["GET", "POST"])
@@ -300,9 +361,11 @@ def deed_start(request):
     if not _senior_guard(request):
         return redirect("users:home_youth")
 
-    # 수정 모드면 등기부 단계를 통째로 건너뜀
-    if _is_edit_mode(request):
-        return redirect("room:register_step_address")
+    # ✅ 신규 등록 진입: 이전 등록/수정 흔적 전부 제거 (빈 상태로 시작)
+    for k in (WIZARD_DATA, PHOTOS_DATA, INTRO_TEXT, EDIT_ROOM_ID):
+        request.session.pop(k, None)
+    _clear_deed_session(request)
+    request.session.modified = True
 
     ctx = {"error": None}
 
@@ -656,7 +719,12 @@ def register_step_intro(request):
         request.session.modified = True
 
         wiz = _wiz_get(request)
-        addr, det, con, per = wiz["address"], wiz["detail"], wiz["contract"], wiz["period"]
+        addr, det, con, per = wiz.get("address", {}), wiz.get("detail", {}), wiz.get("contract", {}), wiz.get("period", {})
+
+        # (안전) 주소 필수값 빠지면 주소 스텝으로 되돌리기
+        required_addr = ['address_province','address_city','address_district']
+        if not all(addr.get(k) for k in required_addr):
+            return redirect("room:register_step_address")
 
         # 날짜 복원
         ad = per.get("available_date")
@@ -669,18 +737,18 @@ def register_step_intro(request):
             # ─── UPDATE ───
             room = get_object_or_404(Room, pk=request.session[EDIT_ROOM_ID], owner=request.user)
             # 기본 정보 업데이트
-            room.deposit = con["deposit"]
-            room.rent_fee = con["rent_fee"]
+            room.deposit = con.get("deposit")
+            room.rent_fee = con.get("rent_fee")
             room.utility_fee = con.get("utility_fee") or 0
-            room.floor = det["floor"]
-            room.area = det["area"]
-            room.toilet_count = det["toilet_count"]
+            room.floor = det.get("floor")
+            room.area = det.get("area")
+            room.toilet_count = det.get("toilet_count")
             room.available_date = available_date
             room.can_short_term = bool(con.get("can_short_term"))
-            room.address_province = addr["address_province"]
-            room.address_city = addr["address_city"]
-            room.address_district = addr["address_district"]
-            room.address_detailed = addr["address_detailed"]
+            room.address_province = addr.get("address_province") or ""
+            room.address_city = addr.get("address_city") or ""
+            room.address_district = addr.get("address_district") or ""
+            room.address_detailed = addr.get("address_detailed") or ""
             room.nearest_subway = addr.get("nearest_subway") or ""
             room.options = wiz.get("fac1", {}).get("options", [])
             room.security_facilities = wiz.get("fac1", {}).get("security_facilities", [])
@@ -712,25 +780,22 @@ def register_step_intro(request):
                         except Exception:
                             pass
 
-            # 등기부는 수정 플로우에선 다루지 않음(필요 시 deed_start로 유도)
-            redirect_url = "room:owner_room_list"
-
         else:
             # ─── CREATE ───
             room = Room.objects.create(
                 owner=request.user,
-                deposit=con["deposit"],
-                rent_fee=con["rent_fee"],
+                deposit=con.get("deposit"),
+                rent_fee=con.get("rent_fee"),
                 utility_fee=con.get("utility_fee") or 0,
-                floor=det["floor"],
-                area=det["area"],
-                toilet_count=det["toilet_count"],
+                floor=det.get("floor"),
+                area=det.get("area"),
+                toilet_count=det.get("toilet_count"),
                 available_date=available_date,
                 can_short_term=bool(con.get("can_short_term")),
-                address_province=addr["address_province"],
-                address_city=addr["address_city"],
-                address_district=addr["address_district"],
-                address_detailed=addr["address_detailed"],
+                address_province=addr.get("address_province") or "",
+                address_city=addr.get("address_city") or "",
+                address_district=addr.get("address_district") or "",
+                address_detailed=addr.get("address_detailed") or "",
                 nearest_subway=addr.get("nearest_subway") or "",
                 options=wiz.get("fac1", {}).get("options", []),
                 security_facilities=wiz.get("fac1", {}).get("security_facilities", []),
@@ -772,16 +837,13 @@ def register_step_intro(request):
                         except Exception:
                             pass
 
-            redirect_url = "room:room_detail"
-
         # 세션 정리
         for k in (WIZARD_DATA, DEED_TEMP_PATH, DEED_SOURCE, DEED_CONFIRMED, PHOTOS_DATA, INTRO_TEXT, EDIT_ROOM_ID):
             request.session.pop(k, None)
         request.session.modified = True
 
-        if redirect_url == "room:room_detail":
-            return redirect(redirect_url, room_id=room.id)
-        return redirect(redirect_url)
+        # ✅ 저장 후 항상 오너 목록 1페이지로
+        return HttpResponseRedirect(reverse("room:owner_room_list") + "?page=1")
 
     # GET → 소개 입력 화면
     return render(request, "room/register/step_intro.html", {
@@ -789,3 +851,4 @@ def register_step_intro(request):
         "edit_mode": edit_mode,
         "initial_intro": request.session.get(INTRO_TEXT, ""),
     })
+

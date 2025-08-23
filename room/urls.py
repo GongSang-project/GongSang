@@ -3,6 +3,7 @@ from . import views
 from .views_list import room_list_page
 from . import views_register as reg
 from . import views_owner as own
+from . import views_edit
 
 app_name = 'room'
 
@@ -16,19 +17,13 @@ urlpatterns = [
     path("senior/inbox/", views.senior_request_inbox, name="senior_request_inbox"),
     path("list/", room_list_page, name="room_list_page"),
 
-    #path("api/addr/sido/", reg.addr_sido_list, name="addr_sido_list"),
-    #path("api/addr/sigungu/", reg.addr_sigungu_list, name="addr_sigungu_list"),
-    #path("api/addr/dong/", reg.addr_dong_list, name="addr_dong_list"),
-
-    # 등기부
+    # 방 등록하기 - 등기부등본 업로드(시니어)
     path("register/deed/", reg.deed_start, name="deed_start"),
-    #path("register/deed/camera/", reg.deed_upload_camera, name="deed_upload_camera"),
-    #path("register/deed/file/", reg.deed_upload_file, name="deed_upload_file"),
     path("register/deed/preview/", reg.deed_preview, name="deed_preview"),
     path("register/deed/retry/", reg.deed_retry, name="deed_retry"),
     path("register/deed/confirm/", reg.deed_confirm, name="deed_confirm"),
 
-    # 스텝
+    # 방 등록하기 - 상세 정보 입력(시니어)
     path("register/step/address/", reg.register_step_address, name="register_step_address"),
     path("register/step/detail/",  reg.register_step_detail,  name="register_step_detail"),
     path("register/step/contract/",reg.register_step_contract,name="register_step_contract"),
@@ -37,10 +32,18 @@ urlpatterns = [
     path("register/step/photos/", reg.register_step_photos, name="register_step_photos"),
     path("register/step/intro/",  reg.register_step_intro,  name="register_step_intro"),
 
-    # 시니어 - 내 방 관리
+    # 등록한 방 확인(시니어)
     path("my/", own.owner_room_list, name="owner_room_list"),
-    path("my/<int:room_id>/edit/", own.owner_room_update, name="owner_room_update"),
+    path("my/<int:room_id>/edit/", views_edit.edit_start, name="owner_room_update"),
     path("my/<int:room_id>/delete/", own.owner_room_delete, name="owner_room_delete"),
+
+    # 방 정보 수정하기(시니어)
+    path("owner/rooms/<int:room_id>/edit/start/", views_edit.edit_start, name="owner_room_update_start"),
+    path("owner/edit/address/",   views_edit.edit_step_address,   name="edit_step_address"),
+    path("owner/edit/contract/",  views_edit.edit_step_contract,  name="edit_step_contract"),
+    path("owner/edit/detail/",    views_edit.edit_step_detail,    name="edit_step_detail"),
+    path("owner/edit/facilities/",views_edit.edit_step_facilities,name="edit_step_facilities"),
+    path("owner/edit/photos/",    views_edit.edit_step_photos,    name="edit_step_photos"),
 ]
 
 if has_detail:

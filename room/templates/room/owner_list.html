@@ -90,7 +90,7 @@
             </div>
 
             <div class="actions">
-              <a class="btn edit" href="{% url 'room:owner_room_update' room.id %}">수정</a>
+              <a class="btn edit" href="{% url 'room:owner_room_update_start' room.id %}">수정</a>
               <button type="button" class="btn danger delete-btn"
                       data-action="{% url 'room:owner_room_delete' room.id %}">
                 삭제

@@ -1,80 +1,236 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>방 상세 페이지 (테스트용)</title>
+  <meta charset="UTF-8" />
+  <title>방 상세 - {{ room.address_city }} {{ room.address_district }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --accent:#f15a24; --bg:#f6f7f8; --card:#ffffff; --text:#111827;
+      --muted:#6b7280; --border:#e6e8ec; --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);
+         font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans KR",sans-serif}
+
+    .wrap{max-width:960px;margin:0 auto;padding-bottom:80px}
+    /* HERO */
+    .hero{position:relative;height:260px;background:#eee}
+    .hero img{width:100%;height:100%;object-fit:cover;display:block}
+    .hero .count{position:absolute;right:12px;bottom:12px;
+      background:rgba(0,0,0,.55);color:#fff;font-weight:700;font-size:12px;
+      padding:6px 8px;border-radius:999px}
+    .hero .like{position:absolute;right:12px;top:12px;width:36px;height:36px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.9);border:1px solid var(--border);cursor:pointer}
+    /* SECTION CARD */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin:10px 12px}
+    .h1{font-weight:800;font-size:20px;margin:2px 0 8px}
+    .addr{color:var(--muted);margin-bottom:8px}
+    /* pills */
+    .pills{display:flex;flex-wrap:wrap;gap:8px}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);
+      padding:6px 10px;border-radius:999px;background:#fff;font-size:12px}
+    .pill .em{font-weight:800}
+    /* rating */
+    .rating{display:flex;align-items:center;gap:6px;color:#111}
+    .rating .star{color:#ffb703}
+    /* 매칭 카드 */
+    .match{display:flex;gap:10px;align-items:center}
+    .match .score{font-weight:900;font-size:18px}
+    .bar{height:10px;background:#f1f5f9;border-radius:999px;overflow:hidden}
+    .bar>i{display:block;height:100%;background:var(--accent);width:0%}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #fde68a;background:#fff7ed;
+      color:#b45309;padding:6px 10px;border-radius:999px;font-size:12px}
+    /* 섹션 제목 */
+    .h2{font-weight:800;margin:4px 0 10px}
+    .fac-list{display:flex;flex-wrap:wrap;gap:10px}
+    .fac{border:1px solid var(--border);border-radius:999px;padding:8px 12px;background:#fff;font-size:12px}
+    /* 리뷰 */
+    .review{display:grid;grid-template-columns:40px 1fr;gap:10px;border-top:1px solid var(--border);padding-top:12px;margin-top:12px}
+    .avatar{width:40px;height:40px;border-radius:999px;background:#e5e7eb}
+    .rv-name{font-weight:700}
+    .rv-date{color:var(--muted);font-size:12px}
+    .more{display:block;margin-top:10px;text-align:center;border:1px solid var(--border);padding:10px;border-radius:10px;background:#fafafa;text-decoration:none;color:inherit}
+
+    /* 하단 고정 CTA */
+    .cta{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);
+      padding:10px 12px;display:flex;gap:10px;align-items:center;z-index:20}
+    .cta .btn{flex:1;appearance:none;border:0;border-radius:12px;padding:14px 16px;font-weight:800;cursor:pointer}
+    .cta .btn-primary{background:var(--accent);color:#fff}
+    .cta .btn-outline{flex:0 0 auto;background:#fff;border:1px solid var(--border)}
+    @media(min-width:760px){ .hero{height:380px} }
+  </style>
 </head>
 <body>
-    <h1>방 상세 정보</h1>
-    <p>방 ID: {{ room.id }}</p>
-    <p>방 소유주 (시니어) ID: {{ room.owner.id }}</p>
-    <p>월세: {{ room.rent_fee }}</p>
-    <p>보증금: {{ room.deposit }}</p>
+  <div class="wrap">
 
-    {% if matching_score is not None %}
-        <p>나와의 매칭 점수: <strong>{{ matching_score }}점</strong></p>
-    {% else %}
-        <p>로그인 후 매칭 점수를 확인하세요.</p>
-    {% endif %}
-
-    <a href="{% url 'users:senior_profile' senior_id=room.owner.id room_id=room.id %}">
-        시니어 프로필 보기
-    </a>
-
-    {% if request.user.is_authenticated and request.user.is_youth %}
-        {% if is_requested_before %}
-            <button id="requestButton" data-room-id="{{ room.id }}" disabled>입주 요청을 보냈습니다</button>
+    <!-- HERO -->
+    <div class="hero">
+      {% with photos=room.photos.all %}
+        {% if photos|length %}
+          <img src="{{ photos.0.image.url }}" alt="">
+          <div class="count">1/{{ photos|length }}</div>
         {% else %}
-            <button id="request-button" data-room-id="{{ room.id }}">입주 희망 요청하기</button>
+          <img src="https://via.placeholder.com/1200x800?text=Room" alt="">
+          <div class="count">0/0</div>
         {% endif %}
-        <p id="requestStatus" style="color: green;"></p>
-    {% else %}
-    <p>로그인 후 입주 희망 요청을 할 수 있습니다.</p>
+      {% endwith %}
+      <button class="like" type="button" aria-label="찜하기">♡</button>
+    </div>
+
+    <!-- 가격/요약 -->
+    <section class="card">
+      <div class="h1">월세 {{ room.rent_fee|default:"-" }} / {{ room.deposit|default:"-" }}</div>
+      <div class="addr">{{ room.address_city }} {{ room.address_district }}{% if room.address_detailed %} · {{ room.address_detailed }}{% endif %}</div>
+
+      <div class="pills" style="margin-top:8px">
+        <span class="pill">🏢 {{ room.floor|default:"-" }}층</span>
+        <span class="pill">🧱 방 <span class="em">{{ room.area|default:"-" }}</span> m²</span>
+        <span class="pill">💡 관리비 {{ room.utility_fee|default:"0" }}만</span>
+        <span class="pill">🛁 화장실 {{ room.toilet_count|default:"-" }}개</span>
+        <span class="pill">🚗 {% if room.parking_available %}주차 가능{% else %}주차 불가{% endif %}</span>
+        <span class="pill">🐶 {% if room.pet_allowed %}반려동물 가능{% else %}반려동물 불가{% endif %}</span>
+        <span class="pill">📅 입주가능일 {{ room.available_date|date:"Y.m.d" }}</span>
+        <span class="pill">⏱ {% if room.can_short_term %}단기 가능{% else %}단기 불가{% endif %}</span>
+      </div>
+
+      <div style="margin-top:10px" class="rating">
+        <span class="star">★</span>
+        <strong>
+          {% with rv=room.room_reviews.all %}
+            {% if rv|length %}{{ rv|length|floatformat:0 }}개 후기{% else %}후기 없음{% endif %}
+          {% endwith %}
+        </strong>
+      </div>
+    </section>
+
+    <!-- 매칭 점수(항상 노출) -->
+    <section class="card">
+      <div class="match" style="justify-content:space-between">
+        <div>
+          <div style="font-weight:800;margin-bottom:6px">상담앱 분석 결과</div>
+          <div class="chips">
+            <span class="chip">선호일치</span>
+            {% if room.pet_allowed %}<span class="chip">반려동물 가능</span>{% else %}<span class="chip">반려동물 불가능</span>{% endif %}
+            <span class="chip">생활환경</span>
+          </div>
+        </div>
+        <div class="score">{{ matching_score|default:"-" }}점</div>
+      </div>
+      <div class="bar" style="margin-top:10px"><i style="width: {{ matching_score|default:0 }}%"></i></div>
+    </section>
+
+    <!-- 연락/프로필 -->
+    <section class="card" style="display:flex;gap:10px;align-items:center;justify-content:space-between">
+      <a class="pill" href="{% url 'users:senior_profile' senior_id=room.owner.id room_id=room.id %}">시니어 프로필 보기</a>
+      {% if room.owner.phone_number %}
+        <a class="pill" href="tel:{{ room.owner.phone_number }}">☎ 연락하기</a>
+      {% endif %}
+    </section>
+
+    <!-- 시설 -->
+    {% if room.options or room.security_facilities or room.other_facilities or room.heating_type %}
+    <section class="card">
+      {% if room.options %}
+        <div class="h2">생활시설</div>
+        <div class="fac-list">
+          {% for v in room.options %}
+            <span class="fac">{{ v }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if room.security_facilities %}
+        <div class="h2" style="margin-top:14px">보안시설</div>
+        <div class="fac-list">
+          {% for v in room.security_facilities %}
+            <span class="fac">{{ v }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if room.other_facilities %}
+        <div class="h2" style="margin-top:14px">기타시설</div>
+        <div class="fac-list">
+          {% for v in room.other_facilities %}
+            <span class="fac">{{ v }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if room.heating_type %}
+        <div class="h2" style="margin-top:14px">난방 방식</div>
+        <div class="fac-list"><span class="fac">{{ room.heating_type }}</span></div>
+      {% endif %}
+    </section>
     {% endif %}
 
+    <!-- 위치/교통 (지도 없이 텍스트만) -->
+    <section class="card">
+      <div class="h2">위치 및 주변 교통정보</div>
+      <div class="pills" style="margin-top:6px">
+        {% if room.nearest_subway %}<span class="pill">🚇 {{ room.nearest_subway }}</span>{% endif %}
+        <span class="pill">📍 {{ room.address_province }} {{ room.address_city }} {{ room.address_district }}</span>
+    </section>
 
+    <!-- 소개 -->
+    {% if room.extra and room.extra.description %}
+    <section class="card">
+      <div class="h2">소개글</div>
+      <div style="white-space:pre-line;line-height:1.6">{{ room.extra.description }}</div>
+    </section>
+    {% endif %}
 
-    <!--입주 희망 요청 버튼 구현을 위해 필요한 임시 js입니다-->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const requestButton = document.getElementById('request-button');
-        const requestedButton = document.getElementById('requestButton');
-        const buttonToUse = requestButton || requestedButton;
+    <!-- 리뷰 (있으면 3개 프리뷰) -->
+    {% with rv=room.room_reviews.all %}
+      {% if rv|length %}
+      <section class="card">
+        <div class="h2">후기 <span style="color:var(--muted);font-weight:600">({{ rv|length }}개)</span></div>
+        {% for r in rv|slice:":3" %}
+          <div class="review">
+            <div class="avatar"></div>
+            <div>
+              <div class="rv-name">{{ r.author_name|default:"익명" }} <span class="rv-date">{{ r.created_at|date:"Y.m.d" }}</span></div>
+              <div style="color:#ffb703;margin:4px 0">★★★★★</div>
+              <div>{{ r.content }}</div>
+            </div>
+          </div>
+        {% endfor %}
+        <a class="more" href="#">후기 {{ rv|length }}개 모두 보기</a>
+      </section>
+      {% endif %}
+    {% endwith %}
 
-        if (!buttonToUse) return;
+    <!-- 하단 고정 CTA (항상 노출) -->
+    <div class="cta">
+      <a class="btn btn-outline" href="{% url 'users:senior_profile' senior_id=room.owner.id room_id=room.id %}">프로필</a>
+      <button id="request-button" class="btn btn-primary" data-room-id="{{ room.id }}">입주 희망 요청하기</button>
+    </div>
 
-        const roomId = buttonToUse.dataset.roomId;
-        const csrfToken = '{{ csrf_token }}';
+  </div>
 
-        if (requestButton) { // '입주 희망 요청하기' 버튼이 존재할 때만 이벤트 리스너 추가
-            requestButton.addEventListener('click', function() {
-                // 요청을 보내기만 하고, 서버 응답을 처리하지 않음
-                fetch(`{% url 'matching:request_move_in' 0 %}`.replace('0', roomId), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify({})
-                })
-                .then(response => {
-                    // 요청이 성공적으로 완료되면 (302 리디렉션 응답을 받으면)
-                    if (response.redirected) {
-                        window.location.reload(); // 페이지를 새로고침하여 Django 뷰를 다시 실행
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    document.getElementById('requestStatus').textContent = '네트워크 오류가 발생했습니다.';
-                });
+  <!-- JS: 입주 희망 요청 (항상 동작) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      const btn = document.getElementById('request-button');
+      if(!btn) return;
+      const roomId = btn.dataset.roomId;
+      const csrfToken = '{{ csrf_token }}';
 
-                // 사용자에게 즉각적인 피드백 제공
-                requestButton.textContent = '요청 처리 중...';
-                requestButton.disabled = true;
-            });
-        }
+      btn.addEventListener('click', function(){
+        btn.disabled = true;
+        btn.textContent = '요청 처리 중...';
+
+        fetch(`{% url 'matching:request_move_in' 0 %}`.replace('0', roomId), {
+          method: 'POST',
+          headers: {'Content-Type':'application/json','X-CSRFToken': csrfToken},
+          body: JSON.stringify({})
+        })
+        .then(res => { if(res.redirected){ window.location.reload(); } })
+        .catch(()=>{ btn.disabled=false; btn.textContent='입주 희망 요청하기'; });
+      });
     });
-    </script>
-
+  </script>
 </body>
 </html>
