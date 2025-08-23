@@ -18,7 +18,7 @@ from .forms import (
     SurveyStep10Form,
     YouthInterestedRegionForm,
 )
-from .models import User
+from .models import User, CHOICE_PARTS
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from matching.models import MoveInRequest
 from room.models import Room
@@ -39,7 +39,6 @@ FORMS = [
     ("step9", SurveyStep9Form),
     ("step10", SurveyStep10Form),
 ]
-
 
 class SurveyWizard(SessionWizardView):
     def get_template_names(self):
@@ -87,7 +86,6 @@ class SurveyWizard(SessionWizardView):
 
         return redirect('users:home_youth' if user.is_youth else 'users:home_senior')
 
-
 def user_selection(request):
     if request.user.is_authenticated:
         if request.user.is_youth:
@@ -95,7 +93,6 @@ def user_selection(request):
         else:
             return redirect('users:home_senior')
     return render(request, 'users/user_selection.html')
-
 
 def login_as_user(request, user_type):
     user = None
@@ -140,7 +137,6 @@ def user_info_view(request):
 
     return render(request, 'users/user_info.html', {'form': form})
 
-
 @login_required
 def youth_region_view(request):
     user = request.user
@@ -152,10 +148,10 @@ def youth_region_view(request):
 
     return render(request, 'users/youth_region.html', {'form': form})
 
-
 @login_required
 def senior_living_type_view(request):
     user = request.user
+
     form = SeniorLivingTypeForm(request.POST or None, instance=user)
 
     if request.method == 'POST' and form.is_valid():
@@ -163,7 +159,6 @@ def senior_living_type_view(request):
         return redirect('users:upload_id_card')
 
     return render(request, 'users/senior_living_type.html', {'form': form})
-
 
 @login_required
 def upload_id_card(request):
@@ -181,16 +176,13 @@ def upload_id_card(request):
 
     return render(request, 'users/upload_id_card.html', {'form': form})
 
-
 def user_logout(request):
     auth_logout(request)
     next_url = request.GET.get('next', 'users:user_selection')
     return redirect(next_url)
 
-
 def home_youth(request):
     return render(request, 'users/home_youth.html')
-
 
 def home_senior(request):
     return render(request, 'users/home_senior.html')
@@ -208,7 +200,6 @@ FIELD_LABELS = {
     'weekend_preference': '주말성향',
 }
 
-
 def get_matching_text(score):
     if score >= 90:
         return "매우 잘 맞음 👍"
@@ -218,8 +209,7 @@ def get_matching_text(score):
         return "보통 😐"
     else:
         return "조금 다름 🧐"
-
-
+    
 # 프론트에서 추가: 사용자에 대해 emoji/label을 하나로
 
 def _build_profile_parts(user_obj):
@@ -236,7 +226,6 @@ def _build_profile_parts(user_obj):
         "smoking_preference": get_choice_parts(user_obj, "smoking_preference"),
         "weekend_preference": get_choice_parts(user_obj, "weekend_preference"),
     }
-
 
 def senior_profile(request, senior_id, room_id):
     # 매칭 대상 시니어 유저 객체
@@ -345,4 +334,43 @@ def all_reviews_for_youth(request, youth_id):
         'youth_user': youth_user,
         'reviews': reviews
     }
-    return render(request, 'users/all_reviews_for_youth.html', context)
+    return render(request, 'users/all_reviews.html', context)
+
+def senior_info_view(request):
+    user = request.user
+
+    if user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    user_preferences = []
+    for field in [
+        'preferred_time', 'conversation_style', 'meal_preference',
+        'weekend_preference', 'smoking_preference', 'noise_level',
+        'space_sharing_preference', 'pet_preference'
+    ]:
+        field_value = getattr(user, field, None)
+        if field_value:
+            label = CHOICE_PARTS.get(field, {}).get(field_value, {}).get('label')
+            if label:
+                user_preferences.append(label)
+
+    if user.important_points:
+        important_points_codes = user.important_points.split(',')
+        important_points_map = CHOICE_PARTS.get('important_points', {})
+        for code in important_points_codes:
+            label = important_points_map.get(code.strip().upper(), {}).get('label')
+            if label:
+                user_preferences.append(label)
+
+    context = {
+        'user': user,
+        'living_type_display': user.get_living_type_display(),
+        'user_preferences': user_preferences,
+    }
+
+    return render(request, 'users/senior_info_view.html', context)
+
+
+
+
+
