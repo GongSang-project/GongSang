@@ -9,7 +9,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2>후기 모두 보기</h2>
+            {% if request.resolver_match.url_name == 'my_reviews' %}
+                <h2>나에 대한 후기</h2>
+            {% else %}
+                <h2>후기 모두 보기</h2>
+            {% endif %}
         </div>
 
         <div class="all-reviews-list">

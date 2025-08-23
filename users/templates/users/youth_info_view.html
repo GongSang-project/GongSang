@@ -45,6 +45,14 @@
         </button>
     </form>
 
+    <div class="review-section">
+        <a href="{% url 'users:my_reviews' %}" class="review-link">
+            <button class="review-button">
+                <span>나에 대한 후기</span>
+            </button>
+        </a>
+    </div>
+
     <form action="{% url 'users:user_logout' %}" method="post">
         {% csrf_token %}
         <button type="submit">로그아웃</button>

@@ -334,7 +334,7 @@ def all_reviews_for_youth(request, youth_id):
         'youth_user': youth_user,
         'reviews': reviews
     }
-    return render(request, 'users/all_reviews.html', context)
+    return render(request, 'users/all_reviews_for_youth.html', context)
 
 def senior_info_view(request):
     user = request.user
@@ -403,3 +403,19 @@ def youth_info_view(request):
     }
 
     return render(request, 'users/youth_info_view.html', context)
+
+@login_required
+def my_reviews(request):
+    user = request.user
+
+    if not user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    # 로그인한 청년 사용자의 ID로 후기 필터링
+    reviews = Review.objects.filter(target_youth=user).order_by('-created_at')
+
+    context = {
+        'youth_user': user,
+        'reviews': reviews
+    }
+    return render(request, 'users/all_reviews_for_youth.html', context)
