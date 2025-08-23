@@ -25,7 +25,7 @@ from room.models import Room
 from review.models import Review
 
 # 프론트에서 추가: 맵핑 임포트
-from .models import get_choice_parts, important_points_parts 
+from .models import get_choice_parts, important_points_parts
 
 FORMS = [
     ("step1", SurveyStep1Form),
@@ -39,6 +39,7 @@ FORMS = [
     ("step9", SurveyStep9Form),
     ("step10", SurveyStep10Form),
 ]
+
 
 class SurveyWizard(SessionWizardView):
     def get_template_names(self):
@@ -86,6 +87,7 @@ class SurveyWizard(SessionWizardView):
 
         return redirect('users:home_youth' if user.is_youth else 'users:home_senior')
 
+
 def user_selection(request):
     if request.user.is_authenticated:
         if request.user.is_youth:
@@ -93,6 +95,7 @@ def user_selection(request):
         else:
             return redirect('users:home_senior')
     return render(request, 'users/user_selection.html')
+
 
 def login_as_user(request, user_type):
     user = None
@@ -137,6 +140,7 @@ def user_info_view(request):
 
     return render(request, 'users/user_info.html', {'form': form})
 
+
 @login_required
 def youth_region_view(request):
     user = request.user
@@ -148,6 +152,7 @@ def youth_region_view(request):
 
     return render(request, 'users/youth_region.html', {'form': form})
 
+
 @login_required
 def senior_living_type_view(request):
     user = request.user
@@ -158,6 +163,7 @@ def senior_living_type_view(request):
         return redirect('users:upload_id_card')
 
     return render(request, 'users/senior_living_type.html', {'form': form})
+
 
 @login_required
 def upload_id_card(request):
@@ -175,13 +181,16 @@ def upload_id_card(request):
 
     return render(request, 'users/upload_id_card.html', {'form': form})
 
+
 def user_logout(request):
     auth_logout(request)
     next_url = request.GET.get('next', 'users:user_selection')
     return redirect(next_url)
 
+
 def home_youth(request):
     return render(request, 'users/home_youth.html')
+
 
 def home_senior(request):
     return render(request, 'users/home_senior.html')
@@ -199,6 +208,7 @@ FIELD_LABELS = {
     'weekend_preference': '주말성향',
 }
 
+
 def get_matching_text(score):
     if score >= 90:
         return "매우 잘 맞음 👍"
@@ -208,23 +218,25 @@ def get_matching_text(score):
         return "보통 😐"
     else:
         return "조금 다름 🧐"
-    
+
+
 # 프론트에서 추가: 사용자에 대해 emoji/label을 하나로
 
 def _build_profile_parts(user_obj):
     if not user_obj:
         return None
     return {
-        "preferred_time":            get_choice_parts(user_obj, "preferred_time"),
-        "conversation_style":        get_choice_parts(user_obj, "conversation_style"),
-        "important_points":          important_points_parts(user_obj),  # 리스트
-        "noise_level":               get_choice_parts(user_obj, "noise_level"),
-        "meal_preference":           get_choice_parts(user_obj, "meal_preference"),
-        "space_sharing_preference":  get_choice_parts(user_obj, "space_sharing_preference"),
-        "pet_preference":            get_choice_parts(user_obj, "pet_preference"),
-        "smoking_preference":        get_choice_parts(user_obj, "smoking_preference"),
-        "weekend_preference":        get_choice_parts(user_obj, "weekend_preference"),
+        "preferred_time": get_choice_parts(user_obj, "preferred_time"),
+        "conversation_style": get_choice_parts(user_obj, "conversation_style"),
+        "important_points": important_points_parts(user_obj),  # 리스트
+        "noise_level": get_choice_parts(user_obj, "noise_level"),
+        "meal_preference": get_choice_parts(user_obj, "meal_preference"),
+        "space_sharing_preference": get_choice_parts(user_obj, "space_sharing_preference"),
+        "pet_preference": get_choice_parts(user_obj, "pet_preference"),
+        "smoking_preference": get_choice_parts(user_obj, "smoking_preference"),
+        "weekend_preference": get_choice_parts(user_obj, "weekend_preference"),
     }
+
 
 def senior_profile(request, senior_id, room_id):
     # 매칭 대상 시니어 유저 객체
@@ -255,6 +267,7 @@ def senior_profile(request, senior_id, room_id):
         'youth_parts': youth_parts,
     }
     return render(request, 'users/senior_profile.html', context)
+
 
 @login_required
 def youth_profile(request, request_id):
@@ -324,7 +337,7 @@ def youth_profile(request, request_id):
     return render(request, 'users/youth_profile.html', context)
 
 
-def all_reviews(request, youth_id):
+def all_reviews_for_youth(request, youth_id):
     youth_user = get_object_or_404(User, id=youth_id)
     reviews = Review.objects.filter(youth=youth_user).order_by('-created_at')
 
@@ -332,4 +345,4 @@ def all_reviews(request, youth_id):
         'youth_user': youth_user,
         'reviews': reviews
     }
-    return render(request, 'users/all_reviews.html', context)
+    return render(request, 'users/all_reviews_for_youth.html', context)

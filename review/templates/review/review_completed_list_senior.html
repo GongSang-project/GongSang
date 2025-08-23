@@ -9,8 +9,8 @@
 </head>
 <body>
     <div class="tab-container">
-        <a href="{% url 'review:review_list' %}" class="tab">후기 작성 전</a>
-        <a href="{% url 'review:review_completed_list' %}" class="tab active">후기 작성 완료</a>
+        <a href="{% url 'review:review_list_senior' %}" class="tab">후기 작성 전</a>
+        <a href="{% url 'review:review_completed_list_senior' %}" class="tab active">후기 작성 완료</a>
     </div>
 
     {% if completed_reviews %}
@@ -21,13 +21,12 @@
                 <div class="request-info">
                     <img src="{% static 'images/room_default.jpg' %}" alt="방 사진" class="room-image">
                     <div class="youth-info">
-                        <h3>{{ review.youth.username }} ({{ review.youth.age }}세, {% if review.youth.gender == 'F' %}여성{% else %}남성{% endif %})</h3>
-                        <h3>성향 매칭 점수 {{ review.youth|calculate_matching_score_filter:review.room.owner }}점</h3>
+                        <h3>{{ review.target_youth.username }} ({{ review.target_youth.age }}세, {% if review.target_youth.gender == 'F' %}여성{% else %}남성{% endif %})</h3>
+                        <h3>성향 매칭 점수 {{ review.author|calculate_matching_score_filter:review.target_youth }}점</h3>
                         <p>{{ review.room.address_detailed }}</p>
                         <p>월세 {{ review.room.rent_fee }}/{{ review.room.deposit }}</p>
                         <p>입주 요청</p>
-                        <p>연락처 확인 완료</p>
-                    </div>
+                        </div>
                 </div>
                 <div class="button-group">
                     <button class="view-review-button">작성한 후기 보기</button>
