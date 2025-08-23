@@ -324,7 +324,7 @@ def youth_profile(request, request_id):
 
 def all_reviews_for_youth(request, youth_id):
     youth_user = get_object_or_404(User, id=youth_id)
-    reviews = Review.objects.filter(youth=youth_user).order_by('-created_at')
+    reviews = Review.objects.filter(target_youth=youth_user).order_by('-created_at')
 
     context = {
         'youth_user': youth_user,
@@ -414,7 +414,7 @@ def my_reviews(request):
         'youth_user': user,
         'reviews': reviews
     }
-    return render(request, 'users/all_reviews_for_youth.html', context)
+    return render(request, 'users/my_reviews_for_youth.html', context)
 
 def index(request):
     return redirect('users:user_selection')
