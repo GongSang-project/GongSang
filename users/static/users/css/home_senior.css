@@ -1,0 +1,205 @@
+/*공통 스타일*/
+
+/* 폰트 불러오기 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* Tmoney RoundWind Regular */
+@font-face {
+    font-family: 'TmoneyRoundWindRegular';
+    src: url('https://cdn.jsdelivr.net/gh/woffz/a1@main/Tmoney/TmoneyRoundWindRegular.woff') format('woff');
+    font-weight: normal;
+    font-style: Regular;
+}
+
+
+/* Tmoney RoundWind ExtraBold */
+@font-face {
+    font-family: 'TmoneyRoundWindExtraBold';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/TmoneyRoundWindExtraBold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+a,
+a:hover,
+a:focus,
+a:active,
+a:visited {
+  text-decoration: none;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: rgb(0, 0, 0);
+    align-self: stretch;
+    padding: 30px 0;
+    padding-bottom: 60px; /* 버튼 높이만큼 */
+    font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+}
+
+#root {
+    width: 375px;
+    height: 812px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    background: #F3F3F3;
+}
+
+#app-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: block;
+    overflow: auto;
+}
+
+/* 헤더 */
+.header {
+    width: 100%; 
+    height: 185px;
+    background-color: #Fff;
+    position: absolute;
+    top:0px;
+    left:0px;
+
+}
+
+/* 로고 */
+.logo {
+    position: absolute;
+    top: 74px;
+    left: 25px;
+    display: flex;
+    align-items: end;
+    gap:6px;
+}
+/* DOOYU */
+.logo-eng{
+color:  #F26430;
+font-family: "Tmoney RoundWind";
+font-size: 36px;
+font-style: normal;
+font-weight: 800;
+line-height: 15px; /* 41.667% */
+letter-spacing: -0.18px;
+margin: 0 0;
+}
+/* 두유 */
+.logo-ko{
+color:  #F26430;
+font-family: "Tmoney RoundWind";
+font-size: 24px;
+font-style: normal;
+font-weight: 400;
+line-height: 15px; /* 62.5% */
+letter-spacing: -0.12px;
+margin: 0 0px;
+}
+
+/* 검색창 */
+/* 컨테이너 */
+.search-box {
+  position: absolute;
+  top:114px;
+  left:25px;
+  display: inline-block;  
+}
+
+/* 입력창 */
+.search-box input[type="text"] {
+  width: 322px;            
+  height: 53px;
+  padding: 16px 20px 16px 48.55px; 
+  border: 0;
+  outline: none;
+  border-radius: 139.394px;
+  border: 1.394px solid #E9E9E9;
+  background: #F3F3F3;
+
+color: #515151;
+font-family: 'Pretendard';
+font-size: 22px;
+font-style: normal;
+font-weight: 400;
+line-height: 20.909px; /* 95.041% */
+letter-spacing: -0.11px;
+}
+
+.search-box input::placeholder {
+  color: #515151;;
+  opacity: 1;              /* 사파리 보정 */
+}
+
+/*돋보기 아이콘  */
+.search-box::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  pointer-events: none;   
+  background: center / contain no-repeat
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='7'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>");
+  color: #A9A9A9;
+}
+
+/* 메뉴 리스트 */
+.menu-list{
+    position: absolute;
+    top:209px;
+    left:25px;
+    width: 325px;
+    display: flex;
+    flex-direction: column;
+    gap:21px;
+}
+
+/* 각각의 메뉴 */
+.menu{
+height: 100px;
+width: 100%;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 12px;
+box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.10);
+border: 1px solid #E9E9E9;
+gap:10px;
+}
+
+/* 각각의 메뉴 색 지정 */
+.register-room{
+background:  #F26430;
+color: #fff;
+}
+.view-room{
+background: #FFF;
+color: #121212;
+}
+.view-requests{
+background: #FFEBD9;
+color: #121212;
+}
+.view-myinfo{
+background: #FFF;
+color:#121212;
+}
+/* 아이콘 */
+.menu-icon, .menu-name{
+text-align: center;
+font-family: 'Pretendard';
+font-size: 25px;
+font-style: normal;
+font-weight: 700;
+line-height: 15px; /* 60% */
+letter-spacing: -0.125px;
+}
+
+

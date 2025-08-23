@@ -8,40 +8,52 @@
     <link rel="stylesheet" href="{% static 'users/css/home_senior.css' %}">
 </head>
 <body>
-    <p>시니어 홈</p>
+    <div id="root">
+        <div id="app-wrapper">
+            
+            <!-- 헤더 -->
+            <div class="header">
+                <!-- 로고 -->
 
-    <div class="container">
-        <div class="header">
-            <h1>DOOYU 두유</h1>
-        </div>
+                <div class="logo">
+                    <p class="logo-eng">DOOTU</p>
+                    <p class="logo-ko">두유</p>
+                </div>
+                
+                <!-- 지역 검색창 -->
+                <div class="search-box">
+                   <input type="text" placeholder="지역을 검색해보세요">
+                </div>
+            </div>
 
-        <div class="search-box">
-            <input type="text" placeholder="지역을 검색해보세요">
-        </div>
+            <!-- 메뉴 리스트 -->
+            <div class="menu-list">
+                <!-- 방 등록하기 -->
+                <a class="menu register-room">
+                    <span class="menu-icon">🏠</span>
+                    <span class="menu-name">방 등록하기</span>
+                </a>
 
-        <div class="button-container">
-            <button class="action-button register-room">
-                <span>방 등록하기</span>
-            </button>
+                <!-- 등록한 방 보기 -->
+                <a class="menu view-room">
+                    <span class="menu-icon">🏘️</span>
+                    <span class="menu-name">등록한 방 보기</span>
+                </a>
+                
+                <!-- 입주 희망 요청 보기 -->
+                <a class="menu view-requests" href="{% url 'room:senior_request_inbox' %}">
+                    <span class="menu-icon">💌</span>
+                    <span class="menu-name">입주 희망 요청 보기</span>                   
+                </a>
 
-            <button class="action-button view-room">
-                <span>등록한 방 보기</span>
-            </button>
-
-            <a href="{% url 'room:senior_request_inbox' %}" class="action-link">
-                <button class="action-button view-requests">
-                    <span>입주 희망 요청 보기</span>
-                </button>
-            </a>
-
-            <a href="{% url 'users:senior_info' %}" class="action-link">
-                <button class="action-button my-info">
-                    <span>내 정보 보기</span>
-                </button>
-            </a>
+                <!--내 정보 보기   -->
+                <a class="menu view-myinfo" href="{% url 'users:senior_info' %}">
+                    <span class="menu-icon">👤</span>
+                    <span class="menu-name">내 정보 보기</span>
+                </a>
+            </div>
         </div>
     </div>
-
     <script src="{% static 'users/js/home_senior.js' %}"></script>
 </body>
 </html>
