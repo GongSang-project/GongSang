@@ -59,6 +59,13 @@ HEATING_CHOICES = [
     ('DISTRICT', '지역난방'),
 ]
 
+# 방 사진
+PHOTO_CATEGORY = [
+        ('COMMON', '공용 공간'),
+        ('YOUTH', '청년 공간'),
+        ('BATHROOM', '화장실'),
+    ]
+
 
 class Room(models.Model):
     # 방의 기본 정보
@@ -124,3 +131,30 @@ class Room(models.Model):
     class Meta:
         verbose_name = "방"
         verbose_name_plural = "방 목록"
+
+
+# ── 보조 모델(최상위에 별도 선언) ───────────────────────────
+class RoomExtra(models.Model):
+    room = models.OneToOneField(Room, on_delete=models.CASCADE, related_name="extra")
+    description = models.TextField("집 소개", blank=True, default="")
+
+    class Meta:
+        verbose_name = "방 추가 정보"
+        verbose_name_plural = "방 추가 정보"
+
+    def __str__(self):
+        return f"Extra for Room {self.room_id}"
+
+class RoomPhoto(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="photos")
+    category = models.CharField(max_length=20, choices=PHOTO_CATEGORY)
+    image = models.ImageField(upload_to="room_photos/%Y/%m/%d/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "방 사진"
+        verbose_name_plural = "방 사진"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.room_id} {self.category}"
