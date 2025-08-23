@@ -275,7 +275,7 @@ def youth_profile(request, request_id):
     is_id_card_uploaded = youth_user.is_id_card_uploaded
 
     # 데이터베이스에서 해당 청년에 대한 후기 가져오기
-    reviews = Review.objects.filter(youth=youth_user).order_by('-created_at')
+    reviews = Review.objects.filter(target_youth=youth_user).order_by('-created_at')
 
     # 별점 평균 계산
     total_satisfaction_score = 0
