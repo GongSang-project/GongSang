@@ -15,7 +15,11 @@
                 <button type="button" id="backBtn">
                     <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
                 </button>
+            {% if request.resolver_match.url_name == 'my_reviews' %}
+                <h1>나에 대한 후기</h1>
+            {% else %}
                 <h1>후기 모두 보기</h1>
+            {% endif %}
             </div>
 
         <div class="all-reviews-list">

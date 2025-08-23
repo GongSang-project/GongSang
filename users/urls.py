@@ -22,5 +22,9 @@ urlpatterns = [
 
     path('senior/<int:senior_id>/room/<int:room_id>/', views.senior_profile, name='senior_profile'),
     path('profile/youth/<int:request_id>/', views.youth_profile, name='youth_profile'),
-    path('profile/youth/<int:youth_id>/reviews/', views.all_reviews_for_youth, name='all_reviews_for_youth'),
+    path('profile/youth/<int:youth_id>/reviews/', views.all_reviews_for_youth, name='all_reviews'),
+
+    path('senior/mypage/', views.senior_info_view, name='senior_info'),
+    path('youth/mypage/', views.youth_info_view, name='youth_info'),
+    path('youth/mypage/my_reviews/', views.my_reviews, name='my_reviews'),
 ]

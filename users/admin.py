@@ -2,37 +2,42 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User
 
+
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ('id', 'username', 'email', 'is_youth', 'is_staff', 'is_active',
-                    'is_id_card_uploaded', 'phone_number', 'living_type', 'living_type_other')
-
     fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        ('개인 정보', {'fields': ('first_name', 'last_name', 'email', 'is_youth', 'profile_image', 'is_id_verified', 'age', 'gender', 'phone_number')}),
-        ('권한', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-        ('중요 날짜', {'fields': ('last_login', 'date_joined')}),
-
-        ('신분증 정보', {'fields': (
-            'id_card_image',
-            'is_id_card_uploaded',
-        )}),
-
-        ('생활 습관 설문', {'fields': (
-            'preferred_time',
-            'conversation_style',
-            'important_points',
-            'meal_preference',
-            'weekend_preference',
-            'smoking_preference',
-            'noise_level',
-            'space_sharing_preference',
-            'pet_preference',
-            'wishes',
-            "living_type",
-            "living_type_other",
-            'interested_province',
-            'interested_city',
-            'interested_district',
-        )}),
+        ('개인 정보', {
+            'fields': (
+                'username',
+                'is_youth',
+                'profile_image',
+                'age',
+                'gender',
+                'phone_number'
+            )
+        }),
+        ('설문 정보', {
+            'fields': (
+                'preferred_time',
+                'conversation_style',
+                'important_points',
+                'meal_preference',
+                'weekend_preference',
+                'smoking_preference',
+                'noise_level',
+                'space_sharing_preference',
+                'pet_preference',
+                'wishes',
+                'interested_province',
+                'interested_city',
+                'interested_district',
+                'living_type',
+                'living_type_other'
+            )
+        }),
     )
+
+    list_display = ('username', 'is_youth', 'age', 'gender', 'phone_number', 'is_id_verified')
+
+    list_filter = ('is_youth', 'is_active', 'is_staff', 'is_superuser', 'is_id_verified', 'gender')
+    search_fields = ('username', 'phone_number')

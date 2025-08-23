@@ -8,11 +8,10 @@ from users.models import User
 from .utils import calculate_matching_score, WEIGHTS
 from django.urls import reverse
 from django.db import transaction
-
+from typing import Optional
 
 # 프론트에서 추가: 전화번호 데이터 받기 위함/하이픈 포함된 형태로 변환
-def _format_korean_mobile(num: str | None) -> str | None:
-
+def _format_korean_mobile(num: Optional[str]) -> Optional[str]:
     if not num:
         return None
     d = ''.join(ch for ch in num if ch.isdigit())
