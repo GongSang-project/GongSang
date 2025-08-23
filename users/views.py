@@ -87,11 +87,7 @@ class SurveyWizard(SessionWizardView):
         return redirect('users:home_youth' if user.is_youth else 'users:home_senior')
 
 def user_selection(request):
-    if request.user.is_authenticated:
-        if request.user.is_youth:
-            return redirect('users:home_youth')
-        else:
-            return redirect('users:home_senior')
+    auth_logout(request)
     return render(request, 'users/user_selection.html')
 
 def login_as_user(request, user_type):
@@ -419,3 +415,6 @@ def my_reviews(request):
         'reviews': reviews
     }
     return render(request, 'users/all_reviews_for_youth.html', context)
+
+def index(request):
+    return redirect('users:user_selection')
