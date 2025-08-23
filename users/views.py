@@ -151,6 +151,7 @@ def youth_region_view(request):
 @login_required
 def senior_living_type_view(request):
     user = request.user
+
     form = SeniorLivingTypeForm(request.POST or None, instance=user)
 
     if request.method == 'POST' and form.is_valid():
