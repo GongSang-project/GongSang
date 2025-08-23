@@ -1,7 +1,51 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from typing import Dict, List
 
+CHOICE_PARTS: Dict[str, Dict[str, Dict[str, str]]] = {
+       "preferred_time": {
+            "A": {"emoji": "🌤️", "label": "아침형"},
+             "B": {"emoji": "🌙", "label": "저녁형"},
+        },
+        "conversation_style": {
+            "A": {"emoji": "🤫", "label": "조용함"},
+            "B": {"emoji": "🗣️", "label": "활발함"},
+        },
+        "important_points": {
+            "A": {"emoji": "🧹", "label": "깔끔한"},
+            "B": {"emoji": "🛌", "label": "생활 리듬"},
+            "C": {"emoji":"🕊️","label":"소통"},
+            "D": {"emoji":"🙋","label":"배려심"},
+            "E": {"emoji":"🔏","label":"사생활 존중"}
+        },  
+        "meal_preference": {
+            "A": {"emoji": "🍽️", "label": "함께 식사"},
+            "B": {"emoji": "🍱", "label": "각자 식사"},
+        },
+        "weekend_preference": {
+            "A": {"emoji": "🏠", "label": "집콕"},
+            "B": {"emoji": "🚶‍♀️", "label": "외출"},
+        },
+        "smoking_preference": {
+            "A": {"emoji": "🚬", "label": "흡연"},
+            "B": {"emoji": "🚭", "label": "비흡연"},
+        },
+        "noise_level": {
+            "A": {"emoji": "🎵", "label": "소음 가능"},
+            "B": {"emoji": "📺", "label": "소음 일부 가능"},
+            "C": {"emoji":"🔇", "label":"소음 불가"},
+        },
+        "space_sharing_preference": {
+            "A": {"emoji": "🏠", "label": "활발"},
+            "B": {"emoji": "🛋️", "label": "적당"},
+            "C": {"emoji":"🚪","label":"적음"}
+        },
+        "pet_preference": {
+            "A": {"emoji": "🐶", "label": "가능"},
+            "B": {"emoji": "🚫", "label": "불가능"},
+        },
+    }
 
 class User(AbstractUser):
     USERNAME_FIELD = 'username'
@@ -148,3 +192,23 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'User'
         verbose_name_plural = 'Users'
+
+
+
+
+    # 성향 조사 키워드 -> 상세 정보 키워드 변환을 위한 맵핑 추가
+
+def get_choice_parts(obj, field: str) -> Dict[str, str]:
+    """단일 선택형: obj.field 코드 → {'emoji','label'}"""
+    code = getattr(obj, field, None)
+    parts_for_field = CHOICE_PARTS.get(field, {})
+    return parts_for_field.get(code, {"emoji": "", "label": ""})
+
+def important_points_parts(obj) -> List[Dict[str, str]]:
+    """다중(TextField): 'A,B,C' / 'A B C' / 'A' → [{'emoji','label'}, ...]"""
+    raw = (getattr(obj, "important_points", "") or "").strip()
+    if not raw:
+        return []
+    items = [s.strip().upper() for s in raw.replace(",", " ").split() if s.strip()]
+    parts_map = CHOICE_PARTS.get("important_points", {})
+    return [parts_map.get(code, {"emoji": "", "label": code}) for code in items]

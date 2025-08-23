@@ -1,11 +1,17 @@
 # room/views.py
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 
+from django.db import models
+from django.db.models import Avg, Case, When
+
 from .models import Room
 from matching.models import MoveInRequest
 from matching.utils import calculate_matching_score, get_matching_details
+from review.models import Review
+
 
 def room_detail(request, room_id):
     # owner(User)까지 한 번에 로드
@@ -51,6 +57,31 @@ def room_detail(request, room_id):
             youth=youth_user, room=room
         ).exists()
 
+    # 리뷰/평점
+    reviews = Review.objects.filter(room=room).order_by('-created_at')
+    review_count = reviews.count()
+
+    # 만족도 별점 평균 계산
+    reviews_with_scores = reviews.annotate(
+        satisfaction_score=Case(
+            When(satisfaction='VERY_DISSATISFIED', then=1),
+            When(satisfaction='DISSATISFIED', then=2),
+            When(satisfaction='NORMAL', then=3),
+            When(satisfaction='SATISFIED', then=4),
+            When(satisfaction='VERY_SATISFIED', then=5),
+            default=0,
+            output_field=models.IntegerField()
+        )
+    )
+    average_rating = reviews_with_scores.aggregate(
+        Avg('satisfaction_score')
+    )['satisfaction_score__avg'] or 0.0
+
+    # TODO: 리뷰 요약/해시태그 로직 연동
+    ai_summary = "아직 등록된 후기가 없거나, AI 요약 생성에 필요한 데이터가 부족합니다."
+    good_hashtags = []
+    bad_hashtags = []
+
     context = {
         "room": room,
         "matching_score": matching_score,               # int or None (예: 93)
@@ -58,6 +89,14 @@ def room_detail(request, room_id):
         "matching_explanation": matching_explanation,   # 예: "'생활리듬'과 '대화스타일'이 잘 맞아요."
         "matching_hashtags": matching_hashtags,         # 예: ["아침형","깔끔한","비흡연"]
         "is_requested_before": is_requested_before,
+
+        # 리뷰 관련
+        "reviews": reviews,
+        "review_count": review_count,
+        "average_rating": average_rating,
+        "ai_summary": ai_summary,
+        "good_hashtags": good_hashtags,
+        "bad_hashtags": bad_hashtags,
     }
     return render(request, "room/room_detail.html", context)
 
@@ -73,7 +112,7 @@ def senior_request_inbox(request):
     requests = (
         MoveInRequest.objects
         .filter(room__in=senior_rooms)
-        .select_related("room", "youth")   # N+1 방지 (요청자/방 정보 필요 시)
+        .select_related("room", "youth")   # 필요 시 N+1 방지
         .order_by("-requested_at")
     )
 
@@ -81,3 +120,14 @@ def senior_request_inbox(request):
         "requests": requests,
     }
     return render(request, "room/senior_request_inbox.html", context)
+
+
+def all_reviews_for_room(request, room_id):
+    room = get_object_or_404(Room, id=room_id)
+    reviews = Review.objects.filter(room=room).order_by('-created_at')
+
+    context = {
+        'room': room,
+        'reviews': reviews,
+    }
+    return render(request, 'room/all_reviews_for_room.html', context)

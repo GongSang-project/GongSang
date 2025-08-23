@@ -9,10 +9,39 @@
 </head>
 <body>
     <p>시니어 홈</p>
-    <form action="{% url 'users:user_logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit">로그아웃</button>
-    </form>
+
+    <div class="container">
+        <div class="header">
+            <h1>DOOYU 두유</h1>
+        </div>
+
+        <div class="search-box">
+            <input type="text" placeholder="지역을 검색해보세요">
+        </div>
+
+        <div class="button-container">
+            <button class="action-button register-room">
+                <span>방 등록하기</span>
+            </button>
+
+            <button class="action-button view-room">
+                <span>등록한 방 보기</span>
+            </button>
+
+            <a href="{% url 'room:senior_request_inbox' %}" class="action-link">
+                <button class="action-button view-requests">
+                    <span>입주 희망 요청 보기</span>
+                </button>
+            </a>
+
+            <a href="{% url 'users:senior_info' %}" class="action-link">
+                <button class="action-button my-info">
+                    <span>내 정보 보기</span>
+                </button>
+            </a>
+        </div>
+    </div>
+
     <script src="{% static 'users/js/home_senior.js' %}"></script>
 </body>
 </html>

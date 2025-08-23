@@ -1,0 +1,79 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>청년에 대한 후기 모두 보기</title>
+</head>
+<body>
+    <div id="root">
+        <div id="app-wrapper">
+
+            <div class="header">
+                <button type="button" id="backBtn">
+                    <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
+                </button>
+            {% if request.resolver_match.url_name == 'my_reviews' %}
+                <h1>나에 대한 후기</h1>
+            {% else %}
+                <h1>후기 모두 보기</h1>
+            {% endif %}
+            </div>
+
+        <div class="all-reviews-list">
+            {% for review in reviews %}
+            <div class="review-item">
+                <div class="review-meta">
+                    <img src="{% static 'users/images/default_profile.png' %}" alt="" class="profile-image">
+                        <p class="reviewer-name">
+                            {% if review.is_anonymous %}
+                                익명{{ forloop.counter }}
+                            {% else %}
+                                {{ review.author.username }}
+                            {% endif %}
+                        </p>
+                    <p class="residence-period">{{ review.get_lived_period_display }} 거주</p>
+                </div>
+                <div class="review-rating">
+                    <span class="star-rating">
+                        {% if review.satisfaction == 'VERY_SATISFIED' %}★★★★★
+                        {% elif review.satisfaction == 'SATISFIED' %}★★★★☆
+                        {% elif review.satisfaction == 'NORMAL' %}★★★☆☆
+                        {% elif review.satisfaction == 'DISSATISFIED' %}★★☆☆☆
+                        {% else %}★☆☆☆☆
+                        {% endif %}
+                    </span>
+                    <p class="satisfaction-text">{{ review.get_satisfaction_display }}</p>
+                    </div>
+                    <p class="review-date">{{ review.created_at|date:"Y년 m월 d일" }} 작성</p>
+                </div>
+
+                <div class="review-point-sectioin">
+                {% if review.good_points %}
+                <div class="review-points">
+                    <p class="points-label">✅ 좋았던 점</p>
+                    <p class="points-text">{{ review.good_points }}</p>
+                </div>
+                {% endif %}
+
+                {% if review.bad_points %}
+                <div class="review-points">
+                    <p class="points-label">✏️ 개선되었으면 좋겠는 점</p>
+                    <p class="points-text">{{ review.bad_points }}</p>
+                </div>
+                <div class="line"></div>
+
+                {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            </div>
+            <p class="none-review">아직 등록된 후기가 없습니다.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <script src="{% static 'users/js/all_reviews_for_youth.js' %}"></script>
+</body>
+</html>

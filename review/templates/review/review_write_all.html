@@ -61,8 +61,11 @@
 
         <div id="step6" class="step">
             <p>6/6</p>
-            <h2>{{ youth.username }}님과 다시 함께<br>살고 싶으신가요?</h2>
-            {{ form6.as_p }}
+            {% if request.user.is_youth %}
+                <h2>이 집에서<br>다시 살고 싶으신가요?</h2>
+            {% else %}
+                <h2>{{ youth.username }}님과 다시 함께<br>살고 싶으신가요?</h2>
+            {% endif %} {{ form6.as_p }}
             <button type="button" onclick="nextStep(5)">이전</button>
             <button type="submit">후기 작성 완료</button>
         </div>

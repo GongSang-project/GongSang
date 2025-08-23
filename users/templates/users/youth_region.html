@@ -11,7 +11,8 @@
 <body>
   <div id="root">
     <div id="app-wrapper">
-
+      
+      <!--헤더  -->
       <div class="header">
         <a href="/users/user_info/">
           <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
@@ -19,14 +20,17 @@
         <h1>기본 정보</h1>
       </div>
 
+      <!-- 상단 진행 바 -->
       <div class="progress-wrap" aria-label="진행률">
         <div id="progressBar" class="progress-bar" style="width: 0%;"></div>
       </div>
 
+      <!-- 질문 -->
       <h1 class="num">2/2</h1>
       <h2>어느 지역에서<br>방을 구하고 싶으세요?</h2>
       <h3>선택하신 지역을 기준으로<br>잘 맞는 방을 추천해드려요.</h3>
 
+      <!-- 폼 -->
     <form method="post" id="userInfoForm">
       {% csrf_token %}
       <div>
@@ -43,6 +47,7 @@
       </div>
     </form>
 
+    <!-- 다음 버튼 -->
     <button type="submit" id="submitBtn" form="userInfoForm">다음</button>
 
   </div>

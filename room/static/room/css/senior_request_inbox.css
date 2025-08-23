@@ -1,0 +1,325 @@
+/*공통 스타일*/
+
+/* 폰트 불러오기 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* Tmoney RoundWind Regular */
+@font-face {
+    font-family: 'TmoneyRoundWindRegular';
+    src: url('https://cdn.jsdelivr.net/gh/woffz/a1@main/Tmoney/TmoneyRoundWindRegular.woff') format('woff');
+    font-weight: normal;
+    font-style: Regular;
+}
+
+
+/* Tmoney RoundWind ExtraBold */
+@font-face {
+    font-family: 'TmoneyRoundWindExtraBold';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/TmoneyRoundWindExtraBold.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* 버튼 공통 css(버튼 기본 css X */
+button {
+  appearance: none;
+  -webkit-appearance: none; 
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+a {
+  text-decoration: none;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: rgb(0, 0, 0);
+    align-self: stretch;
+    padding: 30px 0;
+    padding-bottom: 60px; /* 버튼 높이만큼 */
+    font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+}
+
+#root {
+    width: 375px;
+    height: 812px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    background:#F3F3F3;
+}
+
+#app-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: block;
+    overflow: auto;
+}
+
+/* 헤더 */
+.header {
+    width: 100%; 
+    height: 99px;
+    display: flex;
+    background-color:#fff ;
+}
+
+
+.icon {
+    width: 20px;
+    height: 27px;
+    padding: 6px;
+    position: absolute;
+    top:54px;
+    left:20px;
+}
+
+.header > h1 {
+color: #121212;
+text-align: center;
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 150%; /* 30px */
+letter-spacing: -0.46px;
+margin: 0 0;
+position: absolute;
+top:52px;
+left:102px;
+}
+
+/*입주 희망 요청이 없을 때 (마지막애 다시 확인 필요)*/
+
+.empty-state p{
+color: #959595;
+font-family: 'Pretendard';
+font-size: 24px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 62.5% */
+letter-spacing: -0.12px;
+position: absolute;
+top:448px;
+left:89px;
+margin: 0 0;}
+
+/* 기본 css */
+
+/* 상단 방 정보 */
+.room-info{
+    width: auto;
+    position: absolute;
+    top:122px;
+    left:27px;
+    display: flex;
+    gap:6px;
+    flex-direction: column;
+}
+
+.room-info h2{
+align-self: stretch;
+color: #121212;
+font-family: 'Pretendard';
+font-size: 24px;
+font-style: normal;
+font-weight: 600;
+line-height: normal;
+letter-spacing: -0.12px;
+margin: 0 0;
+}
+
+.room-info p{
+align-self: stretch;
+color: #515151;
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 75% */
+letter-spacing: -0.1px;
+margin: 0 0;}
+
+/* 요청 리스트 (요청들, 요청 카드가 나열)*/
+.request-list {
+position: absolute;
+top:200px;
+left: 27px;
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+
+/* 요청 아이템 (요청 카드)*/
+.request-item{
+width: 325px;
+height: 155px;
+position: relative;
+border-radius: 12px;
+border: 1px solid #E9E9E9;
+background: #FFF;
+}
+
+.request-item-header{
+  display:grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items:center;
+  column-gap: 10px;
+  row-gap: 4px;
+  margin-bottom: 12px;
+}
+.profile-image{
+height: 42px;
+align-self: stretch;
+aspect-ratio: 43/42;
+position: absolute;
+top:16px;
+left:16px;
+}
+.circle-icon{
+width: 6px;
+height: 6px;
+aspect-ratio: 1/1;
+position: absolute;
+top:10px;
+left:53px;
+}
+.request-item-header-info{
+    display: flex;
+    flex-direction: column;
+    gap:12px;
+    position: absolute;
+    left:75px;
+    top:16px;
+}
+/* 이름,나이,성별 */
+.request-item-header-info h3{
+color: #121212;
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 75% */
+letter-spacing: -0.1px;
+margin: 0 0;
+}
+/*요청 시간 시간*/
+.request-item-header-info p{
+align-self: stretch;
+color: #515151;
+font-family: 'Pretendard';
+font-size: 16px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 93.75% */
+letter-spacing: -0.08px;
+margin: 0 0;
+}
+
+/* 버튼 영역 */
+.request-item-buttons{
+    display: flex;
+    gap:12px;
+    position: absolute;
+    left:15px;
+    top:79px;
+    height: 56px;
+}
+
+/* 공통 버튼 */
+.request-item-buttons button{
+  appearance:none; 
+  border:0; 
+  cursor:pointer;
+}
+
+.telnum_btn_icon{
+width: 56px;
+height: 56px;
+}
+
+.view-youth-btn{
+width: 226px;
+height: 56px;
+flex-shrink: 0;
+border-radius: 12px;
+background: #F26430;
+color: #FFF;
+font-feature-settings: 'liga' off, 'clig' off;
+
+}
+
+.view-youth-btn p{
+/* 버튼 텍스트 크기 */
+font-family: 'Inter';
+font-size: 20px;
+font-style: normal;
+font-weight: 700;
+line-height: 22px; /* 110% */
+text-align: center;
+}
+/* 전화번호 확인 버튼 눌렀을 때 */
+/* 오버레이 */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.50);  opacity: 0;
+  transition: opacity .15s ease;
+  z-index: 999;
+  display: none;
+  width: 375;
+  height: 812;
+}
+.overlay.show { 
+opacity: 1; 
+display: block;}
+ 
+.overlay[hidden] { display: none; }
+/* 하단 바 (전화번호) */
+#bottom-cta {
+  position: absolute;
+  bottom: 34px;
+  width: 375px;
+  padding: 0px 16px;
+  display: none;
+  z-index: 1000;
+  background: none;
+  display: none;
+  flex-direction: column;
+}
+
+#bottom-cta.show {
+  display:flex;
+  gap:9px;
+}
+
+.cta-btn {
+display: flex;
+width: 343px;
+height: 54px;
+padding: 16px 0;
+justify-content: center;
+align-items: center;
+border-radius: 12px;
+background: #FFF;
+
+color: #09F;
+font-feature-settings: 'liga' off, 'clig' off;
+font-family: 'Pretendard';
+font-size: 18px;
+font-style: normal;
+font-weight: 500;
+line-height: 22px; /* 122.222% */
+}
+
+#cta-call { white-space: pre; }
+

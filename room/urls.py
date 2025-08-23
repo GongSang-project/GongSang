@@ -26,7 +26,7 @@ urlpatterns = [
     # 방 등록하기 - 상세 정보 입력(시니어)
     path("register/step/address/", reg.register_step_address, name="register_step_address"),
     path("register/step/detail/",  reg.register_step_detail,  name="register_step_detail"),
-    path("register/step/contract/",reg.register_step_contract,name="register_step_contract"),
+    path("register/step/contract/", reg.register_step_contract, name="register_step_contract"),
     path("register/step/period/",  reg.register_step_period,  name="register_step_period"),
     path("register/step/facilities/", reg.register_step_facilities, name="register_step_facilities"),
     path("register/step/photos/", reg.register_step_photos, name="register_step_photos"),
@@ -42,8 +42,11 @@ urlpatterns = [
     path("owner/edit/address/",   views_edit.edit_step_address,   name="edit_step_address"),
     path("owner/edit/contract/",  views_edit.edit_step_contract,  name="edit_step_contract"),
     path("owner/edit/detail/",    views_edit.edit_step_detail,    name="edit_step_detail"),
-    path("owner/edit/facilities/",views_edit.edit_step_facilities,name="edit_step_facilities"),
+    path("owner/edit/facilities/", views_edit.edit_step_facilities, name="edit_step_facilities"),
     path("owner/edit/photos/",    views_edit.edit_step_photos,    name="edit_step_photos"),
+
+    # 리뷰 전체보기
+    path("detail/<int:room_id>/reviews/", views.all_reviews_for_room, name="all_reviews_for_room"),
 ]
 
 if has_detail:

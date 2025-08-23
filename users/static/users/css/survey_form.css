@@ -288,3 +288,24 @@ box-shadow: 0 0 7px 0 rgba(0, 0, 0, 0.15);
     cursor:pointer;
     border: 0px;
 }
+
+/* 1번 질문  */
+.sub-hint {
+color: #515151;
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 26px;
+letter-spacing: -0.1px;
+margin: 0 0;
+position: absolute;
+top:232px;
+left:25px;
+}
+
+#app-wrapper[data-step="1"] .choice-list {
+    position: absolute;
+    top:338px;
+    left: 25.374px;
+}

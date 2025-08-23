@@ -40,6 +40,13 @@
         {% for field in wizard.form.visible_fields %}
         <h2 class="question">{{ field.label|safe }}</h2>
 
+        {# 첫 번째 질문(1/10)에서만 안내 멘트 노출 #}
+        {% if wizard.steps.step1 == 1 %}
+        <p class="sub-hint">선택하신 성향을 기준으로<br>잘 맞는 방을 추천해드려요.</p>
+        {% endif %}
+
+
+
         {# 라디오/체크박스#}
         {% if field.field.choices %}
         <div class="choice-list">
