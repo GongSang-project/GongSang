@@ -1,3 +1,4 @@
+{% load static %}
 {% load custom_filters %}
 <!DOCTYPE html>
 <html lang="ko">
@@ -5,260 +6,373 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ youth_user.username }}님의 프로필</title>
+    <link rel="stylesheet" href="{% static 'users/css/youth_profile.css' %}?v=9" />
 </head>
 <body>
-    <div class="container">
-        <div class="profile-header">
-            <img src="{% if youth_user.profile_image %}{{ youth_user.profile_image.url }}{% else %}/static/images/default_profile.png{% endif %}" alt="프로필 사진" class="profile-image">
-            <div class="user-info">
-                <h3>{{ youth_user.username }}</h3>
-                <p>{{ youth_user.age }}세 {{ youth_user.get_gender_display }}</p>
-                <div class="verification">
-                    {% if is_id_card_uploaded %}
-                        <span class="verified">✔ 신분증 인증 완료</span>
-                    {% else %}
-                        <span class="unverified">⚠️ 신분증 미인증</span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+    <div id="root">
+        <div id="app-wrapper">
 
-        <div class="matching-result">
-            <h4>성향 매칭 분석 결과</h4>
-            <p class="matching-text">{{ matching_text }}</p>
-            <div class="score-bar">
-                <div class="score-fill"></div>
-                <div class="score-text">{{ matching_score }}점</div>
-            </div>
-            <p class="explanation">{{ explanation }}</p>
-            <div class="hashtags">
-                {% for tag in hashtags %}
-                    <span>#{{ tag }}</span>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="reviews-section">
-            <h4>후기 ★<i class="fa-solid fa-star"></i> {{ average_rating|floatformat:"1" }} ({{ review_count }}개)</h4>
-            <div class="review-summary">
-                <h5>AI 후기 요약 분석 <i class="fa-solid fa-robot"></i></h5>
-                <p>{{ ai_summary }}</p>
-            </div>
-
-            <div class="review-hashtags">
-                <div class="review-hashtags-item">
-                    <p>개선되었으면 좋았을 점</p>
-                    <div class="hashtags">
-                        {% for tag in bad_hashtags %}
-                            <span>{{ tag }}</span>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="review-hashtags-item">
-                    <p>좋았던 점</p>
-                    <div class="hashtags">
-                        {% for tag in good_hashtags %}
-                            <span>{{ tag }}</span>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="individual-reviews">
-                {% for review in reviews|slice:":2" %}
-                <div class="review-item">
-                    <div class="review-meta">
-                        <p class="reviewer-name">
-                            {% if review.is_anonymous %}
-                                익명{{ forloop.counter }}
-                            {% else %}
-                                {{ review.author.username }}
-                            {% endif %}
-                        </p>
-                        <p class="residence-period">{{ review.get_lived_period_display }}</p>
-                    </div>
-                    <div class="review-rating">
-                        <span class="star-rating">
-                            {% if review.satisfaction == 'VERY_SATISFIED' %}★★★★★
-                            {% elif review.satisfaction == 'SATISFIED' %}★★★★☆
-                            {% elif review.satisfaction == 'NORMAL' %}★★★☆☆
-                            {% elif review.satisfaction == 'DISSATISFIED' %}★★☆☆☆
-                            {% else %}★☆☆☆☆
-                            {% endif %}
-                        </span>
-                        <span class="review-date">{{ review.created_at|date:"Y년 m월 d일" }} 작성</span>
-                    </div>
-                    <p class="review-text">{{ review.good_points }}</p>
-                </div>
-                {% empty %}
-                <p>아직 등록된 후기가 없습니다.</p>
-                {% endfor %}
-            </div>
-
-            {% if review_count > 0 %}
-            <div class="view-all-reviews">
-                <a href="{% url 'users:all_reviews' youth_user.id %}">
-                    <button>후기 {{ review_count }}개 모두 보기</button>
+            <div class="header">
+                <a href="http://localhost:8000/room/senior/inbox/">
+                    <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
                 </a>
+                <h1>청년 정보</h1>
             </div>
-            {% endif %}
 
-        <div class="traits-section">
-          <h4>각자의 성향</h4>
-          <div class="trait-item">
-              <div class="trait-label">활동 시간대</div>
-              <div class="trait-values">
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
-                      <p class="trait-value {% if senior_user.preferred_time == youth_user.preferred_time %}trait-value-matched{% endif %}">
-                          {{ youth_user.get_preferred_time_display }}
-                      </p>
-                  </div>
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ senior_user.username }}(나)</p>
-                      <p class="trait-value {% if senior_user.preferred_time == youth_user.preferred_time %}trait-value-matched{% endif %}">
-                          {{ senior_user.get_preferred_time_display }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="trait-item">
-            <div class="trait-label">대화 빈도</div>
-            <div class="trait-values">
-                <div class="trait-user">
-                    <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
-                    <p class="trait-value {% if youth_user.conversation_style == senior_user.conversation_style %}trait-value-matched{% endif %}">
-                        {{ youth_user.get_conversation_style_display }}
-                    </p>
+            <div class="profile-container">
+
+                <div class="profile-header">
+                    <!--프로필 사진 -->
+                    <img src="{% if youth_user.profile_image %}{{ youth_user.profile_image.url }}{% else %}{% static 'users/images/default_profile.png' %} {% endif %}" alt="프로필 사진" class="profile-image">
+                    
+                    <!-- 기본 정보 -->
+                    <div class="user-info">
+                        <h3>{{ youth_user.username }}</h3>
+                        <p>{{ youth_user.age }}세&nbsp;{{ youth_user.get_gender_display }}</p>
+
+                        <!-- 신분증 인증 여부 -->
+                        <div class="verification">
+                            {% if is_id_card_uploaded %}
+                                <span class="verified">
+                                    <img src="{% static 'users/images/verified_mark.png' %}" alt="" class="verified_mark">신분증 인증 완료
+                                </span>
+                            {% else %}
+                                <span class="unverified">⚠️  신분증 미인증</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                <div class="trait-user">
-                    <p class="trait-user-name">{{ senior_user.username }}(나)</p>
-                    <p class="trait-value {% if youth_user.conversation_style == senior_user.conversation_style %}trait-value-matched{% endif %}">
-                        {{ senior_user.get_conversation_style_display }}
-                    </p>
+                <!-- 기본 정보란 끝 -->
+
+                <div class="line1"></div>
+
+                <!-- 매칭 분석 결과 -->
+                <div class="matching-result">
+                    <h4>성향 매칭 분석 결과</h4>
+                    <p class="matching-text">{{ matching_text }}</p>
+                    <p class="explanation">{{ explanation }}</p>
+
+                    <!-- 매칭 점수 바 -->
+                    <div class="score-bar" aria-label="매칭 점수{{ matching_score }}점" data-score="{{ matching_score|default:0 }}">
+                        <div class="score-fill"></div>
+                    </div>
+                    
+                    <!-- 하트 이미지 -->
+                    <img src="{% static 'users/images/heart.svg' %}" alt="" class="heart">
+
+                    <!-- 점수 -->
+                    <img src="{% static 'users/images/score.png' %}" alt="" class="score"/>
+                    <div class="score-text">{{ matching_score }}점</div>
+
+                    <!-- 해시태그 -->
+                    <div class="hashtags" id="hashtags">
+                        {% for tag in hashtags %}
+                            <span class="tag">#{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- 매칭 결과란 끝 -->
+
+                <div class="line2"></div>
+
+                <!-- 후기 -->
+                <div class="reviews-section">
+                    <div class="review-title">
+                        <h4>후기</h4>
+                        <img src="{% static 'users/images/star.svg' %}" alt=""/>
+                        <p class="review-score">{{ average_rating|floatformat:"1" }}</p>
+                        <p class="review-count">({{ review_count }}개)</p>
+                    </div>
+                    
+                    <div class="review-summary">
+                        <h4>AI 후기 요약 분석 📌</h4>
+                        <p>{{ ai_summary }}</p>
+                    </div>
+
+                    <div class="review-hashtags">
+                        <div class="review-hashtags-item">
+                            <p>개선되었으면 좋았을 점</p>
+                            <div class="hashtags">
+                                {% for tag in bad_hashtags %}
+                                    <span>{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="review-hashtags-item">
+                            <p>좋았던 점</p>
+                            <div class="hashtags">
+                                {% for tag in good_hashtags %}
+                                    <span>{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="individual-reviews">
+                        {% for review in reviews|slice:":2" %}
+                            <div class="review-item">
+                                <div class="review-meta">
+                                    <img src="{% static 'users/images/default_profile.png' %}" alt="" class="reviewer-profile"/>
+                                    <p class="reviewer-name">
+                                        {% if review.is_anonymous %}
+                                            익명{{ forloop.counter }}
+                                        {% else %}
+                                            {{ review.author.username }}
+                                        {% endif %}
+                                    </p>
+                                    <p class="residence-period">{{ review.get_lived_period_display }}</p>
+                                </div>
+                                
+                                <div class="review-rating">
+                                    <span class="star-rating">
+                                        {% if review.satisfaction == 'VERY_SATISFIED' %}★★★★★
+                                        {% elif review.satisfaction == 'SATISFIED' %}★★★★☆
+                                        {% elif review.satisfaction == 'NORMAL' %}★★★☆☆
+                                        {% elif review.satisfaction == 'DISSATISFIED' %}★★☆☆☆
+                                        {% else %}★☆☆☆☆
+                                        {% endif %}
+                                    </span>
+                                    <span class="review-date">{{ review.created_at|date:"Y년 m월 d일" }} 작성</span>
+                                </div>
+                                <p class="review-text">{{ review.good_points }}</p>
+                            </div>
+                        {% empty %}
+                            <p>아직 등록된 후기가 없습니다.</p>
+                        {% endfor %}
+
+                        {% if review_count > 0 %}
+                            <a href="{% url 'users:all_reviews' youth_user.id %}" class="view-all-reviews">
+                                후기 {{ review_count }}개 모두 보기
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- 후기란 끝 -->
+
+                <div class="line3"></div>
+
+                <!-- 성향 -->
+                <h4 class="trait-title">각자의 성향</h4>
+                <div class="traits-section">
+
+                    <!-- 활동 시간대 -->
+                    <div class="trait-item">
+                        <p class="trait-label">활동 시간대</p>
+                        <div class="trait-values">
+                            <div class="card {% if senior_user.preferred_time == youth_user.preferred_time %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
+                                {% with t=youth_parts.preferred_time %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                            <div class="card {% if senior_user.preferred_time == youth_user.preferred_time %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ senior_user.username }}(나)</p>
+                                {% with t=owner_parts.preferred_time %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 대화 빈도 -->
+                    <div class="trait-item">
+                        <div class="trait-label">대화 빈도</div>
+                        <div class="trait-values">
+                            <div class="card {% if senior_user.conversation_style == youth_user.conversation_style %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
+                                {% with t=youth_parts.conversation_style %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                            <div class="card {% if senior_user.conversation_style == youth_user.conversation_style %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ senior_user.username }}(나)</p>
+                                {% with t=owner_parts.conversation_style %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 생활 공간 중요 포인트 -->
+                    <div class="trait-item ip-item">
+                        <div class="trait-label">생활 공간 중요 포인트</div>
+
+                        {% with youth_list=youth_parts.important_points owner_list=owner_parts.important_points %}
+                        <div class="trait-values ip-values">
+
+                            {% with y0=youth_list.0 o0=owner_list.0 %}
+                                <div class="card {% if y0 %}{% for o in owner_list %}{% if o.label == y0.label %}card-value-matched{% endif %}{% endfor %}{% endif %}">
+                                    <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
+                                    {% if y0 %}
+                                        <p class="trait-emoji">{{ y0.emoji }}</p>
+                                        <p class="trait-label-text">{{ y0.label }}</p>
+                                    {% else %}
+                                        <p class="trait-emoji"> </p>
+                                        <p class="trait-label-text">선택 없음</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="card {% if o0 %}{% for y in youth_list %}{% if y.label == o0.label %}card-value-matched{% endif %}{% endfor %}{% endif %}">
+                                    <p class="trait-user-name">{{ senior_user.username }}(나)</p>
+                                    {% if o0 %}
+                                        <p class="trait-emoji">{{ o0.emoji }}</p>
+                                        <p class="trait-label-text">{{ o0.label }}</p>
+                                    {% else %}
+                                        <p class="trait-emoji"> </p>
+                                        <p class="trait-label-text">선택 없음</p>
+                                    {% endif %}
+                                </div>
+                            {% endwith %}
+
+                            {% with y1=youth_list.1 o1=owner_list.1 %}
+                                <div class="card {% if y1 %}{% for o in owner_list %}{% if o.label == y1.label %}card-value-matched{% endif %}{% endfor %}{% endif %}">
+                                    <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
+                                    {% if y1 %}
+                                        <p class="trait-emoji">{{ y1.emoji }}</p>
+                                        <p class="trait-label-text">{{ y1.label }}</p>
+                                    {% else %}
+                                        <p class="trait-emoji"> </p>
+                                        <p class="trait-label-text">선택없음</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="card {% if o1 %}{% for y in youth_list %}{% if y.label == o1.label %}card-value-matched{% endif %}{% endfor %}{% endif %}">
+                                    <p class="trait-user-name">{{ senior_user.username }}(나)</p>
+                                    {% if o1 %}
+                                        <p class="trait-emoji">{{ o1.emoji }}</p>
+                                        <p class="trait-label-text">{{ o1.label }}</p>
+                                    {% else %}
+                                        <p class="trait-emoji"> </p>
+                                        <p class="trait-label-text">선택없음</p>
+                                    {% endif %}
+                                </div>
+                            {% endwith %}
+                        </div>
+                        {% endwith %}
+                    </div>
+
+                    <!-- 소음 허용도 -->
+                    <div class="trait-item">
+                        <div class="trait-label">소음 허용도</div>
+                        <div class="trait-values">
+                            <div class="card {% if senior_user.noise_level == youth_user.noise_level %}card-value-matched{% endif %}"> 
+                                <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
+                                {% with t=youth_parts.noise_level %}  
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                            <div class="card {% if senior_user.noise_level == youth_user.noise_level %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ senior_user.username }}(나)</p>
+                                {% with t=owner_parts.noise_level %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>    
+
+                    <!-- 식사 여부 -->
+                    <div class="trait-item">
+                        <div class="trait-label">식사 여부</div>
+                        <div class="trait-values">
+                            <div class="card {% if senior_user.meal_preference == youth_user.meal_preference %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
+                                {% with t=youth_parts.meal_preference %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                            <div class="card {% if senior_user.meal_preference == youth_user.meal_preference %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ senior_user.username }}(나)</p>
+                                {% with t=owner_parts.meal_preference %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 공용공간 사용 -->
+                    <div class="trait-item">
+                        <div class="trait-label">공용공간 사용</div>
+                        <div class="trait-values">
+                            <div class="card {% if senior_user.space_sharing_preference == youth_user.space_sharing_preference %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
+                                {% with t=youth_parts.space_sharing_preference %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                            <div class="card {% if senior_user.space_sharing_preference == youth_user.space_sharing_preference %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ senior_user.username }}(나)</p>
+                                {% with t=owner_parts.space_sharing_preference %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 반려동물 여부 -->
+                    <div class="trait-item">
+                        <div class="trait-label">반려동물 여부</div>
+                        <div class="trait-values">
+                            <div class="card {% if senior_user.pet_preference == youth_user.pet_preference %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
+                                {% with t=youth_parts.pet_preference %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                            <div class="card {% if senior_user.pet_preference == youth_user.pet_preference %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ senior_user.username }}(나)</p>
+                                {% with t=owner_parts.pet_preference %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 주말 패턴 -->
+                    <div class="trait-item">
+                        <div class="trait-label">주요 생활 패턴</div>
+                        <div class="trait-values">
+                            <div class="card {% if senior_user.weekend_preference == youth_user.weekend_preference %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
+                                {% with t=youth_parts.weekend_preference %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                            <div class="card {% if senior_user.weekend_preference == youth_user.weekend_preference %}card-value-matched{% endif %}">
+                                <p class="trait-user-name">{{ senior_user.username }}(나)</p>
+                                {% with t=owner_parts.weekend_preference %}
+                                    <p class="trait-emoji">{{ t.emoji }}</p>
+                                    <p class="trait-label-text">{{ t.label }}</p>
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="trait-item"></div>
+
                 </div>
             </div>
+            <!-- 성향 끝 -->
+            <div class="footer">
+            이따 main merge하고 입주요청에 있는 버튼 갖다 쓰기.
+           </div>
+
+
         </div>
-          <div class="trait-item">
-              <div class="trait-label">생활공간 중요 포인트</div>
-              <div class="trait-values">
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
-                      <p class="trait-value">
-                          {{ youth_user.important_points|get_important_points_display }}
-                      </p>
-                  </div>
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ senior_user.username }}(나)</p>
-                      <p class="trait-value">
-                          {{ senior_user.important_points|get_important_points_display }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="trait-item">
-              <div class="trait-label">소음 허용도</div>
-              <div class="trait-values">
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
-                      <p class="trait-value {% if senior_user.noise_level == youth_user.noise_level %}trait-value-matched{% endif %}">
-                          {{ youth_user.get_noise_level_display }}
-                      </p>
-                  </div>
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ senior_user.username }}(나)</p>
-                      <p class="trait-value {% if senior_user.noise_level == youth_user.noise_level %}trait-value-matched{% endif %}">
-                          {{ senior_user.get_noise_level_display }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="trait-item">
-              <div class="trait-label">식사 여부</div>
-              <div class="trait-values">
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
-                      <p class="trait-value {% if senior_user.meal_preference == youth_user.meal_preference %}trait-value-matched{% endif %}">
-                          {{ youth_user.get_meal_preference_display }}
-                      </p>
-                  </div>
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ senior_user.username }}(나)</p>
-                      <p class="trait-value {% if senior_user.meal_preference == youth_user.meal_preference %}trait-value-matched{% endif %}">
-                          {{ senior_user.get_meal_preference_display }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="trait-item">
-              <div class="trait-label">공용공간 사용</div>
-              <div class="trait-values">
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
-                      <p class="trait-value {% if senior_user.space_sharing_preference == youth_user.space_sharing_preference %}trait-value-matched{% endif %}">
-                          {{ youth_user.get_space_sharing_preference_display }}
-                      </p>
-                  </div>
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ senior_user.username }}(나)</p>
-                      <p class="trait-value {% if senior_user.space_sharing_preference == youth_user.space_sharing_preference %}trait-value-matched{% endif %}">
-                          {{ senior_user.get_space_sharing_preference_display }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="trait-item">
-              <div class="trait-label">반려동물 여부</div>
-              <div class="trait-values">
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
-                      <p class="trait-value {% if senior_user.pet_preference == youth_user.pet_preference %}trait-value-matched{% endif %}">
-                          {{ youth_user.get_pet_preference_display }}
-                      </p>
-                  </div>
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ senior_user.username }}(나)</p>
-                      <p class="trait-value {% if senior_user.pet_preference == youth_user.pet_preference %}trait-value-matched{% endif %}">
-                          {{ senior_user.get_pet_preference_display }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="trait-item">
-              <div class="trait-label">흡연 여부</div>
-              <div class="trait-values">
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
-                      <p class="trait-value {% if senior_user.smoking_preference == youth_user.smoking_preference %}trait-value-matched{% endif %}">
-                          {{ youth_user.get_smoking_preference_display }}
-                      </p>
-                  </div>
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ senior_user.username }}(나)</p>
-                      <p class="trait-value {% if senior_user.smoking_preference == youth_user.smoking_preference %}trait-value-matched{% endif %}">
-                          {{ senior_user.get_smoking_preference_display }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-          <div class="trait-item">
-              <div class="trait-label">주요 생활 패턴</div>
-              <div class="trait-values">
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ youth_user.username }}(청년)</p>
-                      <p class="trait-value {% if senior_user.weekend_preference == youth_user.weekend_preference %}trait-value-matched{% endif %}">
-                          {{ youth_user.get_weekend_preference_display }}
-                      </p>
-                  </div>
-                  <div class="trait-user">
-                      <p class="trait-user-name">{{ senior_user.username }}(나)</p>
-                      <p class="trait-value {% if senior_user.weekend_preference == youth_user.weekend_preference %}trait-value-matched{% endif %}">
-                          {{ senior_user.get_weekend_preference_display }}
-                      </p>
-                  </div>
-              </div>
-          </div>
-      </div>
-    </div>
+    </div> 
+    <script src="{% static 'users/js/youth_profile.js' %}?v=8"></script>
 </body>
 </html>
