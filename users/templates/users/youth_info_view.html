@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>청년 마이페이지</title>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+        <h1>마이페이지</h1>
+        <a href="{% url 'users:user_info' %}" class="edit-link">수정하기</a>
+    </div>
+
+    <div class="profile-section">
+        <div class="profile-image">
+            {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="프로필 사진" style="width: 100%; height: 100%; border-radius: 50%;">
+            {% else %}
+                <span>🧑</span>
+            {% endif %}
+        </div>
+        <div class="profile-details">
+            <h2>{{ user.username }} 님</h2>
+            <p>{{ user.age }}세 / {{ user.get_gender_display }} / {{ user.phone_number|default:"전화번호 미입력" }}</p>
+            <p>관심 지역 : {{ user.interested_province }} {{ user.interested_city }} {{ user.interested_district }}</p>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <div class="info-header">
+            <h3>선택한 성향</h3>
+            <a href="{% url 'users:survey_wizard_start' %}" class="edit-link">수정하기</a>
+        </div>
+        <div class="info-content tags-container">
+            {% for preference in user_preferences %}
+                <span class="tag">{{ preference }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <form action="{% url 'review:review_list_youth' %}" method="get">
+        <button type="submit">
+            후기 작성
+        </button>
+    </form>
+
+    <form action="{% url 'users:user_logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">로그아웃</button>
+    </form>
+
+  </div>
+</body>
+</html>
