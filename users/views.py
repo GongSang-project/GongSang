@@ -334,7 +334,7 @@ def all_reviews_for_youth(request, youth_id):
         'youth_user': youth_user,
         'reviews': reviews
     }
-    return render(request, 'users/all_reviews.html', context)
+    return render(request, 'users/all_reviews_for_youth.html', context)
 
 def senior_info_view(request):
     user = request.user
@@ -370,7 +370,52 @@ def senior_info_view(request):
 
     return render(request, 'users/senior_info_view.html', context)
 
+def youth_info_view(request):
+    user = request.user
 
+    if not user.is_youth:
+        return render(request, 'users/re_login.html')
 
+    user_preferences = []
+    for field in [
+        'preferred_time', 'conversation_style', 'meal_preference',
+        'weekend_preference', 'smoking_preference', 'noise_level',
+        'space_sharing_preference', 'pet_preference'
+    ]:
+        field_value = getattr(user, field, None)
+        if field_value:
+            label = CHOICE_PARTS.get(field, {}).get(field_value, {}).get('label')
+            if label:
+                user_preferences.append(label)
 
+    if user.important_points:
+        important_points_codes = user.important_points.split(',')
+        important_points_map = CHOICE_PARTS.get('important_points', {})
+        for code in important_points_codes:
+            cleaned_code = code.strip().upper()
+            label = important_points_map.get(cleaned_code, {}).get('label')
+            if label:
+                user_preferences.append(label)
 
+    context = {
+        'user': user,
+        'user_preferences': user_preferences,
+    }
+
+    return render(request, 'users/youth_info_view.html', context)
+
+@login_required
+def my_reviews(request):
+    user = request.user
+
+    if not user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    # 로그인한 청년 사용자의 ID로 후기 필터링
+    reviews = Review.objects.filter(target_youth=user).order_by('-created_at')
+
+    context = {
+        'youth_user': user,
+        'reviews': reviews
+    }
+    return render(request, 'users/all_reviews_for_youth.html', context)

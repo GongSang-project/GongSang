@@ -25,4 +25,6 @@ urlpatterns = [
     path('profile/youth/<int:youth_id>/reviews/', views.all_reviews_for_youth, name='all_reviews'),
 
     path('senior/mypage/', views.senior_info_view, name='senior_info'),
+    path('youth/mypage/', views.youth_info_view, name='youth_info'),
+    path('youth/mypage/my_reviews/', views.my_reviews, name='my_reviews'),
 ]
