@@ -1,24 +1,22 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>청년 홈</title>
+    <title>모든 방 순위</title>
     <link rel="stylesheet" href="{% static 'users/css/home_youth.css' %}">
 </head>
 <body>
-    <p>청년 홈</p>
+    <h1>모든 방 순위</h1>
 
-    <div>
-        <a href="{% url 'users:all_rooms_youth' %}" class="btn">추천 방 모두 보기</a>
-    </div>
-
-<!--    잘 맞는 방 top3-->
     {% if recommended_rooms %}
-        {% for room in recommended_rooms|slice:":3" %}
+        {% for room in recommended_rooms %}
             <div class="room-card">
+                <p><strong>성향 매칭 점수 {{ room.matching_score }}점</strong></p>
                 <p><strong>월세 {{ room.deposit }}/{{ room.rent_fee }}</strong></p>
-                <p>{{ room.floor }}</p>
+                <p>{{ room.address_city }} {{ room.address_district }}</p>
+                <p>{{ room.floor }}, {{ room.area }}m²</p>
 
                 <p>
                     {% if room.owner.gender == 'M' %}
@@ -35,19 +33,21 @@
                     {% endif %}
                 </p>
 
-<!--                <p><strong>AI 추천 이유:</strong> {{ room.recommendation_reason }}</p>-->
+                <p>
+                    {% if room.can_short_term %}
+                        체험 입주 가능
+                    {% else %}
+                        체험 입주 불가능
+                    {% endif %}
+                </p>
+
+                <p>{{ room.recommendation_reason }}</p>
+
                 <a href="{% url 'room:room_detail' room.id %}">방 상세 보기</a>
             </div>
         {% endfor %}
     {% else %}
         <p>관심 지역에 해당하는 방이 없거나, AI 추천을 받을 수 없습니다.</p>
     {% endif %}
-
-    <form action="{% url 'users:user_logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit">로그아웃</button>
-    </form>
-
-    <script src="{% static 'users/js/home_youth.js' %}"></script>
 </body>
 </html>

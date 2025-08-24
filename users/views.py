@@ -1,3 +1,7 @@
+import json
+import os
+import google.generativeai as genai
+
 from formtools.wizard.views import SessionWizardView
 from django.shortcuts import redirect, render, get_object_or_404
 from matching.utils import calculate_matching_score, get_matching_details, WEIGHTS
@@ -22,9 +26,13 @@ from django.contrib.auth import login as auth_login, logout as auth_logout
 from matching.models import MoveInRequest
 from room.models import Room
 from review.models import Review
+from django.db.models import Avg, Case, When, Q
 
 # 프론트에서 추가: 맵핑 임포트
 from .models import get_choice_parts, important_points_parts
+
+genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
+model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
 
 FORMS = [
     ("step1", SurveyStep1Form),
@@ -38,6 +46,7 @@ FORMS = [
     ("step9", SurveyStep9Form),
     ("step10", SurveyStep10Form),
 ]
+
 
 class SurveyWizard(SessionWizardView):
     def get_template_names(self):
@@ -194,15 +203,133 @@ def user_logout(request):
     next_url = request.GET.get('next', 'users:user_selection')
     return redirect(next_url)
 
-def home_youth(request):
 
+def home_youth(request):
     if not request.user.is_authenticated:
         return render(request, 'users/re_login.html')
 
     if not request.user.is_youth:
         return render(request, 'users/re_login.html')
 
-    return render(request, 'users/home_youth.html')
+    data_for_ai = get_and_prepare_rooms_for_ai(request)
+
+    # 만약 데이터가 없으면 빈 리스트를 전달하고 종료
+    if not data_for_ai or not data_for_ai.get("available_rooms"):
+        context = {'recommended_rooms': []}
+        return render(request, 'users/home_youth.html', context)
+
+    # 2. Gemini에게 보낼 프롬프트 작성
+    prompt = f"""
+        아래는 한 청년의 프로필과 관심 지역에 있는 여러 방의 정보(시니어의 프로필 포함)야.
+        이 데이터들을 분석해서 청년과 가장 잘 맞는 순서대로 방 목록을 추천해 줘.
+
+        **매칭 점수를 계산할 때 아래 항목의 중요도를 반드시 고려해.**
+
+        **<항목별 가중치 표>**
+        - 반려동물 여부: 10 (불일치 시 매칭 불가 수준)
+        - 흡연 여부: 10 (건강 및 냄새 민감도)
+        - 소음 허용도: 9 (일상 스트레스에 직결)
+        - 활동 시간대: 8 (생활 리듬 직접 영향)
+        - 대화 빈도: 7 (생활 충돌 가능성 높음)
+        - 생활 공간 중요 포인트: 6 (가치관 차이)
+        - 공용 공간 사용 빈도: 6 (프라이버시 & 충돌 가능성)
+        - 식사 공유 여부: 5 (생활 방식 영향)
+        - 주말 생활 패턴: 4 (생활 리듬 보조 지표)
+        - 자유 응답: 점수 부여는 아니지만, **매우 중요하게 고려**하여 추천 이유에 반영해.
+
+        <청년 프로필>
+        {json.dumps(data_for_ai['youth_profile'], indent=2, ensure_ascii=False)}
+
+        <방 목록>
+        {json.dumps(data_for_ai['available_rooms'], indent=2, ensure_ascii=False)}
+
+        응답은 다음 JSON 형식으로만 제공해줘.
+        **'recommendation_reason'은 두 문장(두 줄) 내외로 간결하게 작성해. 유저들의 이름은 말하지 말고, 생활 방식 일치 여부에 초점을 맞춰 설명해 줘.**
+
+        ```json
+        [
+          {{
+            "room_id": "<방 목록에 있는 실제 ID를 사용>",
+            "recommendation_reason": "<두 줄 내외의 간결한 추천 이유>"
+          }},
+          {{
+            "room_id": "<방 목록에 있는 다른 실제 ID를 사용>",
+            "recommendation_reason": "<추천 이유>"
+          }}
+        ]
+        ```
+    """
+
+    try:
+        response = model.generate_content(prompt)
+
+        if "```json" in response.text:
+            response_text = response.text.split("```json")[1].split("```")[0]
+        else:
+            response_text = response.text
+
+        recommended_list_from_ai = json.loads(response_text.strip())
+
+    except Exception as e:
+        print(f"Gemini API 호출 중 오류 발생: {e}")
+        recommended_list_from_ai = []
+
+    sorted_rooms = []
+    if isinstance(recommended_list_from_ai, list):
+        room_map = {str(room.id): room for room in Room.objects.all()}
+
+        for item in recommended_list_from_ai:
+            room_id = str(item.get('room_id'))
+            if room_id in room_map:
+                room = room_map[room_id]
+                room.recommendation_reason = item.get('recommendation_reason', '추천 이유가 제공되지 않았습니다.')
+                sorted_rooms.append(room)
+
+    ai_recommendations_with_score = {}
+    for room in sorted_rooms:
+        matching_score = calculate_matching_score(request.user, room.owner)
+        ai_recommendations_with_score[str(room.id)] = {
+            'reason': room.recommendation_reason,
+            'score': matching_score
+        }
+    request.session['ai_recommendations_with_score'] = ai_recommendations_with_score
+
+    context = {
+        'recommended_rooms': sorted_rooms,
+    }
+
+    return render(request, 'users/home_youth.html', context)
+
+
+def all_rooms_youth(request):
+    if not request.user.is_authenticated or not request.user.is_youth:
+        return redirect('users:user_login')
+
+    # 세션에서 저장된 데이터를 가져옴
+    ai_recommendations = request.session.get('ai_recommendations_with_score', {})
+
+    recommended_rooms = []
+    if ai_recommendations:
+        room_ids = list(ai_recommendations.keys())
+        rooms_from_db = Room.objects.filter(id__in=room_ids)
+
+        # 순서 유지를 위해 딕셔너리로 매핑
+        room_map = {str(room.id): room for room in rooms_from_db}
+
+        # 세션에 저장된 순서대로 방 객체를 다시 구성
+        for room_id, data in ai_recommendations.items():
+            room = room_map.get(room_id)
+            if room:
+                room.recommendation_reason = data['reason']
+                room.matching_score = data['score']
+                recommended_rooms.append(room)
+
+    context = {
+        'recommended_rooms': recommended_rooms
+    }
+
+    return render(request, 'users/all_rooms_youth.html', context)
+
 
 def home_senior(request):
 
@@ -477,3 +604,85 @@ def my_reviews(request):
 
 def index(request):
     return redirect('users:user_selection')
+
+def get_and_prepare_rooms_for_ai(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    youth_user = request.user
+
+    # 청년 유저의 관심 지역 정보 가져오기
+    province = youth_user.interested_province
+    city = youth_user.interested_city
+    district = youth_user.interested_district
+
+    if not province and not city and not district:
+        return []
+
+    # Q 객체를 사용하여 필터링 조건 생성
+    filter_conditions = Q()
+    if province:
+        filter_conditions &= Q(address_province=province)
+    if city:
+        filter_conditions &= Q(address_city=city)
+    if district:
+        filter_conditions &= Q(address_district=district)
+
+    # 필터링된 방 목록 가져오기
+    filtered_rooms = Room.objects.filter(filter_conditions)
+
+    # Gemini로 전송할 데이터 구조화
+    ai_input_data = {
+        "youth_profile": {
+            "id": youth_user.id,
+            "username": youth_user.username,
+            "lifestyle": {
+                "preferred_time": youth_user.preferred_time,
+                "conversation_style": youth_user.conversation_style,
+                "important_points": youth_user.important_points,
+                "noise_level": youth_user.noise_level,
+                "meal_preference": youth_user.meal_preference,
+                "space_sharing_preference": youth_user.space_sharing_preference,
+                "pet_preference": youth_user.pet_preference,
+                "smoking_preference": youth_user.smoking_preference,
+                "weekend_preference": youth_user.weekend_preference,
+            }
+        },
+        "available_rooms": []
+    }
+
+    for room in filtered_rooms:
+        senior_owner = room.owner
+        room_data = {
+            "room_id": room.id,
+            "rent_fee": room.rent_fee,
+            "address": f"{room.address_province} {room.address_city} {room.address_district}",
+            "senior_profile": {
+                "id": senior_owner.id,
+                "username": senior_owner.username,
+                "lifestyle": {
+                    "preferred_time": senior_owner.preferred_time,
+                    "conversation_style": senior_owner.conversation_style,
+                    "important_points": senior_owner.important_points,
+                    "noise_level": senior_owner.noise_level,
+                    "meal_preference": senior_owner.meal_preference,
+                    "space_sharing_preference": senior_owner.space_sharing_preference,
+                    "pet_preference": senior_owner.pet_preference,
+                    "smoking_preference": senior_owner.smoking_preference,
+                    "weekend_preference": senior_owner.weekend_preference,
+                }
+            }
+        }
+        ai_input_data["available_rooms"].append(room_data)
+
+    print(f"청년 관심 지역: {province}, {city}, {district}")
+
+    # 필터링된 방 목록 확인
+    filtered_rooms = Room.objects.filter(filter_conditions)
+    print(f"필터링된 방 개수: {filtered_rooms.count()}")
+
+    return ai_input_data
