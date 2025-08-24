@@ -23,11 +23,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='review',
-            name='room',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='room_reviews', to='room.room', verbose_name='후기 대상 방'),
-        ),
-        migrations.AddField(
-            model_name='review',
             name='target_senior',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='reviews_received_senior', to=settings.AUTH_USER_MODEL, verbose_name='후기 대상(시니어)'),
         ),

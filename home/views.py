@@ -6,7 +6,6 @@ from room.models import Room
 from django.views.decorators.cache import never_cache
 
 from django.db.models import (Case, When, Value, IntegerField, F, Q,)
-from django.conf import settings
 
 """
 def home_view(request):

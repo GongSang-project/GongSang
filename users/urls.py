@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import SurveyWizard, FORMS
 from . import views
+#from . import views_public
 
 app_name = 'users'
 
@@ -27,4 +28,8 @@ urlpatterns = [
     path('senior/mypage/', views.senior_info_view, name='senior_info'),
     path('youth/mypage/', views.youth_info_view, name='youth_info'),
     path('youth/mypage/my_reviews/', views.my_reviews, name='my_reviews'),
+
+    # 검색 자동완성
+    path("api/region-autocomplete/", views.autocomplete_region, name="region_autocomplete"),
+    path("list/", views.listings_by_region, name="room_list_page"),
 ]

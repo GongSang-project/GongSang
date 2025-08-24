@@ -23,6 +23,10 @@ from django.contrib.auth import login as auth_login, logout as auth_logout
 from matching.models import MoveInRequest
 from room.models import Room
 from review.models import Review
+from django.views.decorators.http import require_GET
+from django.http import JsonResponse
+from .models import Region, Listing
+import re
 
 # 프론트에서 추가: 맵핑 임포트
 from .models import get_choice_parts, important_points_parts
@@ -181,7 +185,38 @@ def home_youth(request):
     return render(request, 'users/home_youth.html')
 
 def home_senior(request):
-    return render(request, 'users/home_senior.html')
+    # 최근 등록 방에서 주소/역 이름을 뽑아 후보 생성 (JS 없이 datalist용)
+    qs = (
+        Room.objects
+        .order_by('-id')
+        .values('address_province', 'address_city', 'address_district', 'nearest_subway')[:300]
+    )
+
+    seen, suggestions = set(), []
+    def add(x):
+        x = (x or '').strip()
+        if x and x not in seen:
+            suggestions.append(x)
+            seen.add(x)
+
+    for r in qs:
+        prov = r.get('address_province') or ''
+        city = r.get('address_city') or ''
+        dist = r.get('address_district') or ''
+        sub  = r.get('nearest_subway') or ''
+
+        # 단일 항목
+        for v in (sub, dist, city, prov):
+            add(v)
+
+        # 조합(시군구/시도 시군구 동)
+        add(" ".join(x for x in (city, dist) if x))
+        add(" ".join(x for x in (prov, city, dist) if x))
+
+    context = {
+        'region_suggestions': suggestions[:50],  # 너무 많으면 UX 나빠짐
+    }
+    return render(request, 'users/home_senior.html', context)
 
 
 FIELD_LABELS = {
@@ -418,3 +453,25 @@ def my_reviews(request):
 
 def index(request):
     return redirect('users:user_selection')
+
+
+# 검색 자동완성
+@require_GET
+def autocomplete_region(request):
+    query = (request.GET.get("q") or request.GET.get("query") or "").strip()
+    if not query:
+        return JsonResponse({"results": []}, json_dumps_params={'ensure_ascii': False})
+
+    regions = Region.objects.filter(name__icontains=query)\
+                            .values_list("name", flat=True)[:10]
+    return JsonResponse({"results": list(regions)}, json_dumps_params={'ensure_ascii': False})
+
+@require_GET
+def listings_by_region(request):
+    region_name = (request.GET.get("region") or "").strip()
+    if not region_name:
+        return JsonResponse({"results": []}, json_dumps_params={'ensure_ascii': False})
+
+    listings = Listing.objects.filter(region__name=region_name)\
+                              .values("title", "price", "description")
+    return JsonResponse({"results": list(listings)}, json_dumps_params={'ensure_ascii': False})

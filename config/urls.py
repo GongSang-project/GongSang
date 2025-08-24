@@ -29,7 +29,7 @@ urlpatterns = [
     path('rooms/', include('room.urls')),
 
     path('matching/', include('matching.urls', namespace='matching')),
-    path('room/', include('room.urls', namespace='room')),
+    # path('room/', include('room.urls', namespace='room')),
     path('users/', include('users.urls', namespace='users')),
     path('review/', include('review.urls', namespace='review')),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
