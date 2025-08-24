@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재로그인</title>
+</head>
+<body>
+    <p>이용할 수 없는 페이지예요.</p>
+    <form action="{% url 'users:user_logout' %}?next={% url 'users:user_selection' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn">
+            다시 로그인하기
+        </button>
+    </form>
+</body>
+</html>

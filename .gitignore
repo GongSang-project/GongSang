@@ -148,6 +148,20 @@ venv.bak/
 .spyderproject
 .spyproject
 
+# IDE 설정 파일 (IntelliJ, PyCharm 등)
+.idea/
+
+# Django
+__pycache__/
+*.pyc
+
+# Database
+db.sqlite3
+
+# Migrations
+*/migrations/*
+!*/migrations/__init__.py
+
 # Rope project settings
 .ropeproject
 

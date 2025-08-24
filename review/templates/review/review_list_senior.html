@@ -1,0 +1,162 @@
+{% load static %}
+{% load matching_filters %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=375, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>후기 작성</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+  <style>
+    :root{
+      --primary:#F26430;
+      --secondary:#FFEBD9;
+      --black:#121212;
+      --muted:#959595;
+    }
+    *{box-sizing:border-box;}
+    body{margin:0; background:#fff; font-family:Pretendard, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;}
+    .page{width:375px; margin:0 auto; min-height:100vh;}
+
+    /* 헤더 */
+    .header{position:relative; padding:54px 16px 0;}
+    .header h1{margin:0; text-align:center; color:var(--black); font-weight:600; font-size:20px;}
+    .back{
+      position:absolute; left:16px; top:54px; width:21px; height:27px;
+      padding:0; border:none; background:transparent; cursor:pointer;
+    }
+
+
+    
+    /* 탭 */
+    .tab-container{
+      display:flex; position:relative; margin-top:24px;
+
+      margin-left:-24px;
+      margin-right:-24px;
+      padding:0;
+    }
+    .tab{
+      flex:1; text-align:center; padding:8px 0 12px;
+      font-weight:600; font-size:16px; color:#959595; text-decoration:none;
+      position:relative;
+    }
+    .tab.active{color:var(--primary);}
+    .tab.active::after{
+      content:""; position:absolute; left:0; right:0; bottom:0; height:2px; background:var(--primary);
+    }
+    /* 하단 가는 구분선 */
+    .tab-container::after{
+      content:""; position:absolute; left:0; right:0; bottom:0; height:1px; background:#eee;
+    }
+
+    .content{padding:16px;}
+
+    /* 카드 레이아웃 */
+    .meta{margin:0 0 8px; color:var(--muted); font-size:16px;}
+    .row{display:flex; gap:16px; align-items:stretch;}
+    .room-image{
+      flex:0 0 135px; width:135px; height:173px; border-radius:8px; object-fit:cover; background:#d2d2d2;
+    }
+
+    /* info */
+    .info{
+      flex:1; min-width:0;
+      display:flex; flex-direction:column; /* ← 핵심 */
+    }
+    .name{margin:0; font-size:20px; font-weight:600; color:#121212; line-height:1.3;}
+    .address{margin:8px 0 4px; font-size:16px; color:#515151; line-height:1.2;}
+    .rent{margin:0; font-size:15px; color:#959595;}
+
+    /* 칩 */
+    .chips{
+      display:flex; gap:8px; align-items:center;
+      margin-top:auto;         /* 남는 공간을 위로 밀어 칩을 컬럼 하단에 */
+      padding-top:12px;        /* 텍스트와 간격 */
+    }
+    .chip{
+      height:24px; display:inline-flex; align-items:center; justify-content:center; gap:4px;
+      padding:6px 6px; background:var(--secondary); border-radius:6px;
+      color:var(--primary); font-weight:600; font-size:14px; line-height:21px;
+    }
+
+    /* CTA 버튼 */
+    .cta{margin-top:20px;}
+    .write-review-button{
+      display:flex; align-items:center; justify-content:center;
+      width:100%; height:56px; border:0; border-radius:12px;
+      background:var(--primary); color:#fff; font-size:20px; font-weight:700; line-height:22px;
+      text-decoration:none;   /* 밑줄 제거 */
+    }
+
+    /* 전역 앵커 밑줄 제거(안전망) */
+    a{ text-decoration:none; color:inherit; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <button class="back" type="button" onclick="history.back()" aria-label="뒤로가기">
+        <svg width="21" height="27" viewBox="0 0 21 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14.6133 6L6.61328 13.5L14.6133 21" stroke="#959595" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1>후기 작성</h1>
+
+      <div class="tab-container">
+        <a href="{% url 'review:review_list_senior' %}" class="tab active">후기 작성 전</a>
+        <a href="{% url 'review:review_completed_list_senior' %}" class="tab">후기 작성 완료</a>
+      </div>
+    </div>
+
+    <div class="content">
+      {% if requested_youth %}
+        {% for request in requested_youth %}
+          <div class="card">
+            <p class="meta">입주 요청일 {{ request.requested_at|date:"Y.m.d" }}</p>
+
+            <div class="card-body row">
+              <img src="{% static 'images/room_default.jpg' %}" alt="방 사진" class="room-image">
+
+              <div class="info">
+                <h3 class="name">
+                  {{ request.youth.username }} ({{ request.youth.age }}세, {% if request.youth.gender == 'F' %}여성{% else %}남성{% endif %})<br>
+                  성향 매칭 점수 {{ request.youth|calculate_matching_score_filter:request.room.owner }}점
+                </h3>
+                <p class="address">{{ request.room.address_detailed }}</p>
+                <p class="rent">월세 {{ request.room.rent_fee }}/{{ request.room.deposit }}</p>
+
+                <!-- 칩을 info 내부로 이동: 텍스트 컬럼과 정렬 -->
+                <div class="chips">
+                  <span class="chip">입주 요청</span>
+                  {% if request.is_contacted %}
+                    <span class="chip">연락처 확인 완료</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="cta">
+              <a class="write-review-button" href="{% url 'review:review_write' request.id %}">후기 작성하기</a>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>후기를 작성할 수 있는 청년이 없습니다.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    // 현재 URL에 맞춰 탭 활성화 동기화
+    document.addEventListener('DOMContentLoaded', function () {
+      const tabs = document.querySelectorAll('.tab-container .tab');
+      const currentPath = window.location.pathname;
+      tabs.forEach(tab => {
+        tab.classList.toggle('active', tab.getAttribute('href') === currentPath);
+      });
+    });
+  </script>
+</body>
+</html>

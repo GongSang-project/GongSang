@@ -1,4 +1,3 @@
-from django.contrib.auth.decorators import login_required
 from formtools.wizard.views import SessionWizardView
 from django.shortcuts import redirect, render, get_object_or_404
 from matching.utils import calculate_matching_score, get_matching_details, WEIGHTS
@@ -18,11 +17,14 @@ from .forms import (
     SurveyStep10Form,
     YouthInterestedRegionForm,
 )
-from .models import User
+from .models import User, CHOICE_PARTS
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from matching.models import MoveInRequest
 from room.models import Room
+from review.models import Review
 
+# 프론트에서 추가: 맵핑 임포트
+from .models import get_choice_parts, important_points_parts
 
 FORMS = [
     ("step1", SurveyStep1Form),
@@ -84,11 +86,7 @@ class SurveyWizard(SessionWizardView):
         return redirect('users:home_youth' if user.is_youth else 'users:home_senior')
 
 def user_selection(request):
-    if request.user.is_authenticated:
-        if request.user.is_youth:
-            return redirect('users:home_youth')
-        else:
-            return redirect('users:home_senior')
+    auth_logout(request)
     return render(request, 'users/user_selection.html')
 
 def login_as_user(request, user_type):
@@ -120,8 +118,11 @@ def login_as_user(request, user_type):
         return render(request, 'users/user_selection.html', {'error_message': '사용자를 찾거나 생성할 수 없습니다.'})
 
 
-@login_required
 def user_info_view(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     user = request.user
     form = UserInformationForm(request.POST or None, instance=user)
 
@@ -134,8 +135,14 @@ def user_info_view(request):
 
     return render(request, 'users/user_info.html', {'form': form})
 
-@login_required
 def youth_region_view(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     user = request.user
     form = YouthInterestedRegionForm(request.POST or None, instance=user)
 
@@ -145,9 +152,16 @@ def youth_region_view(request):
 
     return render(request, 'users/youth_region.html', {'form': form})
 
-@login_required
 def senior_living_type_view(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     user = request.user
+
     form = SeniorLivingTypeForm(request.POST or None, instance=user)
 
     if request.method == 'POST' and form.is_valid():
@@ -156,8 +170,11 @@ def senior_living_type_view(request):
 
     return render(request, 'users/senior_living_type.html', {'form': form})
 
-@login_required
 def upload_id_card(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     user = request.user
 
     if request.method == 'POST':
@@ -178,13 +195,73 @@ def user_logout(request):
     return redirect(next_url)
 
 def home_youth(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     return render(request, 'users/home_youth.html')
 
 def home_senior(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     return render(request, 'users/home_senior.html')
 
 
+FIELD_LABELS = {
+    'preferred_time': '생활리듬',
+    'conversation_style': '대화스타일',
+    'important_points': '중요한점',
+    'noise_level': '소음수준',
+    'meal_preference': '식사',
+    'space_sharing_preference': '공간공유',
+    'pet_preference': '반려동물',
+    'smoking_preference': '흡연',
+    'weekend_preference': '주말성향',
+}
+
+def get_matching_text(score):
+    if score >= 90:
+        return "매우 잘 맞음 👍"
+    elif score >= 70:
+        return "잘 맞음 😊"
+    elif score >= 50:
+        return "보통 😐"
+    else:
+        return "조금 다름 🧐"
+    
+# 프론트에서 추가: 사용자에 대해 emoji/label을 하나로
+
+def _build_profile_parts(user_obj):
+    if not user_obj:
+        return None
+    return {
+        "preferred_time": get_choice_parts(user_obj, "preferred_time"),
+        "conversation_style": get_choice_parts(user_obj, "conversation_style"),
+        "important_points": important_points_parts(user_obj),  # 리스트
+        "noise_level": get_choice_parts(user_obj, "noise_level"),
+        "meal_preference": get_choice_parts(user_obj, "meal_preference"),
+        "space_sharing_preference": get_choice_parts(user_obj, "space_sharing_preference"),
+        "pet_preference": get_choice_parts(user_obj, "pet_preference"),
+        "smoking_preference": get_choice_parts(user_obj, "smoking_preference"),
+        "weekend_preference": get_choice_parts(user_obj, "weekend_preference"),
+    }
+
 def senior_profile(request, senior_id, room_id):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     # 매칭 대상 시니어 유저 객체
     owner = get_object_or_404(User, id=senior_id, is_youth=False)
     youth_user = request.user
@@ -196,6 +273,9 @@ def senior_profile(request, senior_id, room_id):
     # 매칭 상세 정보 가져오기
     matching_details = get_matching_details(youth_user, owner)
 
+    owner_parts = _build_profile_parts(owner)
+    youth_parts = _build_profile_parts(youth_user)
+
     context = {
         'owner': owner,
         'youth_user': youth_user,
@@ -205,13 +285,20 @@ def senior_profile(request, senior_id, room_id):
         'hashtags': matching_details['hashtags'],
         'owner_is_id_card_uploaded': owner.is_id_card_uploaded,
         'is_land_register_verified': is_land_register_verified,
+
+        'owner_parts': owner_parts,
+        'youth_parts': youth_parts,
     }
     return render(request, 'users/senior_profile.html', context)
 
-@login_required
+
 def youth_profile(request, request_id):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     if request.user.is_youth:
-        return redirect('users:home_youth')
+        return render(request, 'users/re_login.html')
 
     move_in_request = get_object_or_404(
         MoveInRequest,
@@ -228,6 +315,31 @@ def youth_profile(request, request_id):
 
     is_id_card_uploaded = youth_user.is_id_card_uploaded
 
+    # 데이터베이스에서 해당 청년에 대한 후기 가져오기
+    reviews = Review.objects.filter(target_youth=youth_user).order_by('-created_at')
+
+    # 별점 평균 계산
+    total_satisfaction_score = 0
+    satisfaction_map = {
+        'VERY_DISSATISFIED': 1, 'DISSATISFIED': 2, 'NORMAL': 3,
+        'SATISFIED': 4, 'VERY_SATISFIED': 5
+    }
+    for review in reviews:
+        total_satisfaction_score += satisfaction_map.get(review.satisfaction, 0)
+
+    average_rating = 0
+    if reviews.count() > 0:
+        average_rating = total_satisfaction_score / reviews.count()
+
+    # 추후 실제 AI 기능으로 대체, 임시 데이터
+    ai_summary = "시니어 다수가 이 청년의 생활 태도에 만족했습니다."
+    good_hashtags = ["#깔끔한", "#활발함", "#규칙적인"]
+    bad_hashtags = ["#깔끔한", "#활발함"]
+
+    # 프론트에서 추가
+    owner_parts = _build_profile_parts(senior_user)   
+    youth_parts = _build_profile_parts(youth_user) 
+
     context = {
         'youth_user': youth_user,
         'senior_user': senior_user,
@@ -236,6 +348,132 @@ def youth_profile(request, request_id):
         'explanation': matching_details['explanation'],
         'hashtags': matching_details['hashtags'],
         'is_id_card_uploaded': is_id_card_uploaded,
+
+        'reviews': reviews,
+        'average_rating': round(average_rating, 1),
+        'review_count': reviews.count(),
+        'ai_summary': ai_summary,
+        'good_hashtags': good_hashtags,
+        'bad_hashtags': bad_hashtags,
+
+        'owner_parts': owner_parts,
+        'youth_parts': youth_parts,
     }
 
     return render(request, 'users/youth_profile.html', context)
+
+
+def all_reviews_for_youth(request, youth_id):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    youth_user = get_object_or_404(User, id=youth_id)
+    reviews = Review.objects.filter(target_youth=youth_user).order_by('-created_at')
+
+    context = {
+        'youth_user': youth_user,
+        'reviews': reviews
+    }
+    return render(request, 'users/all_reviews_for_youth.html', context)
+
+def senior_info_view(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    user = request.user
+
+    user_preferences = []
+    for field in [
+        'preferred_time', 'conversation_style', 'meal_preference',
+        'weekend_preference', 'smoking_preference', 'noise_level',
+        'space_sharing_preference', 'pet_preference'
+    ]:
+        field_value = getattr(user, field, None)
+        if field_value:
+            label = CHOICE_PARTS.get(field, {}).get(field_value, {}).get('label')
+            if label:
+                user_preferences.append(label)
+
+    if user.important_points:
+        important_points_codes = user.important_points.split(',')
+        important_points_map = CHOICE_PARTS.get('important_points', {})
+        for code in important_points_codes:
+            label = important_points_map.get(code.strip().upper(), {}).get('label')
+            if label:
+                user_preferences.append(label)
+
+    context = {
+        'user': user,
+        'living_type_display': user.get_living_type_display(),
+        'user_preferences': user_preferences,
+    }
+
+    return render(request, 'users/senior_info_view.html', context)
+
+def youth_info_view(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    user = request.user
+
+    user_preferences = []
+    for field in [
+        'preferred_time', 'conversation_style', 'meal_preference',
+        'weekend_preference', 'smoking_preference', 'noise_level',
+        'space_sharing_preference', 'pet_preference'
+    ]:
+        field_value = getattr(user, field, None)
+        if field_value:
+            label = CHOICE_PARTS.get(field, {}).get(field_value, {}).get('label')
+            if label:
+                user_preferences.append(label)
+
+    if user.important_points:
+        important_points_codes = user.important_points.split(',')
+        important_points_map = CHOICE_PARTS.get('important_points', {})
+        for code in important_points_codes:
+            cleaned_code = code.strip().upper()
+            label = important_points_map.get(cleaned_code, {}).get('label')
+            if label:
+                user_preferences.append(label)
+
+    context = {
+        'user': user,
+        'user_preferences': user_preferences,
+    }
+
+    return render(request, 'users/youth_info_view.html', context)
+
+def my_reviews(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    user = request.user
+
+    # 로그인한 청년 사용자의 ID로 후기 필터링
+    reviews = Review.objects.filter(target_youth=user).order_by('-created_at')
+
+    context = {
+        'youth_user': user,
+        'reviews': reviews
+    }
+    return render(request, 'users/my_reviews_for_youth.html', context)
+
+def index(request):
+    return redirect('users:user_selection')

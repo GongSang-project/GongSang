@@ -15,6 +15,8 @@
   const genderSelect = form.querySelector('select[name="gender"]');
 
 
+  // 진행바 계산을 위한 각 요소가 채워졌는지 확인하는 함수
+  // 성별
   function genderFilled() {
     if (genderRadios && genderRadios.length) {
       return Array.from(genderRadios).some(r => r.checked);
@@ -22,16 +24,19 @@
     if (genderSelect) return genderSelect.value !== '' && genderSelect.value !== null;
     return false;
   }
+  // 나이
   function ageValid() {
     if (!age) return false;
     const n = Number(String(age.value).replace(/[^\d]/g, ''));
     if (!Number.isFinite(n)) return false;
     return n >= 1 && n <= 120;
   }
+  // 번호
   function phoneFilled() {
     return !!phone && String(phone.value || '').trim().length > 0;
   }
 
+  // 상단 진행바
   function updateProgress() {
     const checks = [
       () => !!username && username.value.trim().length > 0,
