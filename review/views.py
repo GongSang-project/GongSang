@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from matching.models import MoveInRequest
 from room.models import Room
 from django.db.models import Prefetch
@@ -10,10 +9,14 @@ from .forms import (
     ReviewFormStep4, ReviewFormStep5, ReviewFormStep6
 )
 
-@login_required
+
 def review_list_senior(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     if request.user.is_youth:
-        return redirect(reverse('users:home_youth'))
+        return render(request, 'users/re_login.html')
 
     # 로그인한 시니어 유저가 소유한 방들
     senior_rooms = Room.objects.filter(owner=request.user)
@@ -36,10 +39,14 @@ def review_list_senior(request):
     }
     return render(request, 'review/review_list_senior.html', context)
 
-@login_required
+
 def review_completed_list_senior(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     if request.user.is_youth:
-        return render(request, 'access_denied.html')
+        return render(request, 'users/re_login.html')
 
     # 현재 로그인된 시니어 유저가 작성한 후기들
     completed_reviews = Review.objects.filter(author=request.user).select_related('target_youth', 'room')
@@ -50,8 +57,11 @@ def review_completed_list_senior(request):
     return render(request, 'review/review_completed_list_senior.html', context)
 
 
-@login_required
 def review_write(request, request_id):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     if request.user.is_youth:
         move_in_request = get_object_or_404(MoveInRequest, pk=request_id, youth=request.user)
     else:
@@ -124,10 +134,14 @@ def review_write(request, request_id):
     }
     return render(request, 'review/review_write_all.html', context)
 
-@login_required
+
 def review_list_youth(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     if not request.user.is_youth:
-        return redirect('users:home_senior')
+        return render(request, 'users/re_login.html')
 
     reviewed_room_ids = Review.objects.filter(
         author=request.user
@@ -145,10 +159,14 @@ def review_list_youth(request):
     }
     return render(request, 'review/review_list_youth.html', context)
 
-@login_required
+
 def review_completed_list_youth(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     if not request.user.is_youth:
-        return redirect(reverse('users:home_senior'))
+        return render(request, 'users/re_login.html')
 
     # 현재 로그인된 청년 유저가 작성한 후기들
     completed_reviews = Review.objects.filter(
