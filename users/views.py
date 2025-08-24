@@ -1,4 +1,7 @@
-from django.contrib.auth.decorators import login_required
+import json
+import os
+import google.generativeai as genai
+
 from formtools.wizard.views import SessionWizardView
 from django.shortcuts import redirect, render, get_object_or_404
 from matching.utils import calculate_matching_score, get_matching_details, WEIGHTS
@@ -23,13 +26,21 @@ from django.contrib.auth import login as auth_login, logout as auth_logout
 from matching.models import MoveInRequest
 from room.models import Room
 from review.models import Review
+
+# HEAD 쪽 임포트 보존
 from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from .models import Region, Listing
 import re
 
+# 브랜치 쪽 임포트 보존
+from django.db.models import Avg, Case, When, Q
+
 # 프론트에서 추가: 맵핑 임포트
 from .models import get_choice_parts, important_points_parts
+
+genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
+model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
 
 FORMS = [
     ("step1", SurveyStep1Form),
@@ -44,6 +55,7 @@ FORMS = [
     ("step10", SurveyStep10Form),
 ]
 
+
 class SurveyWizard(SessionWizardView):
     def get_template_names(self):
         return ['users/survey_form.html']
@@ -55,11 +67,9 @@ class SurveyWizard(SessionWizardView):
     def post(self, request, *args, **kwargs):
         # '건너뛰기' 버튼이 눌렸는지 확인
         if 'skip_step' in request.POST:
-            # 현재 폼의 데이터는 세션에 저장
             current_form = self.get_form(data=self.request.POST, files=self.request.FILES)
             if current_form.is_valid():
                 self.storage.set_step_data(self.steps.current, self.get_form_step_data(current_form))
-            # `done` 메서드를 호출하여 설문 완료 처리
             return self.done(self.get_form_list(), **kwargs)
 
         return super().post(request, *args, **kwargs)
@@ -68,8 +78,7 @@ class SurveyWizard(SessionWizardView):
         form_data = self.get_all_cleaned_data()
         user = self.request.user
 
-        # 모든 폼의 데이터를 모델 필드에 저장.
-        # 데이터가 없는 필드는 기본값 유지.
+        # 모든 폼의 데이터를 모델 필드에 저장 (값 없으면 기존값 유지)
         user.preferred_time = form_data.get('preferred_time', user.preferred_time)
         user.conversation_style = form_data.get('conversation_style', user.conversation_style)
         if 'important_points' in form_data:
@@ -90,9 +99,11 @@ class SurveyWizard(SessionWizardView):
 
         return redirect('users:home_youth' if user.is_youth else 'users:home_senior')
 
+
 def user_selection(request):
     auth_logout(request)
     return render(request, 'users/user_selection.html')
+
 
 def login_as_user(request, user_type):
     user = None
@@ -100,17 +111,12 @@ def login_as_user(request, user_type):
     if user_type == 'youth':
         user, created = User.objects.get_or_create(
             username='김청년',
-            defaults={
-                'is_youth': True,
-            }
+            defaults={'is_youth': True}
         )
-
     elif user_type == 'senior':
         user, created = User.objects.get_or_create(
             username='박노인',
-            defaults={
-                'is_youth': False,
-            }
+            defaults={'is_youth': False}
         )
 
     if user:
@@ -123,8 +129,10 @@ def login_as_user(request, user_type):
         return render(request, 'users/user_selection.html', {'error_message': '사용자를 찾거나 생성할 수 없습니다.'})
 
 
-@login_required
 def user_info_view(request):
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     user = request.user
     form = UserInformationForm(request.POST or None, instance=user)
 
@@ -137,8 +145,13 @@ def user_info_view(request):
 
     return render(request, 'users/user_info.html', {'form': form})
 
-@login_required
+
 def youth_region_view(request):
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     user = request.user
     form = YouthInterestedRegionForm(request.POST or None, instance=user)
 
@@ -148,10 +161,14 @@ def youth_region_view(request):
 
     return render(request, 'users/youth_region.html', {'form': form})
 
-@login_required
-def senior_living_type_view(request):
-    user = request.user
 
+def senior_living_type_view(request):
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    user = request.user
     form = SeniorLivingTypeForm(request.POST or None, instance=user)
 
     if request.method == 'POST' and form.is_valid():
@@ -160,8 +177,11 @@ def senior_living_type_view(request):
 
     return render(request, 'users/senior_living_type.html', {'form': form})
 
-@login_required
+
 def upload_id_card(request):
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     user = request.user
 
     if request.method == 'POST':
@@ -176,15 +196,134 @@ def upload_id_card(request):
 
     return render(request, 'users/upload_id_card.html', {'form': form})
 
+
 def user_logout(request):
     auth_logout(request)
     next_url = request.GET.get('next', 'users:user_selection')
     return redirect(next_url)
 
+
 def home_youth(request):
-    return render(request, 'users/home_youth.html')
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    data_for_ai = get_and_prepare_rooms_for_ai(request)
+
+    # 데이터 없으면 빈 목록 렌더
+    if not data_for_ai or not data_for_ai.get("available_rooms"):
+        context = {'recommended_rooms': []}
+        return render(request, 'users/home_youth.html', context)
+
+    # Gemini 프롬프트
+    prompt = f"""
+        아래는 한 청년의 프로필과 관심 지역에 있는 여러 방의 정보(시니어의 프로필 포함)야.
+        이 데이터들을 분석해서 청년과 가장 잘 맞는 순서대로 방 목록을 추천해 줘.
+
+        **매칭 점수를 계산할 때 아래 항목의 중요도를 반드시 고려해.**
+
+        **<항목별 가중치 표>**
+        - 반려동물 여부: 10 (불일치 시 매칭 불가 수준)
+        - 흡연 여부: 10 (건강 및 냄새 민감도)
+        - 소음 허용도: 9 (일상 스트레스에 직결)
+        - 활동 시간대: 8 (생활 리듬 직접 영향)
+        - 대화 빈도: 7 (생활 충돌 가능성 높음)
+        - 생활 공간 중요 포인트: 6 (가치관 차이)
+        - 공용 공간 사용 빈도: 6 (프라이버시 & 충돌 가능성)
+        - 식사 공유 여부: 5 (생활 방식 영향)
+        - 주말 생활 패턴: 4 (생활 리듬 보조 지표)
+        - 자유 응답: 점수 부여는 아니지만, **매우 중요하게 고려**하여 추천 이유에 반영해.
+
+        <청년 프로필>
+        {json.dumps(data_for_ai['youth_profile'], indent=2, ensure_ascii=False)}
+
+        <방 목록>
+        {json.dumps(data_for_ai['available_rooms'], indent=2, ensure_ascii=False)}
+
+        응답은 다음 JSON 형식으로만 제공해줘.
+        **'recommendation_reason'은 두 문장(두 줄) 내외로 간결하게 작성해. 유저들의 이름은 말하지 말고, 생활 방식 일치 여부에 초점을 맞춰 설명해 줘.**
+
+        ```json
+        [
+          {{
+            "room_id": "<방 목록에 있는 실제 ID를 사용>",
+            "recommendation_reason": "<두 줄 내외의 간결한 추천 이유>"
+          }},
+          {{
+            "room_id": "<방 목록에 있는 다른 실제 ID를 사용>",
+            "recommendation_reason": "<추천 이유>"
+          }}
+        ]
+        ```
+    """
+
+    try:
+        response = model.generate_content(prompt)
+        if "```json" in response.text:
+            response_text = response.text.split("```json")[1].split("```")[0]
+        else:
+            response_text = response.text
+        recommended_list_from_ai = json.loads(response_text.strip())
+    except Exception as e:
+        print(f"Gemini API 호출 중 오류 발생: {e}")
+        recommended_list_from_ai = []
+
+    sorted_rooms = []
+    if isinstance(recommended_list_from_ai, list):
+        room_map = {str(room.id): room for room in Room.objects.all()}
+        for item in recommended_list_from_ai:
+            room_id = str(item.get('room_id'))
+            if room_id in room_map:
+                room = room_map[room_id]
+                room.recommendation_reason = item.get('recommendation_reason', '추천 이유가 제공되지 않았습니다.')
+                sorted_rooms.append(room)
+
+    ai_recommendations_with_score = {}
+    for room in sorted_rooms:
+        matching_score = calculate_matching_score(request.user, room.owner)
+        ai_recommendations_with_score[str(room.id)] = {
+            'reason': room.recommendation_reason,
+            'score': matching_score
+        }
+    request.session['ai_recommendations_with_score'] = ai_recommendations_with_score
+
+    context = {
+        'recommended_rooms': sorted_rooms,
+    }
+    return render(request, 'users/home_youth.html', context)
+
+
+def all_rooms_youth(request):
+    if not request.user.is_authenticated or not request.user.is_youth:
+        return redirect('users:user_login')
+
+    ai_recommendations = request.session.get('ai_recommendations_with_score', {})
+
+    recommended_rooms = []
+    if ai_recommendations:
+        room_ids = list(ai_recommendations.keys())
+        rooms_from_db = Room.objects.filter(id__in=room_ids)
+        room_map = {str(room.id): room for room in rooms_from_db}
+
+        for room_id, data in ai_recommendations.items():
+            room = room_map.get(room_id)
+            if room:
+                room.recommendation_reason = data['reason']
+                room.matching_score = data['score']
+                recommended_rooms.append(room)
+
+    context = {'recommended_rooms': recommended_rooms}
+    return render(request, 'users/all_rooms_youth.html', context)
+
 
 def home_senior(request):
+    # 인증/권한 체크(브랜치) + 자동완성 후보 생성(HEAD) 병합
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     # 최근 등록 방에서 주소/역 이름을 뽑아 후보 생성 (JS 없이 datalist용)
     qs = (
         Room.objects
@@ -193,6 +332,7 @@ def home_senior(request):
     )
 
     seen, suggestions = set(), []
+
     def add(x):
         x = (x or '').strip()
         if x and x not in seen:
@@ -203,7 +343,7 @@ def home_senior(request):
         prov = r.get('address_province') or ''
         city = r.get('address_city') or ''
         dist = r.get('address_district') or ''
-        sub  = r.get('nearest_subway') or ''
+        sub = r.get('nearest_subway') or ''
 
         # 단일 항목
         for v in (sub, dist, city, prov):
@@ -231,6 +371,7 @@ FIELD_LABELS = {
     'weekend_preference': '주말성향',
 }
 
+
 def get_matching_text(score):
     if score >= 90:
         return "매우 잘 맞음 👍"
@@ -240,9 +381,9 @@ def get_matching_text(score):
         return "보통 😐"
     else:
         return "조금 다름 🧐"
-    
-# 프론트에서 추가: 사용자에 대해 emoji/label을 하나로
 
+
+# 프론트에서 추가: 사용자에 대해 emoji/label을 하나로
 def _build_profile_parts(user_obj):
     if not user_obj:
         return None
@@ -258,16 +399,19 @@ def _build_profile_parts(user_obj):
         "weekend_preference": get_choice_parts(user_obj, "weekend_preference"),
     }
 
+
 def senior_profile(request, senior_id, room_id):
-    # 매칭 대상 시니어 유저 객체
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     owner = get_object_or_404(User, id=senior_id, is_youth=False)
     youth_user = request.user
 
-    # 현재 보고 있는 방의 등기부 등본 인증 여부
     current_room = get_object_or_404(Room, id=room_id)
     is_land_register_verified = current_room.is_land_register_verified
 
-    # 매칭 상세 정보 가져오기
     matching_details = get_matching_details(youth_user, owner)
 
     owner_parts = _build_profile_parts(owner)
@@ -282,17 +426,17 @@ def senior_profile(request, senior_id, room_id):
         'hashtags': matching_details['hashtags'],
         'owner_is_id_card_uploaded': owner.is_id_card_uploaded,
         'is_land_register_verified': is_land_register_verified,
-
         'owner_parts': owner_parts,
         'youth_parts': youth_parts,
     }
     return render(request, 'users/senior_profile.html', context)
 
 
-@login_required
 def youth_profile(request, request_id):
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
     if request.user.is_youth:
-        return redirect('users:home_youth')
+        return render(request, 'users/re_login.html')
 
     move_in_request = get_object_or_404(
         MoveInRequest,
@@ -303,16 +447,13 @@ def youth_profile(request, request_id):
     senior_user = request.user
     youth_user = move_in_request.youth
 
-    # 매칭 점수 및 상세 분석 결과 계산
     matching_score = calculate_matching_score(senior_user, youth_user)
     matching_details = get_matching_details(senior_user, youth_user)
 
     is_id_card_uploaded = youth_user.is_id_card_uploaded
 
-    # 데이터베이스에서 해당 청년에 대한 후기 가져오기
     reviews = Review.objects.filter(target_youth=youth_user).order_by('-created_at')
 
-    # 별점 평균 계산
     total_satisfaction_score = 0
     satisfaction_map = {
         'VERY_DISSATISFIED': 1, 'DISSATISFIED': 2, 'NORMAL': 3,
@@ -330,9 +471,8 @@ def youth_profile(request, request_id):
     good_hashtags = ["#깔끔한", "#활발함", "#규칙적인"]
     bad_hashtags = ["#깔끔한", "#활발함"]
 
-    # 프론트에서 추가
-    owner_parts = _build_profile_parts(senior_user)   
-    youth_parts = _build_profile_parts(youth_user) 
+    owner_parts = _build_profile_parts(senior_user)
+    youth_parts = _build_profile_parts(youth_user)
 
     context = {
         'youth_user': youth_user,
@@ -342,24 +482,26 @@ def youth_profile(request, request_id):
         'explanation': matching_details['explanation'],
         'hashtags': matching_details['hashtags'],
         'is_id_card_uploaded': is_id_card_uploaded,
-
         'reviews': reviews,
         'average_rating': round(average_rating, 1),
         'review_count': reviews.count(),
         'ai_summary': ai_summary,
         'good_hashtags': good_hashtags,
         'bad_hashtags': bad_hashtags,
-
         'owner_parts': owner_parts,
         'youth_parts': youth_parts,
     }
-
     return render(request, 'users/youth_profile.html', context)
 
 
 def all_reviews_for_youth(request, youth_id):
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     youth_user = get_object_or_404(User, id=youth_id)
-    reviews = Review.objects.filter(youth=youth_user).order_by('-created_at')
+    reviews = Review.objects.filter(target_youth=youth_user).order_by('-created_at')
 
     context = {
         'youth_user': youth_user,
@@ -367,11 +509,14 @@ def all_reviews_for_youth(request, youth_id):
     }
     return render(request, 'users/all_reviews_for_youth.html', context)
 
-def senior_info_view(request):
-    user = request.user
 
-    if user.is_youth:
+def senior_info_view(request):
+    if not request.user.is_authenticated:
         return render(request, 'users/re_login.html')
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    user = request.user
 
     user_preferences = []
     for field in [
@@ -398,14 +543,16 @@ def senior_info_view(request):
         'living_type_display': user.get_living_type_display(),
         'user_preferences': user_preferences,
     }
-
     return render(request, 'users/senior_info_view.html', context)
 
-def youth_info_view(request):
-    user = request.user
 
-    if not user.is_youth:
+def youth_info_view(request):
+    if not request.user.is_authenticated:
         return render(request, 'users/re_login.html')
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    user = request.user
 
     user_preferences = []
     for field in [
@@ -432,39 +579,40 @@ def youth_info_view(request):
         'user': user,
         'user_preferences': user_preferences,
     }
-
     return render(request, 'users/youth_info_view.html', context)
 
-@login_required
-def my_reviews(request):
-    user = request.user
 
-    if not user.is_youth:
+def my_reviews(request):
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if not request.user.is_youth:
         return render(request, 'users/re_login.html')
 
-    # 로그인한 청년 사용자의 ID로 후기 필터링
+    user = request.user
     reviews = Review.objects.filter(target_youth=user).order_by('-created_at')
 
     context = {
         'youth_user': user,
         'reviews': reviews
     }
-    return render(request, 'users/all_reviews_for_youth.html', context)
+    return render(request, 'users/my_reviews_for_youth.html', context)
+
 
 def index(request):
     return redirect('users:user_selection')
 
 
-# 검색 자동완성
+# ===== HEAD 블록 보존: 검색 자동완성 & 지역별 매물 API =====
 @require_GET
 def autocomplete_region(request):
     query = (request.GET.get("q") or request.GET.get("query") or "").strip()
     if not query:
         return JsonResponse({"results": []}, json_dumps_params={'ensure_ascii': False})
 
-    regions = Region.objects.filter(name__icontains=query)\
+    regions = Region.objects.filter(name__icontains=query) \
                             .values_list("name", flat=True)[:10]
     return JsonResponse({"results": list(regions)}, json_dumps_params={'ensure_ascii': False})
+
 
 @require_GET
 def listings_by_region(request):
@@ -472,6 +620,83 @@ def listings_by_region(request):
     if not region_name:
         return JsonResponse({"results": []}, json_dumps_params={'ensure_ascii': False})
 
-    listings = Listing.objects.filter(region__name=region_name)\
+    listings = Listing.objects.filter(region__name=region_name) \
                               .values("title", "price", "description")
     return JsonResponse({"results": list(listings)}, json_dumps_params={'ensure_ascii': False})
+
+
+# ===== 브랜치 블록 보존: AI 추천에 쓰는 데이터 준비 함수 =====
+def get_and_prepare_rooms_for_ai(request):
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    youth_user = request.user
+
+    # 청년 유저의 관심 지역 정보
+    province = youth_user.interested_province
+    city = youth_user.interested_city
+    district = youth_user.interested_district
+
+    if not province and not city and not district:
+        return []
+
+    # Q 객체로 필터링
+    filter_conditions = Q()
+    if province:
+        filter_conditions &= Q(address_province=province)
+    if city:
+        filter_conditions &= Q(address_city=city)
+    if district:
+        filter_conditions &= Q(address_district=district)
+
+    filtered_rooms = Room.objects.filter(filter_conditions)
+
+    ai_input_data = {
+        "youth_profile": {
+            "id": youth_user.id,
+            "username": youth_user.username,
+            "lifestyle": {
+                "preferred_time": youth_user.preferred_time,
+                "conversation_style": youth_user.conversation_style,
+                "important_points": youth_user.important_points,
+                "noise_level": youth_user.noise_level,
+                "meal_preference": youth_user.meal_preference,
+                "space_sharing_preference": youth_user.space_sharing_preference,
+                "pet_preference": youth_user.pet_preference,
+                "smoking_preference": youth_user.smoking_preference,
+                "weekend_preference": youth_user.weekend_preference,
+            }
+        },
+        "available_rooms": []
+    }
+
+    for room in filtered_rooms:
+        senior_owner = room.owner
+        room_data = {
+            "room_id": room.id,
+            "rent_fee": room.rent_fee,
+            "address": f"{room.address_province} {room.address_city} {room.address_district}",
+            "senior_profile": {
+                "id": senior_owner.id,
+                "username": senior_owner.username,
+                "lifestyle": {
+                    "preferred_time": senior_owner.preferred_time,
+                    "conversation_style": senior_owner.conversation_style,
+                    "important_points": senior_owner.important_points,
+                    "noise_level": senior_owner.noise_level,
+                    "meal_preference": senior_owner.meal_preference,
+                    "space_sharing_preference": senior_owner.space_sharing_preference,
+                    "pet_preference": senior_owner.pet_preference,
+                    "smoking_preference": senior_owner.smoking_preference,
+                    "weekend_preference": senior_owner.weekend_preference,
+                }
+            }
+        }
+        ai_input_data["available_rooms"].append(room_data)
+
+    print(f"청년 관심 지역: {province}, {city}, {district}")
+    print(f"필터링된 방 개수: {filtered_rooms.count()}")
+
+    return ai_input_data

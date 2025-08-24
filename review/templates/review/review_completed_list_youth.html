@@ -4,37 +4,168 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>후기 작성 완료</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>후기 작성 완료</title>
+
+  <style>
+    :root{
+      --primary:#F26430;
+      --black:#121212;
+      --gray:#959595;
+      --bg:#fff;
+      --container-w:375px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--black);font-family:Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "맑은 고딕", sans-serif}
+    .page{max-width:var(--container-w);min-height:100vh;margin:0 auto;position:relative;padding-bottom:110px;}
+    /* 상단 타이틀 */
+    .title{padding:18px 16px 6px;text-align:center;font-weight:600;font-size:20px;line-height:24px}
+    /* 탭 */
+    .tab-container{display:flex;gap:0;border-bottom:1px solid #eee;margin:6px 0 0}
+    .tab{flex:1 0 50%;text-align:center;text-decoration:none;color:var(--gray);font-weight:600;font-size:16px;padding:10px 0;border-bottom:2px solid transparent;}
+    .tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+    /* 날짜 라벨 */
+    .subline{color:var(--gray);font-size:15px;font-weight:500;margin:16px 16px 10px;}
+    /* 카드 */
+    .card{margin:0 16px 14px;}
+    .inner{display:grid;grid-template-columns:135px 1fr;gap:12px;align-items:start;}
+    .room-image{width:135px;height:173px;border-radius:6px;object-fit:cover;background:#d2d2d2;}
+    .info h3{margin:0 0 6px;font-size:15px;font-weight:500;}
+    .info .score{margin-top:6px}
+    .info .rent{margin-top:0}
+    .meta{margin:0;color:var(--gray);font-size:11px;line-height:15px}
+    .row{display:flex;gap:6px;align-items:center;margin-top:3px;}
+    /* 버튼 */
+    .btn-wrap{padding:14px 0px 0}
+    .btn{width:100%;height:56px;border:0;border-radius:12px;background:var(--primary);color:#fff;font-size:20px;font-weight:700;cursor:pointer}
+    .btn:active{opacity:.9}
+    
+    /* 하단 GNB */
+    .gnb{
+      position:fixed;
+      left:50%;
+      bottom:0;
+      transform:translateX(-50%);
+      width:100%;
+      max-width:375px;
+      height:83px;
+      background:#fff;
+      border-top:0.65px solid var(--gray);
+      box-shadow:0 -3.73px 7.46px rgba(0,0,0,.05);
+      display:flex;
+      align-items:flex-start;
+      padding-top:10px;
+      z-index:10;
+    }
+    .gnb-inner{
+      width:100%;
+      display:flex;
+      justify-content:space-around;
+      align-items:flex-start;
+      padding:0 20px;
+    }
+    .gnb-item{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+      text-decoration:none;
+      color:var(--gray);
+      width:75px;
+    }
+    .gnb-item svg{
+      width:24px; height:24px;
+      display:block;
+    }
+    .gnb-item .label{
+      font-size:12px;
+      font-weight:500;
+    }
+    .gnb-item.active{ color:var(--primary); }
+    .gnb-item.active svg path,
+    .gnb-item.active svg circle,
+    .gnb-item.active svg rect{
+      stroke:var(--primary) !important;
+      fill:var(--primary) !important;
+    }
+
+  </style>
 </head>
 <body>
-    <div class="tab-container">
-        <a href="{% url 'review:review_list_youth' %}" class="tab">후기 작성 전</a>
-        <a href="{% url 'review:review_completed_list_youth' %}" class="tab active">후기 작성 완료</a>
-    </div>
+<div class="page">
+  <!-- 상단 타이틀 -->
+  <div class="title">후기 작성</div>
 
-    {% if completed_reviews %}
-        {% for review in completed_reviews %}
-            <div class="card">
-                <p>작성일 {{ review.created_at|date:"Y.m.d" }}</p>
-                <hr>
-                <div class="review-info">
-                    <img src="{% static 'images/room_default.jpg' %}" alt="방 사진" class="room-image">
-                    <div class="senior-info">
-                        <h3>{{ review.target_senior.username }} ({{ review.target_senior.age }}세, {% if review.target_senior.gender == 'F' %}여성{% else %}남성{% endif %})</h3>
-                        <h3>성향 매칭 점수 {{ review.author|calculate_matching_score_filter:review.target_senior }}점</h3>
-                        <p>{{ review.room.address_detailed }}</p>
-                        <p>월세 {{ review.room.rent_fee|floatformat:"0" }}/{{ review.room.deposit|floatformat:"0" }}</p>
-                        <p>{{ review.target_senior.get_living_type_display }}</p>
-                    </div>
-                </div>
-                <div class="button-group">
-                    <button class="view-review-button">작성한 후기 보기</button>
-                </div>
+  <!-- 탭 -->
+  <div class="tab-container">
+    <a href="{% url 'review:review_list_youth' %}" class="tab">후기 작성 전</a>
+    <a href="{% url 'review:review_completed_list_youth' %}" class="tab active">후기 작성 완료</a>
+  </div>
+
+  {% if completed_reviews %}
+    {% for review in completed_reviews %}
+      <div class="subline">입주 요청일 {{ review.created_at|date:"Y.m.d" }}</div>
+
+      <!-- 카드 -->
+      <div class="card">
+        <div class="inner">
+          <img src="{% static 'images/room_default.jpg' %}" alt="방 사진" class="room-image">
+
+          <div class="info">
+            <h3 class="score">성향 매칭 점수 {{ review.author|calculate_matching_score_filter:review.target_senior }}점</h3>
+            <h3 class="rent">월세 {{ review.room.rent_fee|floatformat:"0" }}/{{ review.room.deposit|floatformat:"0" }}</h3>
+
+            <p class="meta">{{ review.room.address_detailed }}</p>
+            <p class="meta">{{ review.target_senior.username }} ({{ review.target_senior.age }}세 / {% if review.target_senior.gender == 'F' %}여성{% else %}남성{% endif %})</p>
+            <div class="row">
+              <span class="meta">👵👨‍</span>
+              <span class="meta">{{ review.target_senior.get_living_type_display }}</span>
             </div>
-        {% endfor %}
-    {% else %}
-        <p>작성된 후기가 없습니다.</p>
-    {% endif %}
+          </div>
+        </div>
+
+        <div class="btn-wrap">
+          <button class="btn">후기 보기</button>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="subline" style="margin-top:40px">작성된 후기가 없습니다.</div>
+  {% endif %}
+
+  <!-- 하단 GNB -->
+  <nav class="gnb" aria-label="하단 내비게이션">
+    <div class="gnb-inner">
+      <!-- 검색 -->
+      <a class="gnb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="10.5" cy="10.5" r="6.5" stroke="#A9A9A9" stroke-width="2"></circle>
+          <path d="M15.5 15.5 L21 21" stroke="#A9A9A9" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+        <div class="label">검색</div>
+      </a>
+
+      <!-- 홈 -->
+      <a class="gnb-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M3 10.5L12 3l9 7.5V20a1.5 1.5 0 0 1-1.5 1.5H14v-6h-4v6H4.5A1.5 1.5 0 0 1 3 20v-9.5z" fill="none" stroke="#A9A9A9" stroke-width="2" stroke-linejoin="round"></path>
+        </svg>
+        <div class="label" style="font-weight:700">홈</div>
+      </a>
+
+      <!-- 마이페이지 -->
+      <a class="gnb-item active" href="#">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="7.5" r="4.5" fill="#F26430"></circle>
+          <path d="M3 20.5c2.7-3.5 6-5.25 9-5.25s6.3 1.75 9 5.25" stroke="#F26430" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+        <div class="label">마이페이지</div>
+      </a>
+    </div>
+  </nav>
+  
+</div>
+
 </body>
 </html>

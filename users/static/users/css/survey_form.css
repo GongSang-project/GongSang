@@ -20,14 +20,6 @@
     font-style: normal;
 }
 
-:root{
-  --brand:#F26430;
-  --brand-weak:#FFEBD9;
-  --ink:#121212;
-  --muted:#9e9e9e;
-  --line:#ececec;
-}
-
 * {
     box-sizing: border-box;
 }

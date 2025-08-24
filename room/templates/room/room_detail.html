@@ -65,12 +65,39 @@
 <body>
   <div class="wrap">
 
+<<<<<<< HEAD
     <!-- HERO -->
     <div class="hero">
       {% with photos=room.photos.all %}
         {% if photos|length %}
           <img src="{{ photos.0.image.url }}" alt="">
           <div class="count">1/{{ photos|length }}</div>
+=======
+    {% if matching_score is not None %}
+        <p>나와의 매칭 점수: <strong>{{ matching_score }}점</strong></p>
+    {% else %}
+        <p>로그인 후 매칭 점수를 확인하세요.</p>
+    {% endif %}
+
+    {% if ai_recommendation_reason %}
+        <p><strong>AI 추천 이유:</strong></p>
+        <p>
+            {% if ai_recommendation_reason|length > 60 %}
+                {{ ai_recommendation_reason|slice:":60" }}...
+            {% else %}
+                {{ ai_recommendation_reason }}
+            {% endif %}
+        </p>
+    {% endif %}
+
+    <a href="{% url 'users:senior_profile' senior_id=room.owner.id room_id=room.id %}">
+        시니어 프로필 보기
+    </a>
+
+    {% if request.user.is_authenticated and request.user.is_youth %}
+        {% if is_requested_before %}
+            <button id="requestButton" data-room-id="{{ room.id }}" disabled>입주 요청을 보냈습니다</button>
+>>>>>>> 1fc63716ebc274eff0077bf29fc59d71c2b473f9
         {% else %}
           <img src="https://via.placeholder.com/1200x800?text=Room" alt="">
           <div class="count">0/0</div>

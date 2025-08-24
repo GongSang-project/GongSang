@@ -25,9 +25,6 @@ urlpatterns = [
     path('', users_views.index, name='root'),
 
     path('admin/', admin.site.urls),
-    path('', include('home.urls')), # 홈 화면
-    path('rooms/', include('room.urls')),
-
     path('matching/', include('matching.urls', namespace='matching')),
     # path('room/', include('room.urls', namespace='room')),
     path('users/', include('users.urls', namespace='users')),

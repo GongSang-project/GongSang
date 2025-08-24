@@ -8,32 +8,62 @@
   <link rel="stylesheet" href="{% static 'users/css/home_senior.css' %}">
 </head>
 <body>
-  <p>시니어 홈</p>
+  <div id="root">
+    <div id="app-wrapper">
+      <!-- 헤더 -->
+      <div class="header">
+        <!-- 로고 -->
+        <div class="logo-wrapper">
+          <div class="logo">
+            <p class="logo-eng">DOOYU</p>
+            <p class="logo-ko">두유</p>
+          </div>
+        </div>
 
-  <div class="container">
-    <div class="header"><h1>DOOYU 두유</h1></div>
+        <!-- 지역 검색창 (HEAD의 datalist + 실제 검색 URL) -->
+        <div class="search-box">
+          <form method="get" action="{% url 'room:room_list_page' %}" autocomplete="off">
+            <input id="region-search" name="region"
+                   list="regions"
+                   placeholder="지역을 검색해보세요 (예: 노원, 공릉동, 7호선)">
+            <datalist id="regions">
+              {% for s in region_suggestions %}
+                <option value="{{ s }}"></option>
+              {% endfor %}
+            </datalist>
+          </form>
+        </div>
+      </div>
 
-    <form method="get" action="{% url 'room:room_list_page' %}" class="search-box" autocomplete="off">
-      <input id="region-search" name="region"
-             list="regions"
-             placeholder="지역을 검색해보세요 (예: 노원, 공릉동, 7호선)">
-      <datalist id="regions">
-        {% for s in region_suggestions %}
-          <option value="{{ s }}"></option>
-        {% endfor %}
-      </datalist>
-    </form>
+      <!-- 메뉴 리스트 (브랜치 스타일 + HEAD의 실제 링크) -->
+      <div class="menu-list">
+        <!-- 방 등록하기 -->
+        <a class="menu register-room" href="{% url 'room:deed_start' %}">
+          <span class="menu-icon">🏠</span>
+          <span class="menu-name">방 등록하기</span>
+        </a>
 
-    <div class="button-container">
-      <a class="action-button register-room" href="{% url 'room:deed_start' %}"><span>방 등록하기</span></a>
-      <a class="action-button view-room" href="{% url 'room:owner_room_list' %}"><span>등록한 방 보기</span></a>
-      <a href="{% url 'room:senior_request_inbox' %}" class="action-link">
-        <button class="action-button view-requests"><span>입주 희망 요청 보기</span></button>
-      </a>
-      <a href="{% url 'users:senior_info' %}" class="action-link">
-        <button class="action-button my-info"><span>내 정보 보기</span></button>
-      </a>
+        <!-- 등록한 방 보기 -->
+        <a class="menu view-room" href="{% url 'room:owner_room_list' %}">
+          <span class="menu-icon">🏘️</span>
+          <span class="menu-name">등록한 방 보기</span>
+        </a>
+
+        <!-- 입주 희망 요청 보기 -->
+        <a class="menu view-requests" href="{% url 'room:senior_request_inbox' %}">
+          <span class="menu-icon">💌</span>
+          <span class="menu-name">입주 희망 요청 보기</span>
+        </a>
+
+        <!-- 내 정보 보기 -->
+        <a class="menu view-myinfo" href="{% url 'users:senior_info' %}">
+          <span class="menu-icon">👤</span>
+          <span class="menu-name">내 정보 보기</span>
+        </a>
+      </div>
     </div>
   </div>
+
+  <script src="{% static 'users/js/home_senior.js' %}"></script>
 </body>
 </html>
