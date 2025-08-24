@@ -27,4 +27,5 @@ urlpatterns = [
     path('senior/mypage/', views.senior_info_view, name='senior_info'),
     path('youth/mypage/', views.youth_info_view, name='youth_info'),
     path('youth/mypage/my_reviews/', views.my_reviews, name='my_reviews'),
+    path('home/youth/all_rooms/', views.all_rooms_youth, name='all_rooms_youth'),
 ]

@@ -22,11 +22,15 @@ def room_detail(request, room_id):
 
     matching_score = None
     is_requested_before = False
+    ai_recommendation_reason = None
 
     # 로그인한 사용자가 청년(is_youth=True)인지 확인
     if request.user.is_authenticated and request.user.is_youth:
         matching_score = calculate_matching_score(request.user, owner)
         is_requested_before = MoveInRequest.objects.filter(youth=request.user, room=room).exists()
+
+        ai_recommendations = request.session.get('ai_recommendations', {})
+        ai_recommendation_reason = ai_recommendations.get(str(room.id))
 
     reviews = Review.objects.filter(room=room).order_by('-created_at')
     review_count = reviews.count()
@@ -62,6 +66,7 @@ def room_detail(request, room_id):
         'ai_summary': ai_summary,
         'good_hashtags': good_hashtags,
         'bad_hashtags': bad_hashtags,
+        'ai_recommendation_reason': ai_recommendation_reason,
     }
     return render(request, 'room/room_detail.html', context)
 
