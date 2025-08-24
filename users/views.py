@@ -1,4 +1,3 @@
-from django.contrib.auth.decorators import login_required
 from formtools.wizard.views import SessionWizardView
 from django.shortcuts import redirect, render, get_object_or_404
 from matching.utils import calculate_matching_score, get_matching_details, WEIGHTS
@@ -119,8 +118,11 @@ def login_as_user(request, user_type):
         return render(request, 'users/user_selection.html', {'error_message': '사용자를 찾거나 생성할 수 없습니다.'})
 
 
-@login_required
 def user_info_view(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     user = request.user
     form = UserInformationForm(request.POST or None, instance=user)
 
@@ -133,8 +135,14 @@ def user_info_view(request):
 
     return render(request, 'users/user_info.html', {'form': form})
 
-@login_required
 def youth_region_view(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     user = request.user
     form = YouthInterestedRegionForm(request.POST or None, instance=user)
 
@@ -144,8 +152,14 @@ def youth_region_view(request):
 
     return render(request, 'users/youth_region.html', {'form': form})
 
-@login_required
 def senior_living_type_view(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     user = request.user
 
     form = SeniorLivingTypeForm(request.POST or None, instance=user)
@@ -156,8 +170,11 @@ def senior_living_type_view(request):
 
     return render(request, 'users/senior_living_type.html', {'form': form})
 
-@login_required
 def upload_id_card(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     user = request.user
 
     if request.method == 'POST':
@@ -178,9 +195,23 @@ def user_logout(request):
     return redirect(next_url)
 
 def home_youth(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     return render(request, 'users/home_youth.html')
 
 def home_senior(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     return render(request, 'users/home_senior.html')
 
 
@@ -224,6 +255,13 @@ def _build_profile_parts(user_obj):
     }
 
 def senior_profile(request, senior_id, room_id):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     # 매칭 대상 시니어 유저 객체
     owner = get_object_or_404(User, id=senior_id, is_youth=False)
     youth_user = request.user
@@ -254,10 +292,13 @@ def senior_profile(request, senior_id, room_id):
     return render(request, 'users/senior_profile.html', context)
 
 
-@login_required
 def youth_profile(request, request_id):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
     if request.user.is_youth:
-        return redirect('users:home_youth')
+        return render(request, 'users/re_login.html')
 
     move_in_request = get_object_or_404(
         MoveInRequest,
@@ -323,8 +364,15 @@ def youth_profile(request, request_id):
 
 
 def all_reviews_for_youth(request, youth_id):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     youth_user = get_object_or_404(User, id=youth_id)
-    reviews = Review.objects.filter(youth=youth_user).order_by('-created_at')
+    reviews = Review.objects.filter(target_youth=youth_user).order_by('-created_at')
 
     context = {
         'youth_user': youth_user,
@@ -333,10 +381,14 @@ def all_reviews_for_youth(request, youth_id):
     return render(request, 'users/all_reviews_for_youth.html', context)
 
 def senior_info_view(request):
-    user = request.user
 
-    if user.is_youth:
+    if not request.user.is_authenticated:
         return render(request, 'users/re_login.html')
+
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    user = request.user
 
     user_preferences = []
     for field in [
@@ -367,10 +419,14 @@ def senior_info_view(request):
     return render(request, 'users/senior_info_view.html', context)
 
 def youth_info_view(request):
-    user = request.user
 
-    if not user.is_youth:
+    if not request.user.is_authenticated:
         return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    user = request.user
 
     user_preferences = []
     for field in [
@@ -400,12 +456,15 @@ def youth_info_view(request):
 
     return render(request, 'users/youth_info_view.html', context)
 
-@login_required
 def my_reviews(request):
-    user = request.user
 
-    if not user.is_youth:
+    if not request.user.is_authenticated:
         return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    user = request.user
 
     # 로그인한 청년 사용자의 ID로 후기 필터링
     reviews = Review.objects.filter(target_youth=user).order_by('-created_at')
@@ -414,7 +473,7 @@ def my_reviews(request):
         'youth_user': user,
         'reviews': reviews
     }
-    return render(request, 'users/all_reviews_for_youth.html', context)
+    return render(request, 'users/my_reviews_for_youth.html', context)
 
 def index(request):
     return redirect('users:user_selection')

@@ -3,7 +3,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Room
 from users.models import User
 from matching.utils import calculate_matching_score, WEIGHTS
-from django.contrib.auth.decorators import login_required
 from matching.models import MoveInRequest
 from django.urls import reverse
 from review.models import Review
@@ -11,17 +10,15 @@ from django.db import models
 from django.db.models import Avg, Case, When
 
 def room_detail(request, room_id):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     room = get_object_or_404(Room, id=room_id)
     owner = room.owner
-
-    # --- 디버그 코드 추가 시작 ---
-    print("--- 로그인 상태 디버그 ---")
-    if request.user.is_authenticated:
-        print(f"로그인 상태: 로그인 됨 (유저명: {request.user.username})")
-        print(f"청년 유저 여부: {request.user.is_youth}")
-    else:
-        print("로그인 상태: 로그인 안 됨")
-    print("-------------------------")
 
     matching_score = None
     is_requested_before = False
@@ -69,39 +66,31 @@ def room_detail(request, room_id):
     return render(request, 'room/room_detail.html', context)
 
 
-@login_required
 def senior_request_inbox(request):
-    print(f"User authenticated: {request.user.is_authenticated}")
-    print(f"User is youth: {request.user.is_youth}")
 
-    if not request.user.is_authenticated or request.user.is_youth:
-        print(request.user.is_youth)
-        print("로그인된 사용자가 청년 유형이므로 청년 홈으로 이동")
-        return redirect(reverse('users:home_youth'))
-    try:
-        print("로그인된 사용자가 시니어 유형이므로 시니어 전용 '입주 희망 요청 보기' 로 이동")
-        senior_rooms = Room.objects.filter(owner=request.user)
-        requests = MoveInRequest.objects.filter(room__in=senior_rooms).order_by('-requested_at')
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
 
-        context = {
-            'requests': requests,
-        }
-        return render(request, 'room/senior_request_inbox.html', context)
-    except Exception as e:
-        print(f"오류가 발생했습니다: {e}")
-        return HttpResponse(f"디버깅 중 오류 발생: {e}", status=500)
+    if request.user.is_youth:
+        return render(request, 'users/re_login.html')
 
-    print("로그인된 사용자가 시니어 유형이므로 시니어 전용 '입주 희망 요청 보기' 로 이동")
-    
     senior_rooms = Room.objects.filter(owner=request.user)
-    requests = MoveInRequest.objects.filter(roomin=senior_rooms).order_by('-requested_at')
-    
+    requests = MoveInRequest.objects.filter(room__in=senior_rooms).order_by('-requested_at')
+
     context = {
         'requests': requests,
     }
     return render(request, 'room/senior_request_inbox.html', context)
 
+
 def all_reviews_for_room(request, room_id):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
     room = get_object_or_404(Room, id=room_id)
     reviews = Review.objects.filter(room=room).order_by('-created_at')
 
