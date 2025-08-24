@@ -43,6 +43,8 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            
                 <!-- 기본 정보란 끝 -->
 
                 <div class="line1"></div>
@@ -76,6 +78,9 @@
 
                 <div class="line2"></div>
 
+                <!-- 후기&성향 wrapper -->
+                <div class="sections-wrapper">
+
                 <!-- 후기 -->
                 <div class="reviews-section">
                     <div class="review-title">
@@ -85,6 +90,8 @@
                         <p class="review-count">({{ review_count }}개)</p>
                     </div>
                     
+                    <!-- AI 관련 내용들 <- AI 구현 완료되면 다시 살림 -->
+                    <!-- <div class="review-summary-wrapper">
                     <div class="review-summary">
                         <h4>AI 후기 요약 분석 📌</h4>
                         <p>{{ ai_summary }}</p>
@@ -109,6 +116,7 @@
                             </div>
                         </div>
                     </div>
+                    </div> -->
 
                     <div class="individual-reviews">
                         {% for review in reviews|slice:":2" %}
@@ -139,7 +147,7 @@
                                 <p class="review-text">{{ review.good_points }}</p>
                             </div>
                         {% empty %}
-                            <p>아직 등록된 후기가 없습니다.</p>
+                            <p class="none-review">아직 등록된 후기가 없습니다.</p>
                         {% endfor %}
 
                         {% if review_count > 0 %}
@@ -154,9 +162,11 @@
                 <div class="line3"></div>
 
                 <!-- 성향 -->
-                <h4 class="trait-title">각자의 성향</h4>
                 <div class="traits-section">
+                    <h4 class="trait-title">각자의 성향</h4>
 
+
+                    <div class="trait-item-list">
                     <!-- 활동 시간대 -->
                     <div class="trait-item">
                         <p class="trait-label">활동 시간대</p>
@@ -363,17 +373,40 @@
                     </div>
 
                     <div class="trait-item"></div>
+                    </div>
 
                 </div>
+
             </div>
             <!-- 성향 끝 -->
             <div class="footer">
-            이따 main merge하고 입주요청에 있는 버튼 갖다 쓰기.
-           </div>
+                <button
+                    data-request-id="{{ req.id }}"
+                    data-is-contacted="{{ req.is_contacted|yesno:'true,false' }}"
+                    class="telnum_btn">
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="22" viewBox="0 0 18 22" fill="none">
+                        <path d="M8.92346 7.67941L7.06248 9.31166C7.30848 10.1348 7.6521 10.9269 8.08636 11.672C8.53931 12.4117 9.08511 13.093 9.71106 13.7002L12.1211 12.9743C13.4713 12.5673 14.9452 12.9853 15.8431 14.0302L17.2157 15.6272C17.7715 16.2684 18.0501 17.0958 17.9926 17.9343C17.935 18.7728 17.5458 19.5564 16.9074 20.1192C14.6684 22.1166 11.221 22.7919 8.63992 20.8099C6.37045 19.0649 4.45089 16.9244 2.97822 14.4965C1.50181 12.0806 0.513316 9.4102 0.0663618 6.63012C-0.4287 3.50202 1.91384 0.998667 4.8347 0.14515C6.57642 -0.3652 8.43515 0.510315 9.07423 2.14256L9.82807 4.06737C10.3231 5.33444 9.96759 6.7643 8.92346 7.67941Z" fill="white"/>
+                        </svg>
+                    </span>
+                    <span>전화하기</span>
+
+                </button>
+            </div>
+
+        <!-- 전화 아이콘 버튼 클릭 시 화면 오버레이 -->
+        <div id="overlay" class="overlay" hidden>
+        <!-- 전화 아이콘 버튼 클릭 시 하단 액션바 -->
+         <div id="bottom-cta" aria-hidden="true">
+                <a id="cta-call" class="cta-btn" href="#" role="button"></a>
+                <button id="cta-copy" class="cta-btn" type="button">취소</button>
+        </div>
+        </div>
 
 
         </div>
     </div> 
+    </div>
     <script src="{% static 'users/js/youth_profile.js' %}?v=8"></script>
 </body>
 </html>

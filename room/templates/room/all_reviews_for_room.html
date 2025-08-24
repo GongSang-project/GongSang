@@ -22,7 +22,9 @@
 
         <div class="all-reviews-list">
             {% for review in reviews %}
+
             <div class="review-item">
+                <div class="line"></div>
                 <div class="review-meta">
                         <img src="{% static 'room/images/default_profile.png' %}" alt="" class="profile-image">
                         <p class="reviewer-name">
@@ -60,7 +62,7 @@
                     <p class="points-label">✏️ 개선되었으면 좋겠는 점</p>
                     <div class="points-text">{{ review.bad_points }}</div>
                 </div>
-                <div class="line"></div>
+                
 
                 {% endif %}
                 </div>

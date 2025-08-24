@@ -404,6 +404,91 @@ overflow: auto;
    border-radius: 10px;
    background: var(--GNB, #959595);
 }
+/* --- 익명 토글  --- */
+#step6 .anon-row{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  width:249px;
+  margin-top:121px;     
+}
+
+#step6 .anon-text{
+color: #515151;
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 75% */
+letter-spacing: -0.1px;
+}
+
+/* 실제 체크박스는 폼 제출만 담당, 화면에서는 숨김 */
+/* 라벨 텍스트 */
+#step6 .anon-text{
+  color:#515151;
+  font-family:'Pretendard';
+  font-size:20px;
+  font-weight:500;
+  line-height:15px;
+  letter-spacing:-0.1px;
+}
+
+/* 실제 체크박스는 폼 제출만 담당 */
+#step6 input[name="is_anonymous"].anon-input{
+  position:absolute !important;
+  opacity:0 !important;
+  width:0; height:0;
+  pointer-events:none;
+}
+
+/* 트랙 */
+#step6 .switch{
+  width:51px; height:30.184px;
+  padding:2.082px;
+  position:relative; display:inline-flex;
+  align-items:center; justify-content:flex-start;
+  border-radius:15.092px;
+  background:#D9D9D9; border:0;
+  cursor:pointer; box-sizing:border-box;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s ease;
+}
+
+/* 핸들 */
+#step6 .switch::after{
+  content:"";
+  position:absolute;
+  top:50%; left:2.082px;
+  transform: translateY(-50%);        
+  width:26.02px; height:26.02px; border-radius:50%;
+  background:#F5F5F9;
+  box-shadow:0 1px 2px rgba(0,0,0,.15);
+  transition:left .15s ease, transform .15s ease;
+}
+
+/* ON 상태 */
+#step6 .switch.on{ background: var(--Primary, #F26430); }
+#step6 .switch.on::after{
+  left: calc(100% - 2.082px - 26.02px);
+  transform: translateY(-50%);         
+}
+
+#step6 .switch:active::after{
+  transform: translateY(-50%) scale(.96);
+}
+
+/* 터치 피드백 & 접근성 */
+#step6 .switch:active::after{ transform:scale(.96); }
+#step6 .switch:focus-visible{
+  outline:none;
+  border-color:var(--Primary, #F26430);
+  box-shadow:0 0 0 3px rgba(242,100,48,.25);
+}
+#step6 .switch[aria-disabled="true"]{
+  opacity:.6; cursor:not-allowed;
+}
+
 
 /* --- 완료 화면 --- */
 
@@ -455,3 +540,4 @@ left:122px;
 #app-wrapper.is-complete .progress-wrap {
   display: none;
 }
+

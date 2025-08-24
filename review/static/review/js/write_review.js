@@ -26,78 +26,135 @@ function rvEnhanceRadioCards(){
     const radios = Array.from(wrapper.querySelectorAll('input[type="radio"]'));
     if (!radios.length) return;
 
-    // 이미 카드화되어 있으면 건너뜀
+    // ★ Step6 대비: is_anonymous 체크박스를 먼저 잡아둔다(나중에 wrapper를 비워서 날아가므로)
+    const anonInput = wrapper.querySelector('input[name="is_anonymous"]');
+    const anonForLabel = anonInput ? wrapper.querySelector(`label[for="${anonInput.id}"]`) : null;
+    const anonWrapLabel = anonInput ? anonInput.closest('label') : null;
+    let anonLabelText = '익명으로 후기 작성하기';
+    if (anonForLabel) anonLabelText = anonForLabel.textContent.replace(':','').trim();
+    else if (anonWrapLabel) {
+      const temp = anonWrapLabel.cloneNode(true);
+      temp.querySelector('input')?.remove();
+      anonLabelText = temp.textContent.replace(/\s+/g,' ').replace(':','').trim() || anonLabelText;
+    }
+
+    // 이미 카드화되어 있으면 버튼 상태만 갱신
     if (wrapper.querySelector('.rv-radio-card')) {
       rvEnableNextIfChosen(wrapper.closest('.step'));
       return;
     }
 
+    // 라디오 → 카드화
     const list = document.createElement('div');
-list.className = 'rv-radio-list';
+    list.className = 'rv-radio-list';
 
-radios.forEach(radio => {
-  let forLabel = wrapper.querySelector(`label[for="${radio.id}"]`);
-  let wrapLabel = radio.closest('label');
+    radios.forEach(radio => {
+      let forLabel = wrapper.querySelector(`label[for="${radio.id}"]`);
+      let wrapLabel = radio.closest('label');
 
-  // --- 별(스팬)과 텍스트 분리 추출 ---
-  let starFromFor  = forLabel?.querySelector('.label-stars');
-  let starFromWrap = wrapLabel?.querySelector('.label-stars');
-  let starEl = (starFromFor || starFromWrap) ? (starFromFor || starFromWrap).cloneNode(true) : null;
+      // 별과 텍스트 분리
+      let starFromFor  = forLabel?.querySelector('.label-stars');
+      let starFromWrap = wrapLabel?.querySelector('.label-stars');
+      let starEl = (starFromFor || starFromWrap) ? (starFromFor || starFromWrap).cloneNode(true) : null;
 
-  let text = '';
-  if (forLabel) {
-    text = rvGetTextWithoutStars(forLabel);
-    forLabel.remove(); // 카드로 대체할 거라 제거
-  } else if (wrapLabel) {
-    text = rvGetTextWithoutStars(wrapLabel);
-  } else {
-    text = radio.value || '옵션';
-  }
+      let text = '';
+      if (forLabel) {
+        const clone = forLabel.cloneNode(true);
+        clone.querySelectorAll('.label-stars, input').forEach(n => n.remove());
+        text = clone.textContent.replace(/[★☆]/g,'').replace(/\s+/g,' ').trim();
+        forLabel.remove();
+      } else if (wrapLabel) {
+        const clone = wrapLabel.cloneNode(true);
+        clone.querySelector('input')?.remove();
+        text = clone.textContent.replace(/[★☆]/g,'').replace(/\s+/g,' ').trim();
+      } else {
+        text = radio.value || '옵션';
+      }
 
-  // --- 카드 DOM ---
-  const card = document.createElement('div');
-  card.className = 'rv-radio-card';
+      const card = document.createElement('div');
+      card.className = 'rv-radio-card';
 
-  const row = document.createElement('div');
-  row.className = 'rv-row'; // gap 12px 적용용
+      const row = document.createElement('div');
+      row.className = 'rv-row';
 
-  if (starEl) row.appendChild(starEl);
+      if (starEl) row.appendChild(starEl);
 
-  const span = document.createElement('span');
-  span.className = 'rv-label';
-  span.textContent = text;
-  row.appendChild(span);
+      const span = document.createElement('span');
+      span.className = 'rv-label';
+      span.textContent = text;
+      row.appendChild(span);
 
-  card.appendChild(radio);
-  card.appendChild(row);
-  list.appendChild(card);
+      card.appendChild(radio);       // 원래 라디오를 카드 안으로 이동
+      card.appendChild(row);
+      list.appendChild(card);
 
-  if (radio.checked) card.classList.add('selected');
+      if (radio.checked) card.classList.add('selected');
 
-  card.addEventListener('click', () => {
-    radio.checked = true;
-    rvSyncGroupSelection(radio);
-    rvEnableNextIfChosen(card.closest('.step'));
-  });
+      card.addEventListener('click', () => {
+        radio.checked = true;
+        rvSyncGroupSelection(radio);
+        rvEnableNextIfChosen(card.closest('.step'));
+      });
+      radio.addEventListener('change', () => {
+        rvSyncGroupSelection(radio);
+        rvEnableNextIfChosen(radio.closest('.step'));
+      });
 
-  radio.addEventListener('change', () => {
-    rvSyncGroupSelection(radio);
-    rvEnableNextIfChosen(radio.closest('.step'));
-  });
+      if (wrapLabel && wrapLabel !== card && wrapLabel.parentElement){
+        try { wrapLabel.replaceWith(card); } catch {}
+      }
+    });
 
-  if (wrapLabel && wrapLabel !== card && wrapLabel.parentElement){
-    try { wrapLabel.replaceWith(card); } catch {}
-  }
-});
+    // wrapper 비우고 라디오 리스트 삽입
+    wrapper.innerHTML = '';
+    wrapper.appendChild(list);
 
-// wrapper 내용을 리스트로 교체
-wrapper.innerHTML = '';
-wrapper.appendChild(list);
+    // ★ 익명 토글 스위치 생성/삽입
+    if (anonInput) {
+      // 라벨 제거(있다면)
+      anonForLabel?.remove();
+      if (anonWrapLabel && anonWrapLabel !== anonInput) {
+        try { anonWrapLabel.replaceWith(anonInput); } catch {}
+      }
 
-// 초기 버튼 상태
-rvEnableNextIfChosen(wrapper.closest('.step'));
+      // 실제 체크박스는 숨긴 뒤 row에 붙인다
+      anonInput.classList.add('anon-input');
+
+      const row = document.createElement('div');
+      row.className = 'anon-row';
+
+      const txt = document.createElement('span');
+      txt.className = 'anon-text';
+      txt.textContent = anonLabelText || '익명으로 후기 작성하기';
+
+      const sw = document.createElement('button');
+      sw.type = 'button';
+      sw.className = 'switch';
+      sw.setAttribute('role','switch');
+
+      const sync = () => {
+        sw.classList.toggle('on', !!anonInput.checked);
+        sw.setAttribute('aria-checked', anonInput.checked ? 'true' : 'false');
+      };
+      sw.addEventListener('click', () => {
+        anonInput.checked = !anonInput.checked;
+        sync();
+      });
+      anonInput.addEventListener('change', sync);
+      sync();
+
+      row.appendChild(txt);
+      row.appendChild(sw);
+      row.appendChild(anonInput);   // 폼 제출을 위해 DOM에 포함
+
+      wrapper.appendChild(row);
+    }
+
+    // 초기 다음 버튼 상태
+    rvEnableNextIfChosen(wrapper.closest('.step'));
   });
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     
   //텍스트 필드에 placeholder

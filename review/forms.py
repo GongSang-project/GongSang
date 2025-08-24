@@ -28,6 +28,10 @@ class ReviewFormStep4(forms.ModelForm):
         model = Review
         fields = ['good_points']
         widgets = {'good_points': forms.Textarea(attrs={'rows': 5})}
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['good_points'].label = ''
+        self.label_suffix = ''
 
 
 class ReviewFormStep5(forms.ModelForm):
@@ -35,7 +39,10 @@ class ReviewFormStep5(forms.ModelForm):
         model = Review
         fields = ['bad_points']
         widgets = {'bad_points': forms.Textarea(attrs={'rows': 5})}
-
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['bad_points'].label = ''
+        self.label_suffix = ''
 
 class ReviewFormStep6(forms.ModelForm):
     class Meta:

@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>청년에 대한 후기 모두 보기</title>
+    <link rel="stylesheet" href="{% static 'users/css/all_reviews_for_youth.css' %}"/>
+
 </head>
 <body>
     <div id="root">
@@ -21,6 +23,7 @@
             <div class="all-reviews-list">
                 {% for review in reviews %}
                 <div class="review-item">
+                    <div class="line"></div>
                     <div class="review-meta">
                         <img src="{% static 'users/images/default_profile.png' %}" alt="" class="profile-image">
                             <p class="reviewer-name">
@@ -31,8 +34,7 @@
                                 {% endif %}
                             </p>
                         <p class="residence-period">{{ review.get_lived_period_display }} 거주</p>
-                    </div>
-                    <div class="review-rating">
+                        <div class="review-rating">
                         <span class="star-rating">
                             {% if review.satisfaction == 'VERY_SATISFIED' %}★★★★★
                             {% elif review.satisfaction == 'SATISFIED' %}★★★★☆
@@ -44,32 +46,33 @@
                         <p class="satisfaction-text">{{ review.get_satisfaction_display }}</p>
                         </div>
                         <p class="review-date">{{ review.created_at|date:"Y년 m월 d일" }} 작성</p>
-                    </div>
+                </div>
 
                     <div class="review-point-sectioin">
                     {% if review.good_points %}
                     <div class="review-points">
                         <p class="points-label">✅ 좋았던 점</p>
-                        <p class="points-text">{{ review.good_points }}</p>
+                        <div class="points-text">{{ review.good_points }}</div>
                     </div>
                     {% endif %}
 
                     {% if review.bad_points %}
                     <div class="review-points">
                         <p class="points-label">✏️ 개선되었으면 좋겠는 점</p>
-                        <p class="points-text">{{ review.bad_points }}</p>
+                        <div class="points-text">{{ review.bad_points }}</div>
                     </div>
-                    <div class="line"></div>
 
                     {% endif %}
                     </div>
                 </div>
                 {% empty %}
-                </div>
+                
+            </div>
                 <p class="none-review">아직 등록된 후기가 없습니다.</p>
                 {% endfor %}
-            </div>
-    </div>
-    <script src="{% static 'users/js/all_reviews_for_youth.js' %}"></script>
+            </div>    
+     </div>
+    
+   <script src="{% static 'users/js/all_reviews_for_youth.js' %}"></script>
 </body>
 </html>
