@@ -1,3 +1,7 @@
+import json
+import os
+import google.generativeai as genai
+
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -10,6 +14,10 @@ from .models import Room
 from review.models import Review
 from matching.models import MoveInRequest
 from matching.utils import calculate_matching_score, get_matching_details
+
+genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
+model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+
 
 
 def room_detail(request, room_id):
@@ -59,6 +67,36 @@ def room_detail(request, room_id):
     reviews = Review.objects.filter(room=room).order_by('-created_at')
     review_count = reviews.count()
 
+    review_texts = " ".join([review.text for review in reviews if review.text])
+
+    ai_summary = "아직 등록된 후기가 없거나, AI 요약 생성에 필요한 데이터가 부족합니다."
+    good_hashtags = []
+    bad_hashtags = []
+
+    if review_texts:
+        prompt = f"""
+                아래 후기 텍스트들을 분석하여 전체 내용을 100자 이내로 간결하게 요약해줘.
+                그리고 후기에서 긍정적인 내용과 부정적인 내용을 각각 3개의 해시태그로 추출해줘.
+
+                <후기 텍스트>
+                "{review_texts}"
+
+                응답은 다음 JSON 형식으로만 제공해줘. 해시태그는 한글로.
+                ```json
+                {{
+                    "summary": "<간결한 요약>",
+                    "good_hashtags": ["#해시태그1", "#해시태그2", "#해시태그3"],
+                    "bad_hashtags": ["#해시태그1", "#해시태그2", "#해시태그3"]
+                }}
+                ```
+            """
+        try:
+            response = model.generate_content(prompt)
+            # ... 응답 처리 로직
+            # ai_summary, good_hashtags, bad_hashtags 변수 업데이트
+        except Exception as e:
+            print(f"Gemini API 호출 중 오류 발생: {e}")
+
     # 만족도 별점 평균 계산
     reviews_with_scores = reviews.annotate(
         satisfaction_score=Case(
@@ -75,10 +113,6 @@ def room_detail(request, room_id):
         Avg('satisfaction_score')
     )['satisfaction_score__avg'] or 0.0
 
-    # TODO: 리뷰 요약/해시태그 로직 연동
-    ai_summary = "아직 등록된 후기가 없거나, AI 요약 생성에 필요한 데이터가 부족합니다."
-    good_hashtags = []
-    bad_hashtags = []
 
     context = {
         "room": room,

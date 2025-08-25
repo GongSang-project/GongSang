@@ -510,10 +510,46 @@ def youth_profile(request, request_id):
     if reviews.count() > 0:
         average_rating = total_satisfaction_score / reviews.count()
 
-    # 임시 AI 요약
-    ai_summary = "시니어 다수가 이 청년의 생활 태도에 만족했습니다."
-    good_hashtags = ["#깔끔한", "#활발함", "#규칙적인"]
-    bad_hashtags = ["#깔끔한", "#활발함"]
+
+    # 후기 텍스트 결합
+    review_texts = " ".join([review.text for review in reviews if review.text])
+
+    ai_summary = "아직 등록된 후기가 없거나, AI 요약 생성에 필요한 데이터가 부족합니다."
+    good_hashtags = []
+    bad_hashtags = []
+
+    if review_texts:
+        prompt = f"""
+                아래 후기 텍스트들을 분석하여 전체 내용을 100자 이내로 간결하게 요약해줘.
+                그리고 후기에서 긍정적인 내용과 부정적인 내용을 각각 3개의 해시태그로 추출해줘.
+
+                <후기 텍스트>
+                "{review_texts}"
+
+                응답은 다음 JSON 형식으로만 제공해줘. 해시태그는 한글로.
+                ```json
+                {{
+                    "summary": "<간결한 요약>",
+                    "good_hashtags": ["#해시태그1", "#해시태그2", "#해시태그3"],
+                    "bad_hashtags": ["#해시태그1", "#해시태그2", "#해시태그3"]
+                }}
+                ```
+            """
+        try:
+            response = model.generate_content(prompt)
+            if "```json" in response.text:
+                response_text = response.text.split("```json")[1].split("```")[0]
+            else:
+                response_text = response.text
+            ai_data = json.loads(response_text.strip())
+
+            ai_summary = ai_data.get('summary', ai_summary)
+            good_hashtags = ai_data.get('good_hashtags', good_hashtags)
+            bad_hashtags = ai_data.get('bad_hashtags', bad_hashtags)
+
+        except Exception as e:
+            print(f"Gemini API 호출 중 오류 발생: {e}")
+
 
     owner_parts = _build_profile_parts(senior_user)
     youth_parts = _build_profile_parts(youth_user)
