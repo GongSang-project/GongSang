@@ -345,6 +345,9 @@ def home_youth(request):
         {json.dumps(data_for_ai['youth_profile'], indent=2, ensure_ascii=False)}
         <방 목록>
         {json.dumps(data_for_ai['available_rooms'], indent=2, ensure_ascii=False)}
+
+        **아래 <방 목록>에 있는 모든! 방에 대해 추천 순위와 이유를 반드시 제공해 줘. 점수가 낮다고 해서 반환하지 않으면 안돼.**
+        
         응답은 다음 JSON 형식으로만 제공해줘.
         **'recommendation_reason'은 두 문장(두 줄) 내외로 간결하게 작성해. 유저들의 이름은 말하지 말고, 생활 방식 일치 여부에 초점을 맞춰 설명해 줘.**
         ```json
