@@ -152,4 +152,18 @@ class SurveyStep10Form(forms.Form):
 class YouthInterestedRegionForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['interested_province', 'interested_city', 'interested_district']
+        fields = [
+            'interested_province',
+            'interested_city',
+            'interested_district',
+        ]
+        labels = {
+            'interested_province': '시/도',
+            'interested_city': '시/군/구',
+            'interested_district': '읍/면/동',
+        }
+        widgets = {
+            'interested_province': forms.TextInput(attrs={'placeholder': '예: 서울특별시'}),
+            'interested_city': forms.TextInput(attrs={'placeholder': '예: 노원구'}),
+            'interested_district': forms.TextInput(attrs={'placeholder': '예: 공릉동'}),
+        }
