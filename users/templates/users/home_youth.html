@@ -2,52 +2,185 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>청년 홈</title>
-    <link rel="stylesheet" href="{% static 'users/css/home_youth.css' %}">
+  <meta charset="UTF-8">
+  <title>청년 홈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <style>
+    :root{
+      --accent:#F15A24; --bg:#F6F7F8; --card:#ffffff; --text:#111827;
+      --muted:#6b7280; --border:#e6e8ec; --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);
+         font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans KR",sans-serif}
+    a{color:inherit}
+    .wrap{max-width:960px;margin:0 auto;padding:16px 14px 100px}
+
+    /* 헤더 */
+    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .brand{display:flex;align-items:baseline;gap:8px}
+    .brand .eng{font-weight:900;color:#f04405;letter-spacing:1px}
+    .brand .ko{font-weight:700;color:#f19705}
+    .logout{border:1px solid var(--border);background:#fff;border-radius:999px;padding:8px 12px;font-weight:700}
+
+    /* 검색 칩 */
+    .search-wrap{position:relative;margin:10px 0 16px}
+    .search-pill{
+      width:100%;padding:12px 14px 12px 42px;border:1px solid var(--border);border-radius:999px;background:#fff;
+      background-image:url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='7' stroke='%239AA3AF' stroke-width='2'/%3E%3Cpath d='M20 20L16.65 16.65' stroke='%239AA3AF' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:12px 50%;
+    }
+    #ac-list{
+      position:absolute;top:110%;left:0;right:0;background:#fff;border:1px solid var(--border);
+      border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.06);list-style:none;margin:6px 0 0;padding:6px 0;display:none;z-index:10;max-height:260px;overflow:auto
+    }
+    #ac-list li{padding:10px 12px;cursor:pointer}
+    #ac-list li:hover{background:#f5f7fa}
+    #no-result{color:#888}
+
+    /* 섹션 타이틀 */
+    .sec-title{display:flex;align-items:center;justify-content:space-between;margin:6px 2px 8px}
+    .sec-title b{font-size:16px}
+    .link{font-weight:800;color:#666}
+
+    /* 카드 가로 스크롤 */
+    .hscroll{display:flex;gap:12px;overflow-x:auto;padding:6px 2px}
+    .card{
+      flex:0 0 70%; max-width:70%;
+      background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden
+    }
+    @media(min-width:480px){ .card{flex-basis:40%;max-width:40%} }
+    @media(min-width:760px){ .card{flex-basis:30%;max-width:30%} }
+
+    .thumb{aspect-ratio:4/3;background:#ddd;display:block;width:100%;object-fit:cover}
+    .meta{padding:10px 12px}
+    .price{font-weight:900}
+    .type{color:var(--muted);font-size:13px;margin:4px 0}
+    .tags{display:flex;gap:6px;flex-wrap:wrap}
+    .tag{font-size:11px;border:1px solid #FFE0B2;background:#FFF7ED;color:#B45309;border-radius:999px;padding:4px 8px}
+    .owner{margin-top:6px;color:#555;font-size:13px}
+
+    /* 카테고리 */
+    .cats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+    .cat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;font-weight:800;cursor:pointer}
+
+    /* 최근 본 방 리스트(간단형) */
+    .recent .item{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--border)}
+    .recent .thumb-s{width:110px;height:74px;background:#ddd;border-radius:10px;object-fit:cover}
+
+    /* 플로팅 하단 탭(샘플) */
+    .tabbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px}
+  </style>
 </head>
 <body>
-    <p>청년 홈</p>
-
-    <div>
-        <a href="{% url 'users:all_rooms_youth' %}" class="btn">추천 방 모두 보기</a>
+  <div class="wrap">
+    <!-- 헤더 -->
+    <div class="header">
+      <div class="brand"><div class="eng">DOOYU</div><div class="ko">두유</div></div>
+      <form action="{% url 'users:user_logout' %}" method="post">{% csrf_token %}<button class="logout" type="submit">로그아웃</button></form>
     </div>
 
-<!--    잘 맞는 방 top3-->
-    {% if recommended_rooms %}
-        {% for room in recommended_rooms|slice:":3" %}
-            <div class="room-card">
-                <p><strong>월세 {{ room.deposit }}/{{ room.rent_fee }}</strong></p>
-                <p>{{ room.floor }}</p>
-
-                <p>
-                    {% if room.owner.gender == 'M' %}
-                        남성
-                    {% elif room.owner.gender == 'F' %}
-                        여성
-                    {% else %}
-                        성별 정보 없음
-                    {% endif %}
-                    {% if room.owner_living_status %}
-                        / {{ room.owner_living_status }}
-                    {% else %}
-                        / 동거 형태 정보 없음
-                    {% endif %}
-                </p>
-
-<!--                <p><strong>AI 추천 이유:</strong> {{ room.recommendation_reason }}</p>-->
-                <a href="{% url 'room:room_detail' room.id %}">방 상세 보기</a>
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>관심 지역에 해당하는 방이 없거나, AI 추천을 받을 수 없습니다.</p>
-    {% endif %}
-
-    <form action="{% url 'users:user_logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit">로그아웃</button>
+    <!-- 검색 -->
+    <form id="search-form" method="get" action="{% url 'room:room_list_page' %}" class="search-wrap" autocomplete="off">
+      <input id="region-search" name="region" type="text" class="search-pill" placeholder="지역을 검색해보세요">
+      <ul id="ac-list"></ul>
     </form>
 
-    <script src="{% static 'users/js/home_youth.js' %}"></script>
+    <!-- TOP3 -->
+    <div class="sec-title">
+      <b>✨ 나와 잘 맞는 매칭 점수 높은 방 TOP3</b>
+      <a class="link" href="{% url 'users:all_rooms_youth' %}">더보기 ›</a>
+    </div>
+    <div class="hscroll">
+      {% if recommended_rooms %}
+        {% for room in recommended_rooms|slice:":3" %}
+          <div class="card">
+            <a href="{% url 'room:room_detail' room.id %}" style="text-decoration:none;color:inherit">
+              {% with p=room.photos.all %}
+                {% if p|length %}<img class="thumb" src="{{ p.0.image.url }}" alt="">{% else %}<div class="thumb"></div>{% endif %}
+              {% endwith %}
+              <div class="meta">
+                <div class="price">월세 {{ room.rent_fee|default:"-" }}/{{ room.deposit|default:"-" }}</div>
+                <div class="type">{{ room.property_type|default:"주택" }}</div>
+                <div class="tags">
+                  {% if room.hashtags %}{% for t in room.hashtags %}<span class="tag">#{{ t }}</span>{% endfor %}{% endif %}
+                </div>
+                <div class="owner">
+                  {% if room.owner.gender == 'M' %}👨 남성{% elif room.owner.gender == 'F' %}👩 여성{% else %}🙂 성별 정보 없음{% endif %}
+                  {% if room.owner_living_status %} · {{ room.owner_living_status }}{% endif %}
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p style="margin:6px 2px">관심 지역에 해당하는 방이 없거나, AI 추천을 받을 수 없습니다.</p>
+      {% endif %}
+    </div>
+
+    <!-- 카테고리 -->
+    <div class="sec-title"><b>카테고리</b></div>
+    <div class="cats">
+      <a class="cat" href="{% url 'room:room_list_page' %}?property_type=아파트">아파트</a>
+      <a class="cat" href="{% url 'room:room_list_page' %}?property_type=빌라">빌라</a>
+      <a class="cat" href="{% url 'room:room_list_page' %}?property_type=오피스텔">오피스텔</a>
+      <a class="cat" href="{% url 'room:room_list_page' %}?property_type=주택">주택</a>
+    </div>
+
+    <!-- 최근 본 방 -->
+    {% if recent_rooms %}
+      <div class="sec-title" style="margin-top:18px"><b>최근 본 방</b></div>
+      <div class="recent">
+        {% for room in recent_rooms %}
+          <a class="item" href="{% url 'room:room_detail' room.id %}" style="text-decoration:none;color:inherit">
+            {% with p=room.photos.all %}
+              {% if p|length %}<img class="thumb-s" src="{{ p.0.image.url }}" alt="">{% else %}<div class="thumb-s"></div>{% endif %}
+            {% endwith %}
+            <div>
+              <div class="price">월세 {{ room.rent_fee|default:"-" }}/{{ room.deposit|default:"-" }}</div>
+              <div class="type">{{ room.property_type|default:"주택" }} · {{ room.address_city }} {{ room.address_district }}</div>
+              <div class="owner" style="margin-top:2px">
+                {% if room.owner.gender == 'M' %}👨 남성{% elif room.owner.gender == 'F' %}👩 여성{% else %}🙂 성별 정보 없음{% endif %}
+                {% if room.owner_living_status %} · {{ room.owner_living_status }}{% endif %}
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+
+  <!-- 자동완성 JS -->
+  <script>
+    const form = document.getElementById('search-form');
+    const input = document.getElementById('region-search');
+    const list  = document.getElementById('ac-list');
+    const endpoint = "{% url 'users:autocomplete_region' %}";
+
+    function debounce(fn, delay=250){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), delay); }; }
+
+    function render(items){
+      list.innerHTML=''; if(!items||!items.length){ list.style.display='block';
+        const li=document.createElement('li'); li.id='no-result'; li.textContent='검색 결과가 없습니다'; list.appendChild(li); return; }
+      items.forEach(name=>{ const li=document.createElement('li'); li.textContent=name;
+        li.addEventListener('click',()=>{ input.value=name; list.style.display='none'; form.submit(); }); list.appendChild(li); });
+      list.style.display='block';
+    }
+
+    const fetchS = debounce(async(q)=>{
+      const query=q.trim(); if(!query){ list.style.display='none'; return; }
+      try{
+        const res = await fetch(`${endpoint}?query=${encodeURIComponent(query)}`, {headers:{'Accept':'application/json'}});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const data = await res.json(); render(data.results||[]);
+      }catch(e){ console.error(e); list.style.display='none'; }
+    });
+
+    input.addEventListener('input', e=> fetchS(e.target.value));
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); list.style.display='none'; form.submit(); }});
+    document.addEventListener('click', e=>{ const box=document.querySelector('.search-wrap'); if(box && !box.contains(e.target)) list.style.display='none'; });
+  </script>
 </body>
 </html>

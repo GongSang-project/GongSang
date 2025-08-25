@@ -3,4 +3,9 @@ psycopg2-binary
 django-formtools
 Pillow
 google-genai
+<<<<<<< HEAD
 google-generativeaigoogle-generativeai==0.8.5
+=======
+google-generativeai
+python-dotenv==1.1.1
+>>>>>>> origin/main

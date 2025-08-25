@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ page_title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+</head>
+<body>
+  <div class="container mode-edit">
+    <header class="hdr">
+      <div class="title">{{ page_title }}</div>
+      <div class="step">STEP {{ step }} · 상세설정</div>
+    </header>
+
+    <form method="post">
+      {% csrf_token %}
+      {% with opt=initial.options sec=initial.security_facilities oth=initial.other_facilities %}
+
+      <!-- 생활시설 -->
+      <section class="group">
+        <h3>생활시설</h3>
+
+        {% for v in "" %}{% endfor %} {# noop: 템플릿 파서 유도용 #}
+        <label class="chip"><input type="checkbox" name="options" value="냉장고"     {% if opt and "냉장고" in opt %}checked{% endif %}><span>냉장고</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="세탁기"     {% if opt and "세탁기" in opt %}checked{% endif %}><span>세탁기</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="책상"       {% if opt and "책상" in opt %}checked{% endif %}><span>책상</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="신발장"     {% if opt and "신발장" in opt %}checked{% endif %}><span>신발장</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="옷장"       {% if opt and "옷장" in opt %}checked{% endif %}><span>옷장</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="전자레인지" {% if opt and "전자레인지" in opt %}checked{% endif %}><span>전자레인지</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="가스레인지" {% if opt and "가스레인지" in opt %}checked{% endif %}><span>가스레인지</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="가스오븐"   {% if opt and "가스오븐" in opt %}checked{% endif %}><span>가스오븐</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="건조기"     {% if opt and "건조기" in opt %}checked{% endif %}><span>건조기</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="에어컨"     {% if opt and "에어컨" in opt %}checked{% endif %}><span>에어컨</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="선풍기"     {% if opt and "선풍기" in opt %}checked{% endif %}><span>선풍기</span></label>
+        <label class="chip"><input type="checkbox" name="options" value="의자"       {% if opt and "의자" in opt %}checked{% endif %}><span>의자</span></label>
+      </section>
+
+      <!-- 보안시설 -->
+      <section class="group">
+        <h3>보안시설</h3>
+        <label class="chip"><input type="checkbox" name="security_facilities" value="현관보안" {% if sec and "현관보안" in sec %}checked{% endif %}><span>현관보안</span></label>
+        <label class="chip"><input type="checkbox" name="security_facilities" value="CCTV"   {% if sec and "CCTV" in sec %}checked{% endif %}><span>CCTV</span></label>
+        <label class="chip"><input type="checkbox" name="security_facilities" value="인터폰" {% if sec and "인터폰" in sec %}checked{% endif %}><span>인터폰</span></label>
+        <label class="chip"><input type="checkbox" name="security_facilities" value="비디오폰" {% if sec and "비디오폰" in sec %}checked{% endif %}><span>비디오폰</span></label>
+        <label class="chip"><input type="checkbox" name="security_facilities" value="카드키" {% if sec and "카드키" in sec %}checked{% endif %}><span>카드키</span></label>
+        <label class="chip"><input type="checkbox" name="security_facilities" value="방범창" {% if sec and "방범창" in sec %}checked{% endif %}><span>방범창</span></label>
+        <label class="chip"><input type="checkbox" name="security_facilities" value="자물쇠" {% if sec and "자물쇠" in sec %}checked{% endif %}><span>자물쇠</span></label>
+        <label class="chip"><input type="checkbox" name="security_facilities" value="사설경비" {% if sec and "사설경비" in sec %}checked{% endif %}><span>사설경비</span></label>
+      </section>
+
+      <!-- 기타시설 -->
+      <section class="group">
+        <h3>기타시설</h3>
+        <label class="chip"><input type="checkbox" name="other_facilities" value="화재경보기" {% if oth and "화재경보기" in oth %}checked{% endif %}><span>화재경보기</span></label>
+        <label class="chip"><input type="checkbox" name="other_facilities" value="무인택배함" {% if oth and "무인택배함" in oth %}checked{% endif %}><span>무인택배함</span></label>
+        <label class="chip"><input type="checkbox" name="other_facilities" value="베란다" {% if oth and "베란다" in oth %}checked{% endif %}><span>베란다</span></label>
+        <label class="chip"><input type="checkbox" name="other_facilities" value="테라스" {% if oth and "테라스" in oth %}checked{% endif %}><span>테라스</span></label>
+        <label class="chip"><input type="checkbox" name="other_facilities" value="마당" {% if oth and "마당" in oth %}checked{% endif %}><span>마당</span></label>
+        <label class="chip"><input type="checkbox" name="other_facilities" value="소화기" {% if oth and "소화기" in oth %}checked{% endif %}><span>소화기</span></label>
+        <label class="chip"><input type="checkbox" name="other_facilities" value="엘리베이터" {% if oth and "엘리베이터" in oth %}checked{% endif %}><span>엘리베이터</span></label>
+      </section>
+
+      <!-- 주차 -->
+      <section class="group">
+        <h3>주차</h3>
+        <label class="radio"><input type="radio" name="parking_available" value="true"  {% if initial.parking_available %}checked{% endif %}> 가능</label>
+        <label class="radio"><input type="radio" name="parking_available" value="false" {% if not initial.parking_available %}checked{% endif %}> 불가능</label>
+      </section>
+
+      <!-- 반려동물 -->
+      <section class="group">
+        <h3>반려동물</h3>
+        <label class="radio"><input type="radio" name="pet_allowed" value="true"  {% if initial.pet_allowed %}checked{% endif %}> 있음</label>
+        <label class="radio"><input type="radio" name="pet_allowed" value="false" {% if not initial.pet_allowed %}checked{% endif %}> 없음</label>
+      </section>
+
+      <!-- 난방 방식 -->
+      <section class="group">
+        <h3>난방 방식</h3>
+        <label class="radio"><input type="radio" name="heating_type" value="개별난방" {% if initial.heating_type == "개별난방" %}checked{% endif %}> 개별난방</label>
+        <label class="radio"><input type="radio" name="heating_type" value="중앙난방" {% if initial.heating_type == "중앙난방" %}checked{% endif %}> 중앙난방</label>
+        <label class="radio"><input type="radio" name="heating_type" value="지역난방" {% if initial.heating_type == "지역난방" %}checked{% endif %}> 지역난방</label>
+      </section>
+
+      {% endwith %}
+
+      <div class="actions">
+        <a class="btn btn-ghost" href="{% url 'room:edit_step_detail' %}">이전</a>
+        <button type="submit" class="btn btn-primary">다음</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

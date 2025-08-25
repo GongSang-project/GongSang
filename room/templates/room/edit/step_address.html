@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ page_title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+</head>
+<body>
+  <div class="container mode-edit">
+    <header class="hdr">
+      <div class="title">{{ page_title }}</div>
+      <div class="step">STEP {{ step }} · 기본정보</div>
+    </header>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div class="field">
+        {{ form.address_province.label_tag }}
+        {{ form.address_province }}
+        {{ form.address_province.errors }}
+      </div>
+
+      <div class="field">
+        {{ form.address_city.label_tag }}
+        {{ form.address_city }}
+        {{ form.address_city.errors }}
+      </div>
+
+      <div class="field">
+        {{ form.address_district.label_tag }}
+        {{ form.address_district }}
+        {{ form.address_district.errors }}
+      </div>
+
+      <div class="field">
+        {{ form.address_detailed.label_tag }}
+        {{ form.address_detailed }}
+        {{ form.address_detailed.errors }}
+      </div>
+
+      <div class="field">
+        {{ form.nearest_subway.label_tag }}
+        {{ form.nearest_subway }}
+        {{ form.nearest_subway.errors }}
+      </div>
+
+      <div class="actions">
+        <a class="btn btn-ghost" href="{% url 'room:owner_room_list' %}">나가기</a>
+        <button type="submit" class="btn btn-primary">다음</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

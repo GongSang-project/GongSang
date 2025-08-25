@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from matching.models import MoveInRequest
 from room.models import Room
+from users.models import User
 from django.db.models import Prefetch
 from django.urls import reverse
 from .models import Review
@@ -57,15 +58,15 @@ def review_completed_list_senior(request):
     return render(request, 'review/review_completed_list_senior.html', context)
 
 
-def review_write(request, request_id):
+def review_write_senior(request, request_id):
 
     if not request.user.is_authenticated:
         return render(request, 'users/re_login.html')
 
     if request.user.is_youth:
-        move_in_request = get_object_or_404(MoveInRequest, pk=request_id, youth=request.user)
-    else:
-        move_in_request = get_object_or_404(MoveInRequest, pk=request_id, room__owner=request.user)
+        return render(request, 'users/re_login.html')
+
+    move_in_request = get_object_or_404(MoveInRequest, pk=request_id, room__owner=request.user)
 
     # 이미 후기를 작성했는지
     is_reviewed = Review.objects.filter(
@@ -74,10 +75,7 @@ def review_write(request, request_id):
     ).exists()
 
     if is_reviewed:
-        if request.user.is_youth:
-            return redirect('review:review_completed_list_youth')
-        else:
-            return redirect('review:review_completed_list_senior')
+        return redirect('review:review_completed_list_senior')
 
     if request.method == 'POST':
         form_step1 = ReviewFormStep1(request.POST, request.FILES)
@@ -102,17 +100,11 @@ def review_write(request, request_id):
                 **form_step6.cleaned_data,
             }
 
-            if request.user.is_youth:
-                review_data['target_senior'] = move_in_request.room.owner
-            else:
-                review_data['target_youth'] = move_in_request.youth
+            review_data['target_youth'] = move_in_request.youth
 
             Review.objects.create(**review_data)
 
-            if request.user.is_youth:
-                return redirect('review:review_completed_list_youth')
-            else:
-                return redirect('review:review_completed_list_senior')
+            return redirect('review:review_completed_list_senior')
     else:
         form_step1 = ReviewFormStep1()
         form_step2 = ReviewFormStep2()
@@ -132,7 +124,75 @@ def review_write(request, request_id):
         'room': move_in_request.room,
         'request_id': request_id,
     }
-    return render(request, 'review/review_write_all.html', context)
+    return render(request, 'review/review_write_senior.html', context)
+
+def review_write_youth(request, request_id):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+
+    if not request.user.is_youth:
+        return render(request, 'users/re_login.html')
+
+    move_in_request = get_object_or_404(MoveInRequest, pk=request_id, youth=request.user)
+
+    # 이미 후기를 작성했는지
+    is_reviewed = Review.objects.filter(
+        author=request.user,
+        room=move_in_request.room
+    ).exists()
+
+    if is_reviewed:
+        return redirect('review:review_completed_list_youth')
+
+    if request.method == 'POST':
+        form_step1 = ReviewFormStep1(request.POST, request.FILES)
+        form_step2 = ReviewFormStep2(request.POST)
+        form_step3 = ReviewFormStep3(request.POST)
+        form_step4 = ReviewFormStep4(request.POST)
+        form_step5 = ReviewFormStep5(request.POST)
+        form_step6 = ReviewFormStep6(request.POST)
+
+        # 모든 폼이 유효한지
+        if (form_step1.is_valid() and form_step2.is_valid() and form_step3.is_valid() and
+                form_step4.is_valid() and form_step5.is_valid() and form_step6.is_valid()):
+            # 모든 데이터를 하나의 객체로 저장
+            review_data = {
+                'author': request.user,
+                'room': move_in_request.room,
+                **form_step1.cleaned_data,
+                **form_step2.cleaned_data,
+                **form_step3.cleaned_data,
+                **form_step4.cleaned_data,
+                **form_step5.cleaned_data,
+                **form_step6.cleaned_data,
+            }
+
+            review_data['target_senior'] = move_in_request.room.owner
+
+            Review.objects.create(**review_data)
+
+            return redirect('review:review_completed_list_youth')
+    else:
+        form_step1 = ReviewFormStep1()
+        form_step2 = ReviewFormStep2()
+        form_step3 = ReviewFormStep3()
+        form_step4 = ReviewFormStep4()
+        form_step5 = ReviewFormStep5()
+        form_step6 = ReviewFormStep6()
+
+    context = {
+        'form1': form_step1,
+        'form2': form_step2,
+        'form3': form_step3,
+        'form4': form_step4,
+        'form5': form_step5,
+        'form6': form_step6,
+        'youth': move_in_request.youth,
+        'room': move_in_request.room,
+        'request_id': request_id,
+    }
+    return render(request, 'review/review_write_youth.html', context)
 
 
 def review_list_youth(request):
