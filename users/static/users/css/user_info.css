@@ -120,7 +120,7 @@ h2 {
     font-weight: 600;
     line-height: 15px; /* 60% */
     letter-spacing: -0.125px;
-    width: 227px;
+    width: auto;
     height: 15px;
     position: absolute;
     top:158px;
