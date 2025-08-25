@@ -1,5 +1,6 @@
 from django import forms
-from .models import Room, OPTION_CHOICES, SECURITY_CHOICES, OTHER_FACILITY_CHOICES, HEATING_CHOICES
+#from .models import Room, OPTION_CHOICES, SECURITY_CHOICES, OTHER_FACILITY_CHOICES, HEATING_CHOICES
+from .models import Room, PROPERTY_TYPE_CHOICES, OPTION_CHOICES, SECURITY_CHOICES, OTHER_FACILITY_CHOICES, HEATING_CHOICES
 
 # 0) 등기부 업로드(촬영/첨부 공용)
 class DeedUploadRawForm(forms.Form):
@@ -28,9 +29,16 @@ class RoomStepAddressForm(forms.Form):
 
 # 2) 상세
 class RoomStepDetailForm(forms.Form):
-    floor      = forms.CharField(label="층수")              # ex) "아파트 9층"
-    area       = forms.FloatField(label="면적(m²)", min_value=0.1)
+
+    property_type = forms.ChoiceField(
+        label="주거 유형",
+        choices=[("", "선택하세요")] + list(PROPERTY_TYPE_CHOICES),
+        required=True,
+    )
+    # floor      = forms.CharField(label="층수")              # ex) "아파트 9층"
+    room_count = forms.IntegerField(label="방 개수", min_value=1)
     toilet_count = forms.IntegerField(label="화장실 개수", min_value=1)
+    area = forms.FloatField(label="면적(m²)", min_value=0.1)
 
 # 3) 거래
 class RoomStepContractForm(forms.Form):
@@ -64,7 +72,9 @@ class RoomEditForm(forms.ModelForm):
         model = Room
         fields = [
             "deposit", "rent_fee", "utility_fee",
-            "floor", "area", "toilet_count", "available_date",
+            "property_type", "area", "toilet_count", "available_date", # property_type 추가
+            "room_count",
+            #"floor",
             "address_province", "address_city", "address_district", "address_detailed",
             "nearest_subway",
             "options", "security_facilities", "other_facilities",

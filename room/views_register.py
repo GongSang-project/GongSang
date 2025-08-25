@@ -25,11 +25,18 @@ from .models import (
 )
 
 # 선택적 import (존재하지 않을 수도 있는 부가 모델)
+from django.apps import apps
+
 try:
-    from .models import RoomExtra, RoomPhoto
-except Exception:
-    RoomExtra = None
+    RoomPhoto = apps.get_model('room', 'RoomPhoto')
+except LookupError:
     RoomPhoto = None
+
+try:
+    RoomExtra = apps.get_model('room', 'RoomExtra')
+except LookupError:
+    RoomExtra = None
+
 
 
 # ─────────────────────────────────────────────────────────────
@@ -300,7 +307,7 @@ def deed_start(request):
     if not _senior_guard(request):
         return redirect("users:home_youth")
 
-    # 수정 모드면 등기부 단계를 통째로 건너뜀
+    # 수정 모드는 등기부 단계를 통째로 건너뜀
     if _is_edit_mode(request):
         return redirect("room:register_step_address")
 
@@ -446,21 +453,14 @@ def register_step_detail(request):
         return redirect("room:deed_start")
 
     initial = _wiz_get(request).get("detail", {})
-    property_types = ["아파트", "빌라", "오피스텔", "주택"]
 
     if request.method == "POST":
         form = RoomStepDetailForm(request.POST)
         if form.is_valid():
-            data = form.cleaned_data.copy()
-            data["property_type"] = (
-                request.POST.get("property_type") or initial.get("property_type") or property_types[0]
-            )
-            data["rooms_count"] = request.POST.get("rooms_count") or initial.get("rooms_count") or ""
-
+            data = form.cleaned_data.copy()  # {'property_type', 'room_count', 'toilet_count', 'area'}
             wizard = _wiz_get(request)
             wizard["detail"] = data
             _wiz_set(request, wizard)
-
             return redirect("room:register_step_contract")
     else:
         form = RoomStepDetailForm(initial=initial)
@@ -471,9 +471,6 @@ def register_step_detail(request):
         {
             "form": form,
             "step": "3/9",
-            "property_types": property_types,
-            "initial_property_type": initial.get("property_type") or property_types[0],
-            "initial_rooms_count": initial.get("rooms_count") or 3,
         },
     )
 
@@ -611,6 +608,11 @@ def register_step_photos(request):
     edit_mode = _is_edit_mode(request)
 
     if request.method == "POST":
+        # 테스트
+        print("[PHOTOS:FILES:keys]", list(request.FILES.keys()))
+        print("[PHOTOS:FILES:common]", len(request.FILES.getlist("common_photos")))
+        print("[PHOTOS:FILES:youth]", len(request.FILES.getlist("youth_photos")))
+        print("[PHOTOS:FILES:bath]", len(request.FILES.getlist("bathroom_photos")))
         def save_many(field_name, bucket_key):
             uploaded = request.FILES.getlist(field_name)
             if not uploaded:
@@ -625,6 +627,11 @@ def register_step_photos(request):
         save_many("common_photos",   "COMMON")
         save_many("youth_photos",    "YOUTH")
         save_many("bathroom_photos", "BATHROOM")
+
+        # 테스트
+        request.session[PHOTOS_DATA] = photos
+        request.session.modified = True
+        print("[PHOTOS:SESSION:AFTER]", request.session.get(PHOTOS_DATA))
 
         total = sum(len(v) for v in photos.values())
         if not edit_mode:  # 신규 등록만 최소/최대 검사
@@ -658,6 +665,28 @@ def register_step_intro(request):
         wiz = _wiz_get(request)
         addr, det, con, per = wiz["address"], wiz["detail"], wiz["contract"], wiz["period"]
 
+        # 테스트
+        photos = request.session.get(PHOTOS_DATA, {})
+        print("[INTRO:PHOTOS:SESSION]", request.session.get(PHOTOS_DATA))
+        if RoomPhoto is None:
+            print("[INTRO:SAVE] RoomPhoto is None → 모델 import 실패 또는 존재하지 않음")
+        else:
+            saved = 0
+            photos = request.session.get(PHOTOS_DATA, {"COMMON": [], "YOUTH": [], "BATHROOM": []})
+            for cat, rels in photos.items():
+                for relpath in rels:
+                    try:
+                        print("[INTRO:SAVE:TRY]", cat, relpath)
+                        with default_storage.open(relpath, "rb") as f:
+                            p = RoomPhoto(room=room, category=cat)
+                            p.image.save(os.path.basename(relpath), File(f), save=True)  # ★ save=True 필수
+                        default_storage.delete(relpath)
+                        saved += 1
+                    except Exception as e:
+                        print("[INTRO:SAVE:ERR]", type(e).__name__, e)
+            print("[INTRO:SAVE:COUNT]", saved)
+
+
         # 날짜 복원
         ad = per.get("available_date")
         try:
@@ -672,9 +701,10 @@ def register_step_intro(request):
             room.deposit = con["deposit"]
             room.rent_fee = con["rent_fee"]
             room.utility_fee = con.get("utility_fee") or 0
-            room.floor = det["floor"]
             room.area = det["area"]
             room.toilet_count = det["toilet_count"]
+            room.property_type = det["property_type"]
+            room.room_count = det["room_count"]
             room.available_date = available_date
             room.can_short_term = bool(con.get("can_short_term"))
             room.address_province = addr["address_province"]
@@ -712,7 +742,6 @@ def register_step_intro(request):
                         except Exception:
                             pass
 
-            # 등기부는 수정 플로우에선 다루지 않음(필요 시 deed_start로 유도)
             redirect_url = "room:owner_room_list"
 
         else:
@@ -722,9 +751,10 @@ def register_step_intro(request):
                 deposit=con["deposit"],
                 rent_fee=con["rent_fee"],
                 utility_fee=con.get("utility_fee") or 0,
-                floor=det["floor"],
                 area=det["area"],
                 toilet_count=det["toilet_count"],
+                property_type=det["property_type"],
+                room_count=det["room_count"],
                 available_date=available_date,
                 can_short_term=bool(con.get("can_short_term")),
                 address_province=addr["address_province"],
@@ -772,15 +802,14 @@ def register_step_intro(request):
                         except Exception:
                             pass
 
-            redirect_url = "room:room_detail"
+            redirect_url = "room:owner_room_list"
 
         # 세션 정리
         for k in (WIZARD_DATA, DEED_TEMP_PATH, DEED_SOURCE, DEED_CONFIRMED, PHOTOS_DATA, INTRO_TEXT, EDIT_ROOM_ID):
             request.session.pop(k, None)
         request.session.modified = True
 
-        if redirect_url == "room:room_detail":
-            return redirect(redirect_url, room_id=room.id)
+        # 현재 플로우에선 상세 페이지로 안 보내고 내 방 목록으로 이동
         return redirect(redirect_url)
 
     # GET → 소개 입력 화면

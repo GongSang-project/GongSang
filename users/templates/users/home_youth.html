@@ -134,12 +134,16 @@
       <div class="recent">
         {% for room in recent_rooms %}
           <a class="item" href="{% url 'room:room_detail' room.id %}" style="text-decoration:none;color:inherit">
-            {% with p=room.photos.all %}
-              {% if p|length %}<img class="thumb-s" src="{{ p.0.image.url }}" alt="">{% else %}<div class="thumb-s"></div>{% endif %}
+            {% with photos=room.room_photos.all %}
+              {% if photos|length %}
+                <img src="{{ photos.0.image.url }}" alt="">
+              {% else %}
+                <div class="ph"></div>
+              {% endif %}
             {% endwith %}
             <div>
               <div class="price">월세 {{ room.rent_fee|default:"-" }}/{{ room.deposit|default:"-" }}</div>
-              <div class="type">{{ room.property_type|default:"주택" }} · {{ room.address_city }} {{ room.address_district }}</div>
+              <div class="type">{{ room.get_property_type_display|default:"주택" }} · {{ room.address_city }} {{ room.address_district }}</div>
               <div class="owner" style="margin-top:2px">
                 {% if room.owner.gender == 'M' %}👨 남성{% elif room.owner.gender == 'F' %}👩 여성{% else %}🙂 성별 정보 없음{% endif %}
                 {% if room.owner_living_status %} · {{ room.owner_living_status }}{% endif %}
