@@ -75,9 +75,8 @@ class Room(models.Model):
     address_detailed = models.CharField(verbose_name="상세주소(도로명/동/호)", max_length=50, blank=True, null=True)
 
     # 등기부 등본
-    land_register_document = models.FileField(
-        verbose_name="등기부 등본",
-        upload_to='land_registers/',
+    land_register_document = models.TextField(
+        verbose_name="등기부 등본 (암호화)",
         null=True,
         blank=True
     )
