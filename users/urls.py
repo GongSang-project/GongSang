@@ -38,4 +38,7 @@ urlpatterns = [
     path('home/youth/all_rooms/', views.all_rooms_youth, name='all_rooms_youth'),
     path('api/region-autocomplete/', views.autocomplete_region, name='region_autocomplete'),
     path('list/', views.listings_by_region, name='room_list_page'),  # (주의) users 네임스페이스 내 name
+
+    path("search_location/", views.autocomplete_region, name="autocomplete_region"),
+    path("listings_by_region/", views.listings_by_region, name="listings_by_region"),
 ]

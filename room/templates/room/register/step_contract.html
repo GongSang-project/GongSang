@@ -1,0 +1,76 @@
+{% load static %}
+
+<h1 style="font-size:20px;margin:16px 0 8px;">방 등록하기</h1>
+<p style="color:#777;margin:0 0 16px;">{{ step }}</p>
+<h2 style="font-size:22px;margin:0 0 18px;">계약 형태를 선택해주세요</h2>
+
+{% if form.errors %}
+  <div style="background:#ffe8e8;border:1px solid #ffb4b4;padding:10px;border-radius:10px;color:#b10000;margin-bottom:12px;">
+    입력을 확인해 주세요.
+  </div>
+{% endif %}
+
+<form method="post" id="contractForm" novalidate>
+  {% csrf_token %}
+
+  <!-- 계약 형태 (UI 전용) -->
+  <label style="display:block;margin:10px 0 6px;">계약 형태</label>
+  <select name="contract_type" id="contract_type"
+          style="width:100%;padding:12px;border:1px solid #ddd;border-radius:12px;">
+    {% for v in contract_types %}
+      <option value="{{ v }}" {% if v == initial_contract_type %}selected{% endif %}>{{ v }}</option>
+    {% endfor %}
+  </select>
+
+  <div style="margin-top:18px;">
+    <label style="display:block;margin:0 6px 6px;">
+      <span id="rent_label">월세/사용료</span>
+    </label>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="number" name="rent_fee" min="0" step="1" required
+             value="{{ form.initial.rent_fee|default:'' }}"
+             placeholder="예: 25"
+             style="flex:1;padding:12px;border:1px solid #ddd;border-radius:12px;">
+      <span style="color:#666;">만원</span>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <label style="display:block;margin:0 0 6px;">관리비</label>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="number" name="utility_fee" min="0" step="1"
+             value="{{ form.initial.utility_fee|default:'' }}"
+             placeholder="예: 2"
+             style="flex:1;padding:12px;border:1px solid #ddd;border-radius:12px;">
+      <span style="color:#666;">만원</span>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <label style="display:block;margin:0 0 6px;">보증금</label>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="number" name="deposit" min="0" step="1" required
+             value="{{ form.initial.deposit|default:'' }}"
+             placeholder="예: 200"
+             style="flex:1;padding:12px;border:1px solid #ddd;border-radius:12px;">
+      <span style="color:#666;">만원</span>
+    </div>
+  </div>
+
+  <button type="submit"
+          style="width:100%;margin:24px 0 8px;padding:14px 16px;border:none;border-radius:14px;background:#f0642d;color:#fff;font-size:16px;">
+    다음
+  </button>
+</form>
+
+<script>
+  (function () {
+    const sel = document.getElementById('contract_type');
+    const rentLbl = document.getElementById('rent_label');
+    function syncLabel(){
+      rentLbl.textContent = (sel.value === '단기거주') ? '사용료' : '월세';
+    }
+    sel.addEventListener('change', syncLabel);
+    syncLabel();
+  })();
+</script>
