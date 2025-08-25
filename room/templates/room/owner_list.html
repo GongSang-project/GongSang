@@ -59,7 +59,7 @@
                  data-room-id="{{ room.id }}"
                  data-delete-url="{% url 'room:owner_room_delete' room.id %}">
           <a class="thumbwrap" href="{% url 'room:room_detail' room.id %}">
-            {% with photos=room.photos.all %} {# ✅ 변경: roomphoto_set → photos #}
+            {% with photos=room.photos %} {# ✅ 변경: roomphoto_set → photos #}
               {% if photos|length %}
                 {% with photo=photos.0 %}
                   {% if photo.image %}
