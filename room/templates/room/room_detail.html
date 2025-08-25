@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -65,39 +66,12 @@
 <body>
   <div class="wrap">
 
-<<<<<<< HEAD
     <!-- HERO -->
     <div class="hero">
       {% with photos=room.photos.all %}
         {% if photos|length %}
           <img src="{{ photos.0.image.url }}" alt="">
           <div class="count">1/{{ photos|length }}</div>
-=======
-    {% if matching_score is not None %}
-        <p>나와의 매칭 점수: <strong>{{ matching_score }}점</strong></p>
-    {% else %}
-        <p>로그인 후 매칭 점수를 확인하세요.</p>
-    {% endif %}
-
-    {% if ai_recommendation_reason %}
-        <p><strong>AI 추천 이유:</strong></p>
-        <p>
-            {% if ai_recommendation_reason|length > 60 %}
-                {{ ai_recommendation_reason|slice:":60" }}...
-            {% else %}
-                {{ ai_recommendation_reason }}
-            {% endif %}
-        </p>
-    {% endif %}
-
-    <a href="{% url 'users:senior_profile' senior_id=room.owner.id room_id=room.id %}">
-        시니어 프로필 보기
-    </a>
-
-    {% if request.user.is_authenticated and request.user.is_youth %}
-        {% if is_requested_before %}
-            <button id="requestButton" data-room-id="{{ room.id }}" disabled>입주 요청을 보냈습니다</button>
->>>>>>> 1fc63716ebc274eff0077bf29fc59d71c2b473f9
         {% else %}
           <img src="https://via.placeholder.com/1200x800?text=Room" alt="">
           <div class="count">0/0</div>
@@ -199,6 +173,7 @@
       <div class="pills" style="margin-top:6px">
         {% if room.nearest_subway %}<span class="pill">🚇 {{ room.nearest_subway }}</span>{% endif %}
         <span class="pill">📍 {{ room.address_province }} {{ room.address_city }} {{ room.address_district }}</span>
+      </div> <!-- ✅ 누락된 닫힘 추가 -->
     </section>
 
     <!-- 소개 -->
@@ -224,7 +199,7 @@
             </div>
           </div>
         {% endfor %}
-        <a class="more" href="#">후기 {{ rv|length }}개 모두 보기</a>
+        <a class="more" href="{% url 'room:all_reviews_for_room' room.id %}">후기 {{ rv|length }}개 모두 보기</a>
       </section>
       {% endif %}
     {% endwith %}
@@ -237,7 +212,7 @@
 
   </div>
 
-  <!-- JS: 입주 희망 요청 (항상 동작) -->
+  <!-- JS: 입주 희망 요청 -->
   <script>
     document.addEventListener('DOMContentLoaded', function(){
       const btn = document.getElementById('request-button');
@@ -254,80 +229,10 @@
           headers: {'Content-Type':'application/json','X-CSRFToken': csrfToken},
           body: JSON.stringify({})
         })
-        .then(res => { if(res.redirected){ window.location.reload(); } })
+        .then(res => { if(res.redirected){ window.location.reload(); } else { btn.disabled=false; btn.textContent='입주 희망 요청하기'; }})
         .catch(()=>{ btn.disabled=false; btn.textContent='입주 희망 요청하기'; });
       });
     });
-<<<<<<< HEAD
   </script>
-=======
-    </script>
-
-    <div class="reviews-section">
-        <h4>후기 ★<i class="fa-solid fa-star"></i> {{ average_rating|floatformat:"1" }} ({{ review_count }}개)</h4>
-        <div class="review-summary">
-            <h5>AI 후기 요약 분석 <i class="fa-solid fa-robot"></i></h5>
-            <p>{{ ai_summary }}</p>
-        </div>
-
-        <div class="review-hashtags">
-            <div class="review-hashtags-item">
-                <p>개선되었으면 좋았을 점</p>
-                <div class="hashtags">
-                    {% for tag in bad_hashtags %}
-                        <span>{{ tag }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="review-hashtags-item">
-                <p>좋았던 점</p>
-                <div class="hashtags">
-                    {% for tag in good_hashtags %}
-                        <span>{{ tag }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <div class="individual-reviews">
-            {% for review in reviews|slice:":2" %}
-            <div class="review-item">
-                <div class="review-meta">
-                    <p class="reviewer-name">
-                        {% if review.is_anonymous %}
-                            익명{{ forloop.counter }}
-                        {% else %}
-                            {{ review.author.username }}
-                        {% endif %}
-                    </p>
-                    <p class="residence-period">{{ review.get_lived_period_display }}</p>
-                </div>
-                <div class="review-rating">
-                    <span class="star-rating">
-                        {% if review.satisfaction == 'VERY_SATISFIED' %}★★★★★
-                        {% elif review.satisfaction == 'SATISFIED' %}★★★★☆
-                        {% elif review.satisfaction == 'NORMAL' %}★★★☆☆
-                        {% elif review.satisfaction == 'DISSATISFIED' %}★★☆☆☆
-                        {% else %}★☆☆☆☆
-                        {% endif %}
-                    </span>
-                    <span class="review-date">{{ review.created_at|date:"Y년 m월 d일" }} 작성</span>
-                </div>
-                <p class="review-text">{{ review.good_points }}</p>
-            </div>
-            {% empty %}
-            <p>아직 등록된 후기가 없습니다.</p>
-            {% endfor %}
-        </div>
-
-        {% if review_count > 0 %}
-        <div class="view-all-reviews">
-            <a href="{% url 'room:all_reviews_for_room' room.id %}">
-                <button>후기 모두 보기</button>
-            </a>
-        </div>
-        {% endif %}
-    </div>
->>>>>>> 4bfca7b1289b0d38b7483b3b74ff3719dd5ced1c
 </body>
 </html>
