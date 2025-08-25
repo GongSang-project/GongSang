@@ -106,7 +106,8 @@
       </div>
     </section>
 
-    <!-- 매칭 점수(항상 노출) -->
+    <!-- 매칭 점수(청년일 때만 노출) -->
+    {% if user.is_authenticated and user.is_youth %}
     <section class="card">
       <!-- 2열 레이아웃: 왼쪽 프로필 / 오른쪽 매칭 -->
       <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start">
@@ -169,6 +170,7 @@
         </div>
       </div>
     </section>
+    {% endif %}
 
     {# ───── 매칭 카드 아래에 넣는 후기 프리뷰 섹션 ───── #}
     {% if rv_cnt %}
@@ -320,7 +322,8 @@
     </section>
     {% endif %}
 
-    <!-- 하단 고정 CTA (항상 노출) -->
+    <!-- 하단 고정 CTA (청년일 때만 노출) -->
+    {% if user.is_authenticated and user.is_youth %}
     <div class="cta">
       {% if room.owner.phone_number %}
         <a class="btn btn-outline" href="tel:{{ room.owner.phone_number }}"> ☎ 전화걸기</a>
@@ -332,6 +335,7 @@
         입주 희망 요청하기
       </button>
     </div>
+    {% endif %}
 
   </div>
 
