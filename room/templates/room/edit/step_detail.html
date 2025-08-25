@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ page_title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <div class="container mode-edit">
+    <header class="hdr">
+      <div class="title">{{ page_title }}</div>
+      <div class="step">STEP {{ step }} · 상세정보</div>
+    </header>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <!-- 폼에 있는 필드들을 기본적으로 노출 -->
+      {{ form.as_p }}
+
+      <!-- 시안의 자유 입력란 2개: 소개 / 선호 -->
+      <div class="field">
+        <label for="intro">집에 대해 얘기해주세요</label>
+        <textarea id="intro" name="intro" rows="5" placeholder="예: 채광이 좋아서 아침마다 방이 환해요.">{{ initial_intro }}</textarea>
+      </div>
+
+      <div class="field">
+        <label for="youth_pref">어떤 청년과 살고 싶으세요? (선택)</label>
+        <input id="youth_pref" name="youth_pref" type="text" placeholder="예: 여성만 / 비흡연 선호 / 조용한 성향 등">
+      </div>
+
+      <div class="actions">
+        <a class="btn btn-ghost" href="{% url 'room:edit_step_contract' %}">이전</a>
+        <button type="submit" class="btn btn-primary">다음</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

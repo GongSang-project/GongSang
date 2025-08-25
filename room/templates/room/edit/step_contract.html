@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ page_title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <div class="container mode-edit">
+    <header class="hdr">
+      <div class="title">{{ page_title }}</div>
+      <div class="step">STEP {{ step }} · 거래정보</div>
+    </header>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <!-- 계약 형태(월세/단기거주) — 뷰가 request.POST['contract_type']를 읽습니다 -->
+      <div class="field">
+        <label for="contract_type">계약 형태</label>
+        <select id="contract_type" name="contract_type">
+          <option value="월세" {% if initial_contract_type == "월세" %}selected{% endif %}>월세</option>
+          <option value="단기거주" {% if initial_contract_type == "단기거주" %}selected{% endif %}>단기거주</option>
+        </select>
+      </div>
+
+      {% if form.rent_fee %}
+      <div class="field">
+        {{ form.rent_fee.label_tag }}
+        {{ form.rent_fee }}
+        <span class="unit">만원</span>
+        {{ form.rent_fee.errors }}
+      </div>
+      {% endif %}
+
+      {% if form.utility_fee %}
+      <div class="field">
+        {{ form.utility_fee.label_tag }}
+        {{ form.utility_fee }}
+        <span class="unit">만원</span>
+        {{ form.utility_fee.errors }}
+      </div>
+      {% endif %}
+
+      {% if form.deposit %}
+      <div class="field">
+        {{ form.deposit.label_tag }}
+        {{ form.deposit }}
+        <span class="unit">만원</span>
+        {{ form.deposit.errors }}
+      </div>
+      {% endif %}
+
+      <div class="actions">
+        <a class="btn btn-ghost" href="{% url 'room:edit_step_address' %}">이전</a>
+        <button type="submit" class="btn btn-primary">다음</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

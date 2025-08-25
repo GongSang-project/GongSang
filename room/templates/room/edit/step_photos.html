@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>{{ page_title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <div class="container mode-edit">
+    <header class="hdr">
+      <div class="title">{{ page_title }}</div>
+      <div class="step">STEP {{ step }} · 사진</div>
+    </header>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <section class="group">
+        <h3>공용 공간</h3>
+        <input type="file" name="common_photos" accept="image/*" multiple>
+        {% if photos.COMMON %}
+        <div class="thumbs">
+          {% for rel in photos.COMMON %}
+            <img src="{{ MEDIA_URL }}{{ rel }}" alt="공용사진">
+          {% endfor %}
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="group">
+        <h3>청년이 이용할 공간</h3>
+        <input type="file" name="youth_photos" accept="image/*" multiple>
+        {% if photos.YOUTH %}
+        <div class="thumbs">
+          {% for rel in photos.YOUTH %}
+            <img src="{{ MEDIA_URL }}{{ rel }}" alt="청년공간">
+          {% endfor %}
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="group">
+        <h3>화장실</h3>
+        <input type="file" name="bathroom_photos" accept="image/*" multiple>
+        {% if photos.BATHROOM %}
+        <div class="thumbs">
+          {% for rel in photos.BATHROOM %}
+            <img src="{{ MEDIA_URL }}{{ rel }}" alt="화장실">
+          {% endfor %}
+        </div>
+        {% endif %}
+      </section>
+
+      <div class="actions">
+        <a class="btn btn-ghost" href="{% url 'room:edit_step_facilities' %}">이전</a>
+        <button type="submit" class="btn">사진 추가만 하기</button>
+        <button type="submit" class="btn btn-primary" name="save_and_exit" value="1">저장하고 나가기</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
