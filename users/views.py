@@ -326,7 +326,40 @@ def home_youth(request):
         resp["Pragma"] = "no-cache"; resp["Expires"] = "0"
         return resp
 
-    prompt = f""" ... 그대로 ... """
+    prompt = f"""
+        아래는 한 청년의 프로필과 관심 지역에 있는 여러 방의 정보(시니어의 프로필 포함)야.
+        이 데이터들을 분석해서 청년과 가장 잘 맞는 순서대로 방 목록을 추천해 줘.
+        **매칭 점수를 계산할 때 아래 항목의 중요도를 반드시 고려해.**
+        **<항목별 가중치 표>**
+        - 반려동물 여부: 10 (불일치 시 매칭 불가 수준)
+        - 흡연 여부: 10 (건강 및 냄새 민감도)
+        - 소음 허용도: 9 (일상 스트레스에 직결)
+        - 활동 시간대: 8 (생활 리듬 직접 영향)
+        - 대화 빈도: 7 (생활 충돌 가능성 높음)
+        - 생활 공간 중요 포인트: 6 (가치관 차이)
+        - 공용 공간 사용 빈도: 6 (프라이버시 & 충돌 가능성)
+        - 식사 공유 여부: 5 (생활 방식 영향)
+        - 주말 생활 패턴: 4 (생활 리듬 보조 지표)
+        - 자유 응답: 점수 부여는 아니지만, **매우 중요하게 고려**하여 추천 이유에 반영해.
+        <청년 프로필>
+        {json.dumps(data_for_ai['youth_profile'], indent=2, ensure_ascii=False)}
+        <방 목록>
+        {json.dumps(data_for_ai['available_rooms'], indent=2, ensure_ascii=False)}
+        응답은 다음 JSON 형식으로만 제공해줘.
+        **'recommendation_reason'은 두 문장(두 줄) 내외로 간결하게 작성해. 유저들의 이름은 말하지 말고, 생활 방식 일치 여부에 초점을 맞춰 설명해 줘.**
+        ```json
+        [
+          {{
+            "room_id": "<방 목록에 있는 실제 ID를 사용>",
+            "recommendation_reason": "<두 줄 내외의 간결한 추천 이유>"
+          }},
+          {{
+            "room_id": "<방 목록에 있는 다른 실제 ID를 사용>",
+            "recommendation_reason": "<추천 이유>"
+          }}
+        ]
+        ```
+    """
 
     try:
         response = model.generate_content(prompt)
