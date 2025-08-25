@@ -1,74 +1,332 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>시니어 내 정보 보기</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>시니어 내 정보 보기</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+  <style>
+    :root{
+      --orange:#F26430;
+      --peach:#FFEBD9;
+      --black:#121212;
+      --gray-700:#6E6E6E;
+      --gray-500:#959595;
+      --tag-bg:#F26430;
+      --tag-text:#fff;
+      --card-bg:#fff;
+    }
+
+    /* App frame (375x812) */
+    body {
+      margin: 0;
+      background:#fff;
+      font-family: Pretendard, -apple-system, system-ui, Segoe UI, Roboto, Noto Sans KR, Apple SD Gothic Neo, "Malgun Gothic", sans-serif;
+      color: var(--black);
+    }
+    .app {
+      width: 375px;
+      height: 812px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      background:#fff;
+    }
+
+    /* Top gradient header block */
+    .hero {
+      position: relative;
+      padding: 54px 20px 20px;
+      background: linear-gradient(180deg,#ffffff 0%, var(--peach) 100%);
+      border-bottom-left-radius: 26px;
+      border-bottom-right-radius: 26px;
+      box-shadow: inset 0 0 3px var(--peach);
+      min-height: 310px;
+    }
+
+    /* Top bar */
+    .topbar {
+      position:absolute; left:0; right:0; top:6px; height:44px;
+      display:flex; align-items:center; justify-content:center;
+      pointer-events:none;
+    }
+    .topbar h1{
+      margin:0; font-weight:700; font-size:20px; letter-spacing:-0.1px;
+    }
+    .back-btn{
+      position:absolute; left:16px; top:8px;
+      width:36px; height:36px;
+      border:none; background:transparent; padding:0;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; pointer-events:auto;
+    }
+    /* 얇은 선형 화살표 */
+    .back-btn svg, .chev svg{
+      width:10px; height:18px;
+    }
+    .back-btn path, .chev path{
+      stroke:#121212; stroke-width:1.5; fill:none;
+      stroke-linecap:round; stroke-linejoin:round;
+    }
+
+    /* Profile row */
+    /* Profile row: avatar + main (text & edit link) */
+    .profile-row{ display:flex; align-items:flex-start; gap:14px; margin-top:56px; }
+    .profile-main{ display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
+    .profile { display:flex; gap:14px; align-items:center; }
+    .avatar {
+      width:74px; height:74px; border-radius:50%;
+      overflow:hidden; background:#f3f3f3; flex:0 0 74px;
+      display:grid; place-items:center;
+    }
+    .avatar img{ width:100%; height:100%; object-fit:cover; }
+    .avatar svg{ width:36px; height:36px; opacity:.5 }
+    .profile-text h2{ margin:0 0 3px 0; font-size:20px; font-weight:600; }
+    .profile-text p{ margin:0 0 3px 0; font-size:16px; color:var(--gray-700); letter-spacing:-0.3px; line-height:1.05; }
+
+    .section { margin-top:18px; }
+    .section-head{
+      display:flex; align-items:center; justify-content:space-between;
+      margin:18px 0 10px 10px;
+    }
+    /* 섹션 타이틀 볼드 */
+    .section-head h3{ margin:0; font-size:20px; font-weight:700; }
+
+    /* 수정하기 가로 고정 + 아이콘 */
+    .edit-link{
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:15px; color:#7F7F7F; text-decoration:none;
+      white-space:nowrap; writing-mode:horizontal-tb;
+    }
+    .edit-link svg{ width:13px; height:13px; }
+    .edit-link path{ stroke:#7F7F7F; stroke-width:1.2; fill:none; }
+
+    .living-type{
+      font-size:16px; font-weight:600;
+      display:flex; align-items:center; gap:8px; margin-left:10px;
+    }
+
+    /* Tags card */
+    .tag-card{
+      background:var(--card-bg);
+      border-radius:15px;
+      box-shadow: 0 0 3.66px rgba(0,0,0,0.1);
+      padding:16px;
+    }
+    .tags{ display:flex; flex-wrap:wrap; gap:8px; }
+    .tag{
+      display:inline-flex; align-items:center; justify-content:center;
+      background:var(--tag-bg); color:var(--tag-text);
+      border-radius:10px; padding:6px 12px;
+      font-size:16px;
+      /* 태그 두께 낮춤 */
+      font-weight:400; 
+      letter-spacing:-0.48px; line-height:16px; white-space:nowrap;
+    }
+
+    /* “후기 작성” card button */
+    .review-card{
+      width:325px; height:56px;
+      margin:12px auto 0;
+      background:var(--peach);
+      border-radius:12px;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 16px; cursor:pointer; border:none;
+    }
+    .review-card span{ color:var(--orange); font-size:18px; font-weight:600; }
+    /* 우측 얇은 화살표 */
+    .review-card .chev path{ stroke:#F26430; }
+
+    /* Logout footer row */
+    .logout-wrap{
+      position:absolute; left:0; right:0; bottom:0;
+      border-top:1px solid #e9e9e9;
+      height:78px; display:flex; align-items:center; justify-content:center;
+      background:#fff;
+    }
+    .logout-btn{
+      width:325px; height:56px; border:none; background:transparent;
+      color:var(--gray-500); font-size:20px; cursor:pointer;
+      text-align:left; padding-left:16px;
+    }
+
+    .hero-inner{ width:100%; }
+    .hero .section:first-of-type{ margin-top:14px; }
+
+    /* Remove legacy absolute edit-link positions */
+    .hero .edge-edit{ display:none; }
+
+    .main{ padding:12px 25px 96px; }
+
+    /* Logout modal overlay */
+    .modal-overlay{
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.45); z-index: 9999; padding: 16px;
+    }
+
+    /* Alert card (Figma spec) */
+    .alert { display:inline-flex; flex-direction:column; align-items:flex-start; gap:10px; padding:16px; position:relative; background-color:#ffffff; border-radius:12px; }
+    .alert .contents { display:flex; flex-direction:column; width:256px; align-items:center; gap:22px; position:relative; flex:0 0 auto; }
+    .alert .warning { display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; flex:0 0 auto; position:relative; align-self:stretch; }
+    .alert .warning-msg { display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; flex:0 0 auto; position:relative; align-self:stretch; }
+    .alert .text-wrapper { position:relative; align-self:stretch; margin-top:-1px; font-family: Pretendard, -apple-system, system-ui, Segoe UI, Roboto, Noto Sans KR, sans-serif; font-weight:700; color:#222229; font-size:20px; text-align:center; letter-spacing:-0.10px; line-height:24px; }
+    .alert .warning-message { font-family: Pretendard, -apple-system, system-ui, Segoe UI, Roboto, Noto Sans KR, sans-serif; font-weight:400; color:#4d4d5c; font-size:16px; text-align:center; letter-spacing:-0.08px; line-height:20px; position:relative; align-self:stretch; }
+    .alert .buttons { display:flex; align-items:center; gap:12px; position:relative; align-self:stretch; width:100%; flex:0 0 auto; }
+    .alert .button-s { display:flex; width:122px; height:36px; align-items:center; justify-content:center; gap:10px; padding:4px 28px; position:relative; background-color:#e8e8e8; border-radius:8px; }
+    .alert .button { all:unset; box-sizing:border-box; position:relative; width:fit-content; font-family:Pretendard, -apple-system, system-ui, Segoe UI, Roboto, Noto Sans KR, sans-serif; font-weight:700; color:#515151; font-size:18px; letter-spacing:-0.09px; line-height:15px; white-space:nowrap; cursor:pointer; }
+    .alert .button-wrapper { display:flex; width:122px; height:36px; align-items:center; justify-content:center; gap:10px; padding:4px 28px; position:relative; background-color:#f26430; border-radius:8px; }
+    .alert .div { all:unset; box-sizing:border-box; position:relative; width:fit-content; font-family:Pretendard, -apple-system, system-ui, Segoe UI, Roboto, Noto Sans KR, sans-serif; font-weight:700; color:#ffffff; font-size:18px; letter-spacing:-0.09px; line-height:15px; white-space:nowrap; cursor:pointer; }
+
+    @media (max-width: 374px){
+      .app{ width:100vw; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-        <h1>내 정보 보기</h1>
-        <a href="{% url 'users:user_info' %}" class="edit-link">수정하기</a>
-    </div>
+  <div class="app">
+    <!-- Top gradient block -->
+    <div class="hero">
+      <!-- Back & Title -->
+      <button class="back-btn" type="button" aria-label="뒤로가기" onclick="window.history.back()">
+        <svg viewBox="0 0 8 13" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M6.84 1.5 1.155 6.711 6.84 11.923"/>
+        </svg>
+      </button>
+      <div class="topbar"><h1>내 정보 보기</h1></div>
 
-    <div class="profile-section">
-        <div class="profile-image">
+      <div class="hero-inner">
+        <!-- Profile + Edit link (이름 블록 세로 중앙 정렬) -->
+        <div class="profile-row">
+          <div class="avatar">
             {% if user.profile_image %}
-                <img src="{{ user.profile_image.url }}" alt="프로필 사진" style="width: 100%; height: 100%; border-radius: 50%;">
+              <img src="{{ user.profile_image.url }}" alt="프로필 사진" />
             {% else %}
-                <span>👵</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5.33 0-8 2.667-8 5.333V22h16v-2.667C20 16.667 17.333 14 12 14Z" fill="#cfcfcf"/></svg>
             {% endif %}
+          </div>
+          <div class="profile-main">
+            <div class="profile-text">
+              <h2>{{ user.username }} 님</h2>
+              <p>{{ user.age }}세 / {{ user.get_gender_display }}</p>
+              <p>{{ user.phone_number|default:"전화번호를 입력해주세요" }}</p>
+            </div>
+            <a href="{% url 'users:user_info' %}" class="edit-link" style="margin-left:auto;">
+              수정하기
+              <svg viewBox="0 0 16 16"><path d="M11.013 2.28l2.707 2.707-6.9 6.9-2.829.707.707-2.828 6.9-6.9Z"/></svg>
+            </a>
+          </div>
         </div>
-        <div class="profile-details">
-            <h2>{{ user.username }} 님</h2>
-            <p>{{ user.age }}세 / {{ user.get_gender_display }}</p>
-            <p>{{ user.phone_number|default:"전화번호를 입력해주세요" }}</p>
-        </div>
-    </div>
 
-    <div class="info-section">
-        <div class="info-header">
+        <!-- Living type -->
+        <div class="section">
+          <div class="section-head">
             <h3>거주 형태</h3>
-            <a href="{% url 'users:senior_living_type' %}" class="edit-link">수정하기</a>
+            <a href="{% url 'users:senior_living_type' %}" class="edit-link">
+              수정하기
+              <svg viewBox="0 0 16 16"><path d="M11.013 2.28l2.707 2.707-6.9 6.9-2.829.707.707-2.828 6.9-6.9Z"/></svg>
+            </a>
+          </div>
+          <div class="living-type">
+            <span>
+              {% if user.living_type == 'senior_couple' %}
+                👵👴
+              {% elif user.living_type == 'alone_female_senior' %}
+                👩‍🦳
+              {% else %}
+                🏡
+              {% endif %}
+            </span>
+            <span>{{ living_type_display }}</span>
+          </div>
         </div>
-        <div class="info-content">
-            <p class="living-type-text">
-                {% if user.living_type == 'senior_couple' %}
-                    <span role="img" aria-label="시니어 부부">👵👴</span>
-                {% elif user.living_type == 'alone_female_senior' %}
-                    <span role="img" aria-label="혼자">👩‍🦳</span>
-                {% else %}
-                    <span role="img" aria-label="기타">🏡</span>
-                {% endif %}
-                {{ living_type_display }}
-            </p>
-        </div>
-    </div>
 
-    <div class="info-section">
-        <div class="info-header">
+        <!-- Preferences -->
+        <div class="section">
+          <div class="section-head">
             <h3>선택한 성향</h3>
-            <a href="{% url 'users:survey_wizard_start' %}" class="edit-link">수정하기</a>
+            <a href="{% url 'users:survey_wizard_start' %}" class="edit-link">
+              수정하기
+              <svg viewBox="0 0 16 16"><path d="M11.013 2.28l2.707 2.707-6.9 6.9-2.829.707.707-2.828 6.9-6.9Z"/></svg>
+            </a>
+          </div>
+          <div class="tag-card">
+            <div class="tags">
+              {% if user_preferences and user_preferences|length > 0 %}
+                {% for preference in user_preferences %}
+                  <span class="tag">{{ preference }}</span>
+                {% endfor %}
+              {% else %}
+                <span style="color:#7F7F7F; font-size:15px;">선호 성향을 아직 선택하지 않으셨어요.</span>
+              {% endif %}
+            </div>
+          </div>
         </div>
-        <div class="info-content tags-container">
-            {% for preference in user_preferences %}
-                <span class="tag">{{ preference }}</span>
-            {% endfor %}
-        </div>
+      </div>
+    </div><!-- /hero -->
+
+    <!-- Main area -->
+    <div class="main">
+      <!-- Review button -->
+      <form action="{% url 'review:review_list_senior' %}" method="get">
+        <button type="submit" class="review-card">
+          <span>후기 작성</span>
+          <span class="chev" aria-hidden="true">
+            <svg viewBox="0 0 8 13" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1.155 1.5 6.84 6.711 1.155 11.923"/>
+            </svg>
+          </span>
+        </button>
+      </form>
     </div>
 
-    <form action="{% url 'review:review_list_senior' %}" method="get">
-        <button type="submit">
-            후기 작성
-        </button>
-    </form>
-
-    <form action="{% url 'users:user_logout' %}" method="post">
+    <!-- Logout footer -->
+    <div class="logout-wrap">
+      <form id="logout-form" action="{% url 'users:user_logout' %}" method="post">
         {% csrf_token %}
-        <button type="submit">로그아웃</button>
-    </form>
-
+        <button type="button" id="logout-open" class="logout-btn" aria-haspopup="dialog" aria-controls="logout-modal">로그아웃</button>
+      </form>
+    </div>
+    
+    <!-- Logout Confirmation Modal -->
+    <div id="logout-modal" class="modal-overlay" aria-hidden="true">
+      <div class="alert" role="dialog" aria-modal="true" aria-labelledby="logout-title">
+        <div class="contents">
+          <div class="warning">
+            <div class="warning-msg">
+              <div id="logout-title" class="text-wrapper">로그아웃</div>
+              <div class="warning-message">로그아웃 하시겠습니까?</div>
+            </div>
+          </div>
+          <div class="buttons">
+            <div class="button-s">
+              <button type="button" class="button" id="logout-cancel">취소</button>
+            </div>
+            <div class="button-wrapper">
+              <button type="button" class="div" id="logout-confirm">확인</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 </html>
+
+<script>
+  (function(){
+    const modal = document.getElementById('logout-modal');
+    const openBtn = document.getElementById('logout-open');
+    const cancelBtn = document.getElementById('logout-cancel');
+    const confirmBtn = document.getElementById('logout-confirm');
+    const form = document.getElementById('logout-form');
+
+    function openModal(){ modal.style.display = 'flex'; modal.setAttribute('aria-hidden','false'); }
+    function closeModal(){ modal.style.display = 'none'; modal.setAttribute('aria-hidden','true'); }
+
+    openBtn && openBtn.addEventListener('click', openModal);
+    cancelBtn && cancelBtn.addEventListener('click', closeModal);
+    modal && modal.addEventListener('click', function(e){ if(e.target === modal) closeModal(); });
+    confirmBtn && confirmBtn.addEventListener('click', function(){ form && form.submit(); });
+  })();
+</script>
