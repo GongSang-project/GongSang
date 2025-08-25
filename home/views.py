@@ -39,6 +39,12 @@ def home_view(request):
     - 상단: AI 추천(= match_score 순 상위 8개)
     - 하단: 최근 본 방 (session 저장된 recent_room_ids 순서 유지)
     """
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if not getattr(request.user, "is_youth", False):
+        return render(request, 'users/re_login.html')
+
     # 추천
     if request.user.is_authenticated and getattr(request.user, "is_youth", False):
         recommended_rooms = _recommend_queryset_for(request.user)[:8]
@@ -184,6 +190,12 @@ def listings_by_region(request):
 # 홈 페이지를 캐시하지 않기
 @never_cache
 def home_view(request):
+
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if not getattr(request.user, "is_youth", False):
+        return render(request, 'users/re_login.html')
+
     ids = request.session.get("recent_room_ids", [])
     recent_rooms = []
     if ids:

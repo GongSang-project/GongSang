@@ -154,9 +154,11 @@ def room_detail(request, room_id):
 
 @login_required
 def senior_request_inbox(request):
-    # 시니어 전용 페이지 (청년이면 리다이렉트)
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+        # 시니어 전용 페이지 (청년이면 리다이렉트)
     if getattr(request.user, "is_youth", False):
-        return redirect(reverse("users:home_youth"))
+        return render(request, 'users/re_login.html')
 
     senior_rooms = Room.objects.filter(owner=request.user)
     requests = (
@@ -172,9 +174,9 @@ def senior_request_inbox(request):
     return render(request, 'room/senior_request_inbox.html', context)
 
 
-@login_required
 def all_reviews_for_room(request, room_id):
-    # 청년 전용
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
     if not getattr(request.user, "is_youth", False):
         return render(request, 'users/re_login.html')
 

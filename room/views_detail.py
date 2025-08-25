@@ -14,7 +14,11 @@ def _push_recent_room(session, room_id, limit=10):
     session.modified = True
 
 def room_detail(request, room_id):
-    # ✅ prefetch 한번만 사용
+    if not request.user.is_authenticated:
+        return render(request, 'users/re_login.html')
+    if not getattr(request.user, "is_youth", False):
+        return render(request, 'users/re_login.html')
+
     room = get_object_or_404(
         Room.objects.prefetch_related('room_reviews'),  # related_name이 다르면 수정
         id=room_id
