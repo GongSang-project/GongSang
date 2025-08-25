@@ -108,19 +108,149 @@
 
     <!-- 매칭 점수(항상 노출) -->
     <section class="card">
-      <div class="match" style="justify-content:space-between">
-        <div>
-          <div style="font-weight:800;margin-bottom:6px">상담앱 분석 결과</div>
-          <div class="chips">
-            <span class="chip">선호일치</span>
-            {% if room.pet_allowed %}<span class="chip">반려동물 가능</span>{% else %}<span class="chip">반려동물 불가능</span>{% endif %}
-            <span class="chip">생활환경</span>
+      <!-- 2열 레이아웃: 왼쪽 프로필 / 오른쪽 매칭 -->
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start">
+        <!-- 왼쪽: 시니어 프로필 -->
+        <div style="text-align:center">
+          <div style="width:84px;height:84px;margin:0 auto;border-radius:999px;background:#e5e7eb;display:flex;align-items:center;justify-content:center;position:relative">
+            <!-- 아바타 아이콘 (이미지 있으면 교체 가능) -->
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="#9ca3af" aria-hidden="true">
+              <path d="M12 12c2.8 0 5-2.2 5-5s-2.2-5-5-5-5 2.2-5 5 2.2 5 5 5zm0 2c-4.4 0-8 2.4-8 5v3h16v-3c0-2.6-3.6-5-8-5z"/>
+            </svg>
+            {% if owner and owner.is_id_card_uploaded %}
+              <span style="position:absolute;right:-4px;bottom:-4px;background:var(--accent);color:#fff;border-radius:999px;padding:4px 6px;font-size:12px;font-weight:800">✔</span>
+            {% endif %}
+          </div>
+
+          <div style="font-weight:900;font-size:20px;margin-top:10px">
+            {{ owner.first_name|default_if_none:owner.username|default:"시니어" }}
+          </div>
+          <div style="color:var(--muted);margin-top:6px;white-space:pre-line">
+            {% if owner.age %}{{ owner.age }}세 {% endif %}
+            {% if owner.get_gender_display %}{{ owner.get_gender_display }}{% endif %}
+            {% if owner and not owner.is_youth %}{{ "\n" }}시니어{% endif %}
+            {% if owner.is_senior_couple %} {{ "\n" }}부부{% endif %}
           </div>
         </div>
-        <div class="score">{{ matching_score|default:"-" }}점</div>
+
+        <!-- 오른쪽: 매칭 영역 -->
+        <div>
+          <div class="match" style="justify-content:space-between;align-items:flex-start">
+            <div>
+              <!-- 제목 + 매칭 문구 + 설명 -->
+              <div style="font-weight:800;margin-bottom:6px;color:var(--muted)">성향 매칭 분석 결과</div>
+              <div style="font-size:22px;line-height:1.35;font-weight:900;margin-bottom:6px">
+                {% if matching_text %}{{ matching_text }}{% else %}-{% endif %}
+              </div>
+              {% if explanation %}
+                <div style="margin-bottom:10px">{{ explanation }}</div>
+              {% endif %}
+
+              <!-- 해시태그만 노출 -->
+              {% if hashtags %}
+                <div class="chips">
+                  {% for tag in hashtags %}
+                    <span class="chip">#{{ tag }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- 점수 말풍선 느낌 유지 (기존 .score 스타일 사용) -->
+            <div class="score">{{ matching_score|default:"-" }}점</div>
+          </div>
+
+          <!-- 게이지 바 (기존 .bar 그대로 사용) -->
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+            <div style="flex:1">
+              <div class="bar"><i style="width: {{ matching_score|default:0 }}%"></i></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="bar" style="margin-top:10px"><i style="width: {{ matching_score|default:0 }}%"></i></div>
     </section>
+
+    {# ───── 매칭 카드 아래에 넣는 후기 프리뷰 섹션 ───── #}
+    {% if rv_cnt %}
+    <section class="card">
+      <div class="h2" style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        후기 <span class="star">★</span>
+        <strong>{{ rv_avg|floatformat:1 }}</strong>
+        <span style="color:var(--muted);font-weight:600">({{ rv_cnt }}개)</span>
+      </div>
+
+      {% if rv_good_tags or rv_bad_tags %}
+        <div style="margin:6px 0 10px">AI 후기 요약 분석 📌</div>
+        {% if rv_good_tags %}
+          <div style="margin:6px 0 8px">좋았던 점</div>
+          <div class="chips" style="margin-bottom:8px">
+            {% for t in rv_good_tags %}
+              <span class="chip">✅ {{ t }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if rv_bad_tags %}
+          <div style="margin:6px 0 8px">개선되었으면 좋은 점</div>
+          <div class="chips" style="margin-bottom:8px">
+            {% for t in rv_bad_tags %}
+              <span class="chip">🛠 {{ t }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endif %}
+
+      <div style="display:grid;grid-template-columns:1fr;gap:18px">
+        {% for r in rv_top3 %}
+          <div class="review">
+            <div class="avatar"></div>
+            <div>
+              <div class="rv-name">
+                {% if r.is_anonymous %}익명{% else %}{{ r.author.username|default:"익명" }}{% endif %}
+                <span class="rv-date">
+                  {{ r.get_lived_period_display|default:"" }} 거주
+                </span>
+              </div>
+
+              <div style="color:#111;margin:4px 0">
+                {{ r.get_satisfaction_display }}
+                <span class="rv-date" style="margin-left:8px">{{ r.created_at|date:"Y년 m월 d일 작성" }}</span>
+              </div>
+
+              {% if r.good_points or r.bad_points %}
+                <div class="chips" style="margin:6px 0">
+                  {% if r.good_points %}<span class="chip">👍 {{ r.good_points }}</span>{% endif %}
+                  {% if r.bad_points %}<span class="chip">🛠 {{ r.bad_points }}</span>{% endif %}
+                </div>
+              {% endif %}
+
+              {% if r.re_living_hope %}
+                <div class="pill" style="margin:6px 0 0;display:inline-block">{{ r.get_re_living_hope_display }}</div>
+              {% endif %}
+
+              {% if r.contract_document %}
+                <div class="rv-date" style="margin-top:6px">📄 임대차 계약서 첨부됨</div>
+              {% endif %}
+
+              {% if r.content %}
+                <div style="margin-top:8px;line-height:1.6">{{ r.content|truncatechars:120 }}</div>
+              {% endif %}
+
+              <a class="more" href="{% url 'room:all_reviews_for_room' room.id %}" style="margin-top:10px">더보기</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <a class="more" href="{% url 'room:all_reviews_for_room' room.id %}" style="margin-top:14px">
+        후기 {{ rv_cnt }}개 모두 보기
+      </a>
+    </section>
+    {% else %}
+    <section class="card">
+      <div class="h2" style="margin-bottom:6px">후기</div>
+      <div style="color:var(--muted)">아직 등록된 후기가 없습니다.</div>
+    </section>
+    {% endif %}
 
     <!-- 연락/프로필 -->
     <section class="card" style="display:flex;gap:10px;align-items:center;justify-content:space-between">
@@ -190,30 +320,17 @@
     </section>
     {% endif %}
 
-    <!-- 리뷰 (있으면 3개 프리뷰) -->
-    {% with rv=room.room_reviews.all %}
-      {% if rv|length %}
-      <section class="card">
-        <div class="h2">후기 <span style="color:var(--muted);font-weight:600">({{ rv|length }}개)</span></div>
-        {% for r in rv|slice:":3" %}
-          <div class="review">
-            <div class="avatar"></div>
-            <div>
-              <div class="rv-name">{{ r.author_name|default:"익명" }} <span class="rv-date">{{ r.created_at|date:"Y.m.d" }}</span></div>
-              <div style="color:#ffb703;margin:4px 0">★★★★★</div>
-              <div>{{ r.content }}</div>
-            </div>
-          </div>
-        {% endfor %}
-        <a class="more" href="{% url 'room:all_reviews_for_room' room.id %}">후기 {{ rv|length }}개 모두 보기</a>
-      </section>
-      {% endif %}
-    {% endwith %}
-
     <!-- 하단 고정 CTA (항상 노출) -->
     <div class="cta">
-      <a class="btn btn-outline" href="{% url 'users:senior_profile' senior_id=room.owner.id room_id=room.id %}">프로필</a>
-      <button id="request-button" class="btn btn-primary" data-room-id="{{ room.id }}">입주 희망 요청하기</button>
+      {% if room.owner.phone_number %}
+        <a class="btn btn-outline" href="tel:{{ room.owner.phone_number }}"> ☎ 전화걸기</a>
+      {% else %}
+        <button class="btn btn-outline" disabled>☎ 연락 불가</button>
+      {% endif %}
+
+      <button id="request-button" class="btn btn-primary" data-room-id="{{ room.id }}">
+        입주 희망 요청하기
+      </button>
     </div>
 
   </div>

@@ -142,6 +142,9 @@ class Room(models.Model):
     created_at = models.DateTimeField(verbose_name="등록일", auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name="수정일", auto_now=True)
 
+    # 소개글
+    # description = models.TextField(verbose_name="소개글", blank=True, null=True)
+
     def __str__(self):
         full_address = f"{self.address_province} {self.address_city} {self.address_district} {self.address_detailed}"
         return f"{full_address} ({self.owner.username}님의 방)"
@@ -177,3 +180,16 @@ class RoomPhoto(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         ordering = ["-created_at"]
+
+
+class RoomExtra(models.Model):
+    room = models.OneToOneField(
+        Room,
+        on_delete=models.CASCADE,
+        related_name="extra",
+        verbose_name="방"
+    )
+    description = models.TextField(verbose_name="소개글", blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.room.id} 번 방 소개글"
