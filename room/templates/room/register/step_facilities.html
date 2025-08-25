@@ -1,89 +1,176 @@
-<h1 style="font-size:20px;margin:16px 0 8px;">방 등록하기</h1>
-<p style="color:#777;margin:0 0 16px;">{{ step }}</p>
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <title>방 등록 - 6. 시설 선택</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="{% static 'users/css/survey_form.css' %}">
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
-<form method="post" id="facilitiesForm">
-  {% csrf_token %}
+    :root{
+      --orange:#F26430; --orange-weak:#FFEBD9;
+      --black:#121212; --grey:#515151;
+      --field:#F3F3F3; --bd:#E9E9E9; --disabled:#959595;
+      --page-w:375px;
+    }
 
-  <section id="part1">
-    <h2 style="font-size:22px;margin:0 0 12px;">제공되는 것들을 선택해주세요</h2>
+    *{box-sizing:border-box}
+    body{margin:0;background:#000;font-family:'Pretendard',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans KR',sans-serif}
 
-    <h3 style="margin:14px 0 8px;">생활시설</h3>
-    <div class="chips">
-      {% for key,label in option_choices %}
-        {# 입력은 시각적으로만 숨기고 라벨로 토글 #}
-        <input type="checkbox" class="chip-input visually-hidden"
-               id="opt-{{ key }}" name="options" value="{{ key }}"
-               {% if key in initial_options %}checked{% endif %}>
-        <label for="opt-{{ key }}" class="chip {% if key in initial_options %}on{% endif %}">{{ label }}</label>
-      {% endfor %}
+    #root{width:var(--page-w);height:812px;margin:0 auto;background:#fff;position:relative;overflow:hidden}
+    /* 스크롤 컨테이너 + 스크롤바 숨김 */
+    #app-wrapper{
+      width:100%;height:100%;overflow:auto;position:relative;
+      -ms-overflow-style:none; scrollbar-width:none; transform:translateZ(0);
+    }
+    #app-wrapper::-webkit-scrollbar{display:none}
+
+    /* 헤더 고정 */
+    .header{position:sticky;top:0;height:102.94px;background:#fff;z-index:100}
+    .back-btn{appearance:none;background:none;border:0;cursor:pointer;position:absolute;left:20.6133px;top:54px}
+    .back-btn img{width:20px;height:27px;padding:6px}
+    .title{position:absolute;top:60px;left:143px;margin:0;color:var(--black);font-size:20px;font-weight:500;line-height:15px;white-space:nowrap}
+
+    /* 단계/질문 */
+    .num{position:sticky; top:102.94px; margin:0; padding:24px 0 0 24px; background:#fff; color:var(--grey); font-size:15px; font-weight:500; z-index:5}
+    .qu-wrapper{position:sticky; top:126px; background:#fff; padding:16px 0 10px 25px; z-index:5}
+    .qu{margin:0; color:var(--black); font-size:25px; font-weight:600; line-height:32px}
+
+    /* 본문 폼 */
+    form#facilitiesForm{padding:8px 25px 120px} /* 하단 버튼 가리지 않도록 여백 */
+    .section-title{margin:22px 0 10px; font-size:16px; font-weight:700; color:#121212}
+
+    /* 칩 */
+    .chips{display:flex; flex-wrap:wrap; column-gap:9px; row-gap:15px}
+    .chip{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:20px 15px;  /* 요청값 고정 */
+      border-radius:10px; background:var(--field); border:1px solid transparent;
+      color:#121212; font-size:16px; font-weight:600; cursor:pointer; user-select:none;
+    }
+    .chip.on{background:var(--orange-weak); border-color:var(--orange); color:var(--orange)}
+
+    /* 라디오 그룹 */
+    .radios{display:flex; gap:18px; align-items:center; margin-top:6px}
+    .radios label{display:flex; gap:8px; align-items:center; font-size:16px}
+
+    /* 하단 고정 버튼 */
+    .footer{
+      position:sticky; bottom:0; z-index:90; background:linear-gradient(#fff 70%, rgba(255,255,255,0));
+      padding:12px 16px 16px;
+    }
+    .btn-primary{
+      width:343px; height:56px; border-radius:10px; border:none; cursor:pointer;
+      font-size:20px; font-weight:700; color:#fff; background:var(--orange);
+      display:block; margin:0 auto;
+    }
+
+    /* 시각 숨김(접근성) */
+    .visually-hidden{
+      position:absolute !important; width:1px; height:1px; margin:-1px; padding:0; border:0;
+      clip:rect(0 0 1px 1px); clip-path:inset(50%); overflow:hidden;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div id="app-wrapper">
+      <!-- 헤더 -->
+      <div class="header">
+        <button type="button" class="back-btn" aria-label="이전">
+          <img src="{% static 'users/images/Vector.png' %}" alt="">
+        </button>
+        <h1 class="title">방 등록하기</h1>
+      </div>
+
+      <!-- 상단 텍스트(스크롤 고정) -->
+      <p class="num">{{ step|default:"6/9" }}</p>
+      <div class="qu-wrapper"><h2 class="qu">제공되는 것들을 선택해주세요</h2></div>
+
+      <!-- 폼 본문 -->
+      <form method="post" id="facilitiesForm">
+        {% csrf_token %}
+
+        <!-- 생활시설 -->
+        <h3 class="section-title" style="margin-top:0;">생활시설</h3>
+        <div class="chips">
+          {% for key,label in option_choices %}
+            <input type="checkbox" class="chip-input visually-hidden"
+                   id="opt-{{ key }}" name="options" value="{{ key }}"
+                   {% if key in initial_options %}checked{% endif %}>
+            <label for="opt-{{ key }}" class="chip {% if key in initial_options %}on{% endif %}">{{ label }}</label>
+          {% endfor %}
+        </div>
+
+        <!-- 보안시설 -->
+        <h3 class="section-title">보안시설</h3>
+        <div class="chips">
+          {% for key,label in security_choices %}
+            <input type="checkbox" class="chip-input visually-hidden"
+                   id="sec-{{ key }}" name="security_facilities" value="{{ key }}"
+                   {% if key in initial_security %}checked{% endif %}>
+            <label for="sec-{{ key }}" class="chip {% if key in initial_security %}on{% endif %}">{{ label }}</label>
+          {% endfor %}
+        </div>
+
+        <!-- 기타시설 -->
+        <h3 class="section-title">기타시설</h3>
+        <div class="chips">
+          {% for key,label in other_choices %}
+            <input type="checkbox" class="chip-input visually-hidden"
+                   id="oth-{{ key }}" name="other_facilities" value="{{ key }}"
+                   {% if key in initial_other %}checked{% endif %}>
+            <label for="oth-{{ key }}" class="chip {% if key in initial_other %}on{% endif %}">{{ label }}</label>
+          {% endfor %}
+        </div>
+
+        <!-- 주차 -->
+        <h3 class="section-title">주차</h3>
+        <div class="radios">
+          <label><input type="radio" name="parking_available" value="true"  {% if initial_parking %}checked{% endif %}> 가능</label>
+          <label><input type="radio" name="parking_available" value="false" {% if not initial_parking %}checked{% endif %}> 불가능</label>
+        </div>
+
+        <!-- 반려동물 -->
+        <h3 class="section-title">반려동물</h3>
+        <div class="radios">
+          <label><input type="radio" name="pet_allowed" value="true"  {% if initial_pet %}checked{% endif %}> 있음</label>
+          <label><input type="radio" name="pet_allowed" value="false" {% if not initial_pet %}checked{% endif %}> 없음</label>
+        </div>
+
+        <!-- 난방 방식 -->
+        <h3 class="section-title">난방 방식</h3>
+        <div class="radios">
+          {% for key,label in heating_choices %}
+            <label><input type="radio" name="heating_type" value="{{ key }}" {% if key == initial_heating %}checked{% endif %}> {{ label }}</label>
+          {% endfor %}
+        </div>
+      </form>
+
+      <!-- 하단 고정 버튼 -->
+      <div class="footer">
+        <button type="submit" class="btn-primary" form="facilitiesForm">다음</button>
+      </div>
     </div>
+  </div>
 
-    <h3 style="margin:18px 0 8px;">보안시설</h3>
-    <div class="chips">
-      {% for key,label in security_choices %}
-        <input type="checkbox" class="chip-input visually-hidden"
-               id="sec-{{ key }}" name="security_facilities" value="{{ key }}"
-               {% if key in initial_security %}checked{% endif %}>
-        <label for="sec-{{ key }}" class="chip {% if key in initial_security %}on{% endif %}">{{ label }}</label>
-      {% endfor %}
-    </div>
-  </section>
+  <script>
+    // 뒤로가기 고정
+    document.querySelector('.back-btn').addEventListener('click', ()=>{
+      if (history.length > 1) history.back();
+      else if (document.referrer) location.href = document.referrer;
+      else location.href = '/';
+    });
 
-  <section id="part2" style="margin-top:18px;">
-    <h3 style="margin:18px 0 8px;">기타시설</h3>
-    <div class="chips">
-      {% for key,label in other_choices %}
-        <input type="checkbox" class="chip-input visually-hidden"
-               id="oth-{{ key }}" name="other_facilities" value="{{ key }}"
-               {% if key in initial_other %}checked{% endif %}>
-        <label for="oth-{{ key }}" class="chip {% if key in initial_other %}on{% endif %}">{{ label }}</label>
-      {% endfor %}
-    </div>
-
-    <h3 style="margin:18px 0 8px;">주차</h3>
-    <div class="radios">
-      <label><input type="radio" name="parking_available" value="true"  {% if initial_parking %}checked{% endif %}> 가능</label>
-      <label><input type="radio" name="parking_available" value="false" {% if not initial_parking %}checked{% endif %}> 불가능</label>
-    </div>
-
-    <h3 style="margin:18px 0 8px;">반려동물</h3>
-    <div class="radios">
-      <label><input type="radio" name="pet_allowed" value="true"  {% if initial_pet %}checked{% endif %}> 있음</label>
-      <label><input type="radio" name="pet_allowed" value="false" {% if not initial_pet %}checked{% endif %}> 없음</label>
-    </div>
-
-    <h3 style="margin:18px 0 8px;">난방 방식</h3>
-    <div class="radios">
-      {% for key,label in heating_choices %}
-        <label><input type="radio" name="heating_type" value="{{ key }}" {% if key == initial_heating %}checked{% endif %}> {{ label }}</label>
-      {% endfor %}
-    </div>
-
-    <button type="submit" class="submit">등록 완료</button>
-  </section>
-</form>
-
-<style>
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{border:1px solid #ddd;border-radius:999px;padding:8px 12px;cursor:pointer;user-select:none}
-  .chip.on{background:#ffede6;border-color:#ffb99f;color:#d8572a}
-  .radios{display:flex;gap:18px;align-items:center}
-  .submit{width:100%;margin:24px 0 8px;padding:14px 16px;border:none;border-radius:14px;background:#f0642d;color:#fff;font-size:16px}
-  /* 핵심: 포커스/클릭은 살려두고 화면엔 안 보이게 */
-  .visually-hidden{
-    position:absolute !important;
-    width:1px; height:1px; margin:-1px; padding:0; border:0;
-    clip:rect(0 0 1px 1px); clip-path:inset(50%); overflow:hidden;
-  }
-</style>
-
-<script>
-  // input 상태와 chip 라벨의 .on 클래스를 동기화
-  document.querySelectorAll('.chip-input').forEach(inp => {
-    const lab = document.querySelector(`label[for="${inp.id}"]`);
-    const sync = ()=> lab.classList.toggle('on', inp.checked);
-    inp.addEventListener('change', sync);
-    // 라벨 클릭 시에도 브라우저가 자동으로 inp.checked 토글 → change 발생 → sync
-    sync(); // 초기 상태 반영
-  });
-</script>
+    // 칩 토글 동기화
+    document.querySelectorAll('.chip-input').forEach(inp => {
+      const lab = document.querySelector(`label[for="${inp.id}"]`);
+      const sync = () => lab.classList.toggle('on', inp.checked);
+      inp.addEventListener('change', sync);
+      sync();
+    });
+  </script>
+</body>
+</html>

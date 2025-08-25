@@ -1,32 +1,209 @@
-<h1 style="font-size:20px;margin:16px 0 8px;">방 등록하기</h1>
-<p style="color:#777;margin:0 0 16px;">{{ step }}</p>
-<h2 style="font-size:22px;margin:0 8px 6px;">공간별로 사진을 올려주세요</h2>
-<p style="color:#666;margin:0 0 16px;">최소 3장, 최대 15장까지 가능합니다.</p>
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <title>방 등록 - 8. 사진등록</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="{% static 'users/css/survey_form.css' %}">
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    :root{
+      --orange:#F26430; --black:#121212; --grey:#515151;
+      --page-w:375px; --field:#F3F3F3; --bd:#E9E9E9;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:#000;font-family:'Pretendard',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans KR',sans-serif}
 
-{% if error %}
-  <div style="background:#ffe8e8;border:1px solid #ffb4b4;padding:10px;border-radius:10px;color:#b10000;margin-bottom:12px;">{{ error }}</div>
-{% endif %}
+    #root{width:var(--page-w);height:812px;margin:0 auto;background:#fff;position:relative;overflow:hidden}
+    #app-wrapper{
+      width:100%;height:100%;overflow:auto;position:relative;transform:translateZ(0);
+      -ms-overflow-style:none; scrollbar-width:none;
+    }
+    #app-wrapper::-webkit-scrollbar{display:none}
 
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
+    /* 헤더 고정 */
+    .header{position:sticky;top:0;height:102.94px;background:#fff;z-index:100}
+    .back-btn{appearance:none;background:none;border:0;cursor:pointer;position:absolute;left:20.6133px;top:54px}
+    .back-btn img{width:20px;height:27px;padding:6px}
+    .title{position:absolute;top:60px;left:143px;margin:0;color:var(--black);font-size:20px;font-weight:500;line-height:15px;white-space:nowrap}
 
-  <div style="margin:12px 0;">
-    <h3>공용 공간</h3>
-    <input type="file" name="common_photos" accept="image/*" multiple>
+    /* 상단 문구 고정 느낌 */
+    .num{position:sticky; top:102.94px; margin:0; padding:24px 0 0 24px; background:#fff; color:var(--grey); font-size:15px; font-weight:500; z-index:5}
+    .qu-wrap{position:sticky; top:126px; background:#fff; padding:6px 25px 10px 25px; z-index:5}
+    .qu{margin:0; color:var(--black); font-size:25px; font-weight:600; line-height:32px}
+    .sub{margin:6px 0 0; color:#666; font-size:14px}
+
+    /* 본문 */
+    form#photoForm{padding:8px 25px 120px}
+    .sec{margin:18px 0}
+    .sec h3{margin:0 0 10px; font-size:18px}
+
+    /* 업로드 슬롯 */
+    .slot-btn{
+      appearance:none; border:1px solid var(--bd); background:#fff;
+      width:86px; height:86px; border-radius:10px; padding:0; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .slot-img{display: flex;
+width: 100px;
+height: 100px;
+padding: 38px;
+align-items: center;
+gap: 10px;
+border-radius: 5px;
+background:#F3F3F3;}
+    .preview{width:100%; height:100%; object-fit:cover; border-radius:10px}
+
+    /* 하단 고정 버튼 */
+    .footer{position:sticky; bottom:0; z-index:90; background:linear-gradient(#fff 70%, rgba(255,255,255,0)); padding:12px 16px 16px}
+    .btn-primary{
+      width:343px; height:56px; border:none; border-radius:10px; background:var(--orange);
+      color:#fff; font-size:20px; font-weight:700; display:block; margin:0 auto; cursor:pointer;
+    }
+    .btn-primary:disabled{opacity:.5; cursor:not-allowed}
+
+    /* 시각 숨김 */
+    .visually-hidden{
+      position:absolute !important; width:1px; height:1px; margin:-1px; padding:0; border:0;
+      clip:rect(0 0 1px 1px); clip-path:inset(50%); overflow:hidden;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div id="app-wrapper">
+
+      <!-- 헤더 -->
+      <div class="header">
+        <button type="button" class="back-btn" aria-label="이전">
+          <img src="{% static 'users/images/Vector.png' %}" alt="">
+        </button>
+        <h1 class="title">방 등록하기</h1>
+      </div>
+
+      <!-- 상단 텍스트 -->
+      <p class="num">{{ step|default:"8/9" }}</p>
+      <div class="qu-wrap">
+        <h2 class="qu">공간별로 사진을 올려주세요</h2>
+        <p class="sub">최소 3장, 최대 15장까지 가능해요.</p>
+      </div>
+
+      {% if error %}
+        <div style="background:#ffe8e8;border:1px solid #ffb4b4;padding:10px;border-radius:10px;color:#b10000;margin:8px 25px 0;">
+          {{ error }}
+        </div>
+      {% endif %}
+
+      <!-- 폼 -->
+      <form id="photoForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- 공용 공간 -->
+        <section class="sec">
+          <h3>공용 공간</h3>
+          <button type="button" class="slot-btn" data-input="commonInput" aria-label="공용 공간 사진 추가">
+            <img class="slot-img" src="{% static 'room/images/empty.svg' %}" alt="빈 슬롯" data-empty="1">
+          </button>
+          <input id="commonInput" class="visually-hidden" type="file" name="common_photos" accept="image/*" multiple>
+        </section>
+
+        <!-- 청년이 이용할 공간 -->
+        <section class="sec">
+          <h3>청년이 이용할 공간</h3>
+          <button type="button" class="slot-btn" data-input="youthInput" aria-label="청년 공간 사진 추가">
+            <img class="slot-img" src="{% static 'room/images/empty.svg' %}" alt="빈 슬롯" data-empty="1">
+          </button>
+          <input id="youthInput" class="visually-hidden" type="file" name="youth_photos" accept="image/*" multiple>
+        </section>
+
+        <!-- 화장실 -->
+        <section class="sec">
+          <h3>화장실</h3>
+          <button type="button" class="slot-btn" data-input="bathInput" aria-label="화장실 사진 추가">
+            <img class="slot-img" src="{% static 'room/images/empty.svg' %}" alt="빈 슬롯" data-empty="1">
+          </button>
+          <input id="bathInput" class="visually-hidden" type="file" name="bathroom_photos" accept="image/*" multiple>
+        </section>
+      </form>
+
+      <!-- 하단 고정 버튼 -->
+      <div class="footer">
+        <button type="submit" id="nextBtn" class="btn-primary" form="photoForm" disabled>다음</button>
+      </div>
+
+    </div>
   </div>
 
-  <div style="margin:12px 0;">
-    <h3>청년이 이용할 공간</h3>
-    <input type="file" name="youth_photos" accept="image/*" multiple>
-  </div>
+  <script>
+    // 뒤로가기
+    document.querySelector('.back-btn').addEventListener('click', ()=>{
+      if (history.length > 1) history.back();
+      else if (document.referrer) location.href = document.referrer;
+      else location.href = '/';
+    });
 
-  <div style="margin:12px 0;">
-    <h3>화장실</h3>
-    <input type="file" name="bathroom_photos" accept="image/*" multiple>
-  </div>
+    (function(){
+      const form = document.getElementById('photoForm');
+      const nextBtn = document.getElementById('nextBtn');
 
-  <button type="submit"
-          style="width:100%;margin:18px 0 8px;padding:14px 16px;border:none;border-radius:14px;background:#f0642d;color:#fff;font-size:16px;">
-    다음
-  </button>
-</form>
+      // 슬롯 버튼 → 해당 input 클릭
+      document.querySelectorAll('.slot-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.getAttribute('data-input');
+          const input = document.getElementById(id);
+          if (input) input.click();
+        });
+      });
+
+      // 파일 선택 시: 첫 파일 미리보기로 교체 + 전체 개수 계산
+      function setPreview(input){
+        const btn = document.querySelector(`.slot-btn[data-input="${input.id}"]`);
+        const img = btn.querySelector('img');
+        if (input.files && input.files.length){
+          const url = URL.createObjectURL(input.files[0]);  // 첫 장만 미리보기
+          img.src = url;
+          img.removeAttribute('data-empty');
+          img.classList.remove('slot-img');
+          img.classList.add('preview');
+        } else {
+          // 비워졌다면 empty 이미지 복원
+          img.src = "{% static 'room/images/empty.png' %}";
+          img.setAttribute('data-empty','1');
+          img.classList.remove('preview');
+          img.classList.add('slot-img');
+        }
+        updateTotal();
+      }
+
+      function countFiles(){
+        const inputs = form.querySelectorAll('input[type="file"]');
+        let n = 0;
+        inputs.forEach(i => { if (i.files) n += i.files.length; });
+        return n;
+      }
+      function updateTotal(){
+        const n = countFiles();
+        nextBtn.disabled = !(n >= 3 && n <= 15);
+      }
+
+      // change 이벤트 바인딩
+      ['commonInput','youthInput','bathInput'].forEach(id=>{
+        const el = document.getElementById(id);
+        el.addEventListener('change', ()=> setPreview(el));
+      });
+
+      // 제출 시 개수 검증
+      form.addEventListener('submit', (e)=>{
+        const n = countFiles();
+        if (n < 3 || n > 15){
+          e.preventDefault();
+          alert('사진은 최소 3장, 최대 15장까지 업로드할 수 있어요.');
+        }
+      });
+
+      updateTotal();
+    })();
+  </script>
+</body>
+</html>

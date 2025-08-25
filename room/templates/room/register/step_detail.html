@@ -1,85 +1,193 @@
 {% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <title>방 등록 - 3. 집 상세 정보</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="{% static 'users/css/survey_form.css' %}">
+  <style>
+    /* 폰트 */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
-<h1 style="font-size:20px;margin:16px 0 8px;">방 등록하기</h1>
-<p style="color:#777;margin:0 0 16px;">3/9</p>
-<h2 style="font-size:22px;margin:0 0 18px;">집의 상세 정보를 알려주세요</h2>
-
-{% if form.errors %}
-  <div style="background:#ffe8e8;border:1px solid #ffb4b4;padding:10px;border-radius:10px;color:#b10000;margin-bottom:12px;">
-    입력을 확인해 주세요.
-  </div>
-{% endif %}
-
-<form method="post" id="detailForm" novalidate>
-  {% csrf_token %}
-
-  <!-- 매물유형 (UI용) -->
-  <label style="display:block;margin:10px 0 6px;">매물유형</label>
-  <select name="property_type" id="property_type"
-          style="width:100%;padding:12px;border:1px solid #ddd;border-radius:12px;">
-    {% for v in property_types %}
-      <option value="{{ v }}" {% if v == initial_property_type %}selected{% endif %}>{{ v }}</option>
-    {% endfor %}
-  </select>
-
-  <div style="display:flex;gap:12px;margin-top:18px;">
-    <!-- 방 개수 (UI용) -->
-    <div style="flex:1;">
-      <label style="display:block;margin:0 0 6px;">방 개수</label>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <input type="number" name="rooms_count" id="rooms_count" min="1" step="1"
-               value="{{ initial_rooms_count }}"
-               style="flex:1;padding:12px;border:1px solid #ddd;border-radius:12px;">
-        <span style="color:#666;">개</span>
-      </div>
-    </div>
-
-    <!-- 화장실 개수 → models.Room.toilet_count -->
-    <div style="flex:1;">
-      <label style="display:block;margin:0 0 6px;">화장실 개수</label>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <input type="number" name="toilet_count" id="toilet_count" min="1" step="1" required
-               value="{{ form.initial.toilet_count|default:1 }}"
-               style="flex:1;padding:12px;border:1px solid #ddd;border-radius:12px;">
-        <span style="color:#666;">개</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 면적 → models.Room.area -->
-  <div style="margin-top:18px;">
-    <label style="display:block;margin:0 0 6px;">청년이 사용할 방은 몇 m² 인가요?</label>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <input type="number" name="area" id="area" min="1" step="0.1" required
-             value="{{ form.initial.area|default:'' }}"
-             placeholder="예: 15"
-             style="flex:1;padding:12px;border:1px solid #ddd;border-radius:12px;">
-      <span style="color:#666;">m²</span>
-    </div>
-  </div>
-
-  <!-- floor가 폼에서 필수일 수 있으니 기본값 전달 -->
-  <input type="hidden" name="floor" value="{{ form.initial.floor|default:'정보없음' }}">
-
-  <button type="submit" id="nextBtn"
-          style="width:100%;margin:24px 0 8px;padding:14px 16px;border:none;border-radius:14px;background:#f0642d;color:#fff;font-size:16px;">
-    다음
-  </button>
-</form>
-
-<script>
-  (function () {
-    const area = document.getElementById('area');
-    const toilet = document.getElementById('toilet_count');
-    const btn = document.getElementById('nextBtn');
-    function toggle() {
-      const ok = (Number(area.value) > 0) && (Number(toilet.value) >= 1);
-      btn.disabled = !ok;
-      btn.style.opacity = ok ? 1 : 0.6;
-      btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+    :root{
+      --orange:#F26430;
+      --grey:#515151;
+      --black:#121212;
+      --disabled:#959595;
+      --page-w:375px;
     }
-    area.addEventListener('input', toggle);
-    toilet.addEventListener('input', toggle);
-    toggle();
-  })();
-</script>
+
+    *{box-sizing:border-box}
+    body{margin:0;background:#000;font-family:'Pretendard',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans KR',sans-serif}
+    #root{width:var(--page-w);height:812px;margin:0 auto;background:#fff;position:relative;overflow:hidden}
+    #app-wrapper{width:100%;height:100%;overflow:auto;position:relative}
+
+    /* 헤더(공통) */
+    .header{position:sticky;top:0;height:102.94px;background:#fff;z-index:100}
+    .back-btn{appearance:none;background:none;border:0;cursor:pointer;position:absolute;left:20.6133px;top:54px}
+    .back-btn img{width:20px;height:27px;padding:6px}
+    .title{position:absolute;top:60px;left:143px;margin:0;color:var(--black);font-size:20px;font-weight:500;line-height:15px;white-space:nowrap}
+
+    /* 단계 번호/질문(공통 좌표) */
+    .num{
+      position:absolute; top:126.75px; left:24px; margin:0;
+      color:#515151; font-size:15px; font-weight:500; letter-spacing:-.075px;
+    }
+    .qu-wrapper{
+      display:flex; flex-direction:column; gap:25px;
+      position:absolute; top:157.75px; left:25px;
+    }
+    .qu{
+      margin:0; color:#121212; font-size:25px; font-weight:600; line-height:32px; letter-spacing:-.2px;
+    }
+
+    /* 폼 레이아웃(공통 좌표) */
+    form#detailForm{
+      position:absolute; top:203px; left:25px; width:325px;
+    }
+    .row{margin:14px 0}
+    .row label{display:block; margin:0 0 8px 2px; color:#121212; font-size:14px; font-weight:500}
+
+    /* 입력 공통 */
+    .input{
+      width:100%; height:56px; padding:12px 14px;
+      border-radius:10px; border:1px solid #C3C3C3; background:#FFF;
+      color:#1f1f1f; font-size:16px; outline:none;
+    }
+    .input:focus{box-shadow:0 0 0 2px rgba(242,100,48,.15)}
+
+    /* select에 다운캐럿 아이콘 */
+    .select{
+      -webkit-appearance:none; -moz-appearance:none; appearance:none;
+      background:
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")
+        no-repeat right 12px center / 20px 20px;
+      padding-right:40px;  /* 아이콘 자리 */
+    }
+
+    /* 2열 필드 */
+    .cols-2{display:flex; gap:12px}
+    .unit{color:#666; margin-left:8px}
+
+    /* 제출 버튼(공통 좌표) */
+    .btn-primary{
+      width:343px; height:56px; border-radius:10px; border:none; cursor:pointer;
+      position:absolute; top:722px; left:16px;
+      font-size:20px; font-weight:700; color:#fff; background:var(--orange);
+    }
+    .btn-primary:disabled{background:var(--disabled)}
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div id="app-wrapper">
+
+      <!-- 헤더 -->
+      <div class="header">
+        <button type="button" class="back-btn" aria-label="이전">
+          <img src="{% static 'users/images/Vector.png' %}" alt="">
+        </button>
+        <h1 class="title">방 등록하기</h1>
+      </div>
+
+      <!-- 단계/질문 -->
+      <p class="num">3/9</p>
+      <div class="qu-wrapper">
+        <h2 class="qu">집의 상세 정보를 알려주세요</h2>
+      </div>
+
+      {% if form.errors %}
+        <div style="position:absolute; top:190px; left:25px; width:325px; background:#ffe8e8;border:1px solid #ffb4b4;padding:10px;border-radius:10px;color:#b10000;">
+          입력을 확인해 주세요.
+        </div>
+      {% endif %}
+
+      <!-- 폼 -->
+      <form method="post" id="detailForm" novalidate>
+        {% csrf_token %}
+
+        <!-- 매물유형 -->
+        <div class="row">
+          <label for="property_type">매물유형</label>
+          <select name="property_type" id="property_type" class="input select">
+            {% for v in property_types %}
+              <option value="{{ v }}" {% if v == initial_property_type %}selected{% endif %}>{{ v }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- 방/화장실 개수 2열 -->
+        <div class="row cols-2">
+          <div style="flex:1">
+            <label for="rooms_count">방 개수</label>
+            <div style="display:flex;align-items:center">
+              <input type="number" name="rooms_count" id="rooms_count" min="1" step="1"
+                     value="{{ initial_rooms_count|default:1 }}" class="input" style="flex:1">
+              <span class="unit">개</span>
+            </div>
+          </div>
+
+          <div style="flex:1">
+            <label for="toilet_count">화장실 개수</label>
+            <div style="display:flex;align-items:center">
+              <input type="number" name="toilet_count" id="toilet_count" min="1" step="1" required
+                     value="{{ form.initial.toilet_count|default:1 }}" class="input" style="flex:1">
+              <span class="unit">개</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 면적 -->
+        <div class="row">
+          <label for="area">청년이 사용할 방은 몇 m² 인가요?</label>
+          <div style="display:flex;align-items:center">
+            <input type="number" name="area" id="area" min="1" step="0.1" required
+                   value="{{ form.initial.area|default:'' }}" placeholder="예: 15" class="input" style="flex:1">
+            <span class="unit">m²</span>
+          </div>
+        </div>
+
+        <!-- 폼 요구사항에 따라 필요한 경우 -->
+        <input type="hidden" name="floor" value="{{ form.initial.floor|default:'정보없음' }}">
+      </form>
+
+      <!-- 폼 바깥 제출 버튼(레이아웃 고정) -->
+      <button type="submit" id="nextBtn" class="btn-primary" form="detailForm" disabled>다음</button>
+
+    </div>
+  </div>
+
+  <script>
+    // 공통: 뒤로가기
+    document.querySelector('.back-btn').addEventListener('click', ()=>{
+      if (history.length > 1) history.back();
+      else if (document.referrer) location.href = document.referrer;
+      else location.href = '/';
+    });
+
+    // 활성화 조건 토글 (면적>0 && 화장실>=1)
+    (function () {
+      const area   = document.getElementById('area');
+      const toilet = document.getElementById('toilet_count');
+      const btn    = document.getElementById('nextBtn');
+      const form   = document.getElementById('detailForm');
+
+      function toggle() {
+        const ok = Number(area.value) > 0 && Number(toilet.value) >= 1;
+        btn.disabled = !ok;
+      }
+      area.addEventListener('input', toggle);
+      toilet.addEventListener('input', toggle);
+      toggle();
+
+      // 폼 바깥 버튼 안전 제출(구형 브라우저 대비)
+      btn.addEventListener('click', function(e){
+        if (btn.disabled) { e.preventDefault(); return; }
+        if (form.reportValidity && !form.reportValidity()) { e.preventDefault(); return; }
+        if (form.requestSubmit) form.requestSubmit(); else { e.preventDefault(); form.submit(); }
+      });
+    })();
+  </script>
+</body>
+</html>

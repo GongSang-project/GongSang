@@ -21,11 +21,12 @@
         </div>
 
         <!-- 지역 검색창 (HEAD의 datalist + 실제 검색 URL) -->
+
         <div class="search-box">
           <form method="get" action="{% url 'room:room_list_page' %}" autocomplete="off">
             <input id="region-search" name="region"
                    list="regions"
-                   placeholder="지역을 검색해보세요 (예: 노원, 공릉동, 7호선)">
+                   placeholder="지역을 검색해보세요" type="text"/>
             <datalist id="regions">
               {% for s in region_suggestions %}
                 <option value="{{ s }}"></option>
@@ -33,6 +34,7 @@
             </datalist>
           </form>
         </div>
+
       </div>
 
       <!-- 메뉴 리스트 (브랜치 스타일 + HEAD의 실제 링크) -->
