@@ -38,6 +38,14 @@ from .forms import (
 from .models import User, CHOICE_PARTS, Region, Listing
 from .models import get_choice_parts, important_points_parts
 
+import os
+import json
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.cache import never_cache
+
+from room.views_register import _load_addr_tree, _get_addr_error
+
 # ────────────────────────────────────────────────────────────────────────────
 # Gemini 설정
 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
@@ -59,10 +67,6 @@ FORMS = [
 # ────────────────────────────────────────────────────────────────────────────
 # 최근 본 방 유틸
 def _recent_rooms_from_session(request, limit: int = 20):
-    """
-    세션에 저장된 recent_room_ids(가장 최근이 앞쪽)를 읽어
-    그 순서 그대로 정렬한 Room 목록을 반환.
-    """
     ids = request.session.get("recent_room_ids", []) or []
     if not ids:
         return []
@@ -165,13 +169,39 @@ def youth_region_view(request):
         return render(request, "users/re_login.html")
 
     user = request.user
+    addr_tree = _load_addr_tree()
+    addr_tree_json = json.dumps(addr_tree, ensure_ascii=False)
+    error = None
+
     form = YouthInterestedRegionForm(request.POST or None, instance=user)
 
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        return redirect("users:upload_id_card")
+    if request.method == "POST":
+        if form.is_valid():
+            data = form.cleaned_data
+            s = data.get("interested_province")
+            g = data.get("interested_city")
+            d = data.get("interested_district")
 
-    return render(request, "users/youth_region.html", {"form": form})
+            # 주소 트리를 사용하여 유효성 검사
+            ok = bool(s in addr_tree and g in addr_tree.get(s, {}) and d in addr_tree.get(s, {}).get(g, []))
+
+            if not ok:
+                error = "유효한 행정동을 선택해 주세요."
+            else:
+                form.save()
+                return redirect("users:upload_id_card")
+    else:
+        form = YouthInterestedRegionForm(instance=user)
+
+    return render(
+        request,
+        "users/youth_region.html",
+        {
+            "form": form,
+            "addr_tree_json": addr_tree_json,
+            "error": error,
+        },
+    )
 
 
 def senior_living_type_view(request):

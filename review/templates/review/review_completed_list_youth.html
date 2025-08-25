@@ -126,7 +126,7 @@
         </div>
 
         <div class="btn-wrap">
-          <button class="btn">후기 보기</button>
+            <a href="{% url 'room:room_detail' review.room.id %}" class="btn">작성한 후기 보기</a>
         </div>
       </div>
     {% endfor %}

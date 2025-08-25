@@ -123,11 +123,10 @@
               </div>
             </div>
           </div>
-          
 
-          <div class="cta">
-            <a class="view-review-button" href="#">작성한 후기 보기</a>
-          </div>
+            <div class="cta">
+                <a class="view-review-button" href="{% url 'users:youth_profile' review.target_youth.move_in_requests_as_youth.first.id %}">작성한 후기 보기</a>
+            </div>
         </div>
         {% endfor %}
       {% else %}

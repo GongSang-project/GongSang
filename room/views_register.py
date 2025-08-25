@@ -1,5 +1,3 @@
-# room/views_register.py
-
 import os
 import csv
 import json
@@ -162,11 +160,6 @@ def _norm_header(name: str) -> str:
     return n.replace(" ", "").replace("_", "").replace("-", "")
 
 def _load_addr_tree():
-    """
-    CSV를 읽어 {시도:{시군구:[동...]}} 트리 생성.
-    ⚠ 트리가 비었으면 캐시하지 않음 → 파일을 나중에 넣어도 다음 요청에 즉시 반영.
-    실패 원인은 _ADDR_ERROR_MSG에 저장.
-    """
     global _ADDR_TREE_CACHE, _ADDR_ERROR_MSG
     _ADDR_ERROR_MSG = None
 
