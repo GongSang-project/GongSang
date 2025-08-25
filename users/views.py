@@ -498,6 +498,10 @@ def youth_profile(request, request_id):
     is_id_card_uploaded = youth_user.is_id_card_uploaded
     reviews = Review.objects.filter(target_youth=youth_user).order_by("-created_at")
 
+    ai_summary = "아직 등록된 후기가 없거나, AI 요약 생성에 필요한 데이터가 부족합니다."
+    good_hashtags = []
+    bad_hashtags = []
+
     total_satisfaction_score = 0
     satisfaction_map = {
         "VERY_DISSATISFIED": 1, "DISSATISFIED": 2, "NORMAL": 3,
@@ -510,17 +514,19 @@ def youth_profile(request, request_id):
     if reviews.count() > 0:
         average_rating = total_satisfaction_score / reviews.count()
 
+    review_texts_list = []
+    for review in reviews:
+        if review.good_points:
+            review_texts_list.append(review.good_points)
+        if review.bad_points:
+            review_texts_list.append(review.bad_points)
 
-    # 후기 텍스트 결합
-    review_texts = " ".join([review.text for review in reviews if review.text])
-
-    ai_summary = "아직 등록된 후기가 없거나, AI 요약 생성에 필요한 데이터가 부족합니다."
-    good_hashtags = []
-    bad_hashtags = []
+    review_texts = " ".join(review_texts_list)
 
     if review_texts:
         prompt = f"""
-                아래 후기 텍스트들을 분석하여 전체 내용을 100자 이내로 간결하게 요약해줘.
+                아래 후기 텍스트들을 분석하여 전체 내용을 50자 이내로 간결하게 요약해줘.
+                요약 내용은 그저 나열식이 아니라 깔끔하게 정리된 문장이어야 해. 존댓말을 사용해.
                 그리고 후기에서 긍정적인 내용과 부정적인 내용을 각각 3개의 해시태그로 추출해줘.
 
                 <후기 텍스트>

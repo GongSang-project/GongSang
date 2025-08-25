@@ -220,11 +220,10 @@
             </div>
           </div>
 
-          <div class="button-group">
-            <a href="{% url 'review:review_write' request.id %}">
-              <button type="button" class="write-review-button">후기 작성하기</button>
-            </a>
+          <div class="cta">
+              <a class="write-review-button" href="{% url 'review:review_write_youth' request.id %}">후기 작성하기</a>
           </div>
+
         {% endfor %}
       {% else %}
         <div class="date" style="padding-top:24px;">후기를 작성할 수 있는 시니어-방이 없습니다.</div>

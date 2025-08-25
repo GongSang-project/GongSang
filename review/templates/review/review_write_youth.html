@@ -1,0 +1,210 @@
+{% load static %}
+{% load matching_filters %}
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <title>후기 작성</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="{% static 'review/css/write_review.css' %}">
+</head>
+<body>
+    <div id="root">
+        <div id="app-wrapper">
+
+            <!-- 상단 헤더 -->
+            <div class="header">
+                <!-- 전 단계로 이동 -->
+               <a id="headerBackLink" href="#" role="button">
+                <img src="{% static 'review/images/Vector.png' %}" alt="뒤로가기" class="icon">
+               </a>
+                <h1>후기 작성하기</h1>
+            </div>
+
+            <!-- 상단 진행바 -->
+            <div class="progress-wrap" aria-label="진행률">
+                <div id="progressBar" class="progress-bar" style="width: 16.6%;"></div>
+            </div>
+
+            <!-- 폼 시작 -->
+            <form id="reviewForm" method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                <!-- Q1. 실거주 인증 -->
+                <div id="step1" class="step active">
+
+                    <!-- 1. 사진 첨부 part -->
+                    <div class="intro">
+                        <!-- 현재 단계 번호 -->
+                        <p class="num">1/6</p>
+
+                        <!-- 질문 박스 -->
+                        <div class="qu-wrapper">
+                            <h2 class="qu">실거주 인증이 필요해요</h2>
+                            <p class="explanation">
+                                <span>임대차계약서를 첨부해주세요</span>
+                                <span>인증 후 후기 등록이 가능해요</span>
+                            </p>
+                        </div>
+
+                        <!-- 계약서 아이콘 -->
+                        <img src="{% static 'review/images/contract_img.svg' %}" alt="" class="contract_img">
+                        <p class="privacy-note">개인정보는 안전하게 보호됩니다.</p>
+
+                        <!-- 폼 박스 -->
+                        <div class="form-wrapper" style="display: none;">{{ form1.as_p }}</div>
+                        <!-- 버튼들 -->
+                        <div class="btns">
+                            <button type="button" id="btnCamera" class="btn-camera">카메라로 촬영</button>
+                            <button type="button" id="btnGallery" class="btn-gallery">사진 첨부</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 2. 첨부된 계약서 확인 Part -->
+                    <section class="view" id="step-review" hidden>
+
+                        <!-- part1으로 버튼 -->
+                        <button type="button" class="backBtn" data-action="back-intro" aria-label="뒤로">
+                            <img src="{% static 'review/images/Vector.png' %}" alt="" class="icon">
+                        </button>
+                        <!-- 현재단계번호 -->
+                        <p class="num">1/6</p>
+                        <!-- 질문 박스 -->
+                        <div class="qu-wrapper">
+                            <h2 class="qu"><span>임대차계약서를</span><span>확인해주세요.</span></h2>
+                        </div>
+                        <!-- 계약서사진 -->
+                        <div class="review-photo">
+                            <img id="reviewImage" alt="계약서 사진"/>
+                        </div>
+                        <!-- 버튼들 -->
+                        <div class="btns">
+                            <button type="button" class="btn-camera" id="btnAgain">다시 촬영</button>
+                            <button type="button" class="btn-gallery" data-action="next" data-step="1">확인</button>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Q2. 함께 지낸 기간-->
+                <div id="step2" class="step">
+
+                    <!-- 이전 버튼 -->
+                    <button type="button" class="backBtn" data-action="back" data-step="2" aria-label="이전">
+                        <img src="{% static 'review/images/Vector.png' %}" alt="" class="icon">
+                    </button>
+                    <!-- 현재번호 -->
+                    <p class="num">2/6</p>
+                    <!-- 질문 박스 -->
+                    <div class="qu-wrapper">
+                        <h2 class="qu"><span>함께 지낸 기간은</span><span>얼마나 되나요?</span></h2>
+                    </div>
+
+                    <!-- 폼 박스 -->
+                    <div class="form-wrapper">{{ form2.as_p }}</div>
+
+                    <!--다음버튼 -->
+                    <button type="button" class="cta" data-action="next" data-step="2" disabled>다음</button>
+                </div>
+
+                <!-- Q3. 전반적인 만족도 -->
+                <div id="step3" class="step">
+
+                    <!-- 이전버튼 -->
+                    <button type="button" class="backBtn" data-action="back" data-step="3" aria-label="이전">
+                        <img src="{% static 'review/images/Vector.png' %}" alt="" class="icon">
+                    </button>
+                    <!-- 현재번호 -->
+                    <p class="num">3/6</p>
+                    <!-- 질문박스 -->
+                    <div class="qu-wrapper">
+                        <h2 class="qu">전반적인 만족도는 어땠나요?</h2>
+                    </div>
+                    <!-- 폼박스 -->
+                    <div class="form-wrapper">{{ form3.as_p }}</div>
+                    <!-- 다음버튼 -->
+                    <button type="button" class="cta" data-action="next" data-step="3" disabled>다음</button>
+                </div>
+
+                <!-- Q4. 좋았던 점 -->
+                <div id="step4" class="step">
+
+                    <!-- 이전 버튼 -->
+                     <button type="button" class="backBtn" data-action="back" data-step="4" aria-label="이전">
+                        <img src="{% static 'review/images/Vector.png' %}" alt="" class="icon">
+                    </button>
+                    <!-- 현재 번호 -->
+                    <p class="num">4/6</p>
+                    <!-- 질문박스 -->
+                    <div class="qu-wrapper">
+                        <h2 class="qu"><span>좋았던 점은</span><span>무엇이었나요?</span></h2>
+                        <p class="explanation">자유롭게 작성해주세요</p>
+                    </div>
+                    <!-- 폼박스 -->
+                    <div class="form-wrapper">{{ form4.as_p }}</div>
+                    <!-- 다음 버튼 -->
+                    <button type="button" class="cta" data-action="next" data-step="4">다음</button>
+                </div>
+
+                <!-- Q5. 개선할 점 -->
+                <div id="step5" class="step">
+
+                    <!-- 이전버튼 -->
+                    <button type="button" class="backBtn" data-action="back" data-step="5" aria-label="이전">
+                        <img src="{% static 'review/images/Vector.png' %}" alt="" class="icon">
+                    </button>
+                    <!-- 현재번호 -->
+                    <p class="num">5/6</p>
+                    <!-- 질문박스 -->
+                    <div class="qu-wrapper">
+                        <h2 class="qu"><span>개선되었으면 좋을 점은</span><span>무엇이었나요?</span></h2>
+                        <p class="explanation">자유롭게 작성해주세요</p>
+                    </div>
+                    <!-- 폼박스 -->
+                    <div class="form-wrapper">{{ form5.as_p }}</div>
+                    <!-- 다음버튼 -->
+                    <button type="button" class="cta" data-action="next" data-step="5">다음</button>
+                </div>
+
+                <!-- Q6. 추후 동거 희망 여부-->
+                <div id="step6" class="step">
+
+                    <!-- 이전버튼 -->
+                    <button type="button" class="backBtn" data-action="back" data-step="6" aria-label="이전">
+                        <img src="{% static 'review/images/Vector.png' %}" alt="" class="icon">
+                    </button>
+                    <!-- 현재번호 -->
+                    <p class="num">6/6</p>
+                    <!-- 질문박스 -->
+                    <div class="qu-wrapper">
+                        <h2 class="qu">
+                        <span>다시 이 집에서</span>
+                        <span>살고 싶으신가요?</span>
+                        </h2>
+                    </div>
+                    <!-- 폼박스 -->
+                    <div class="form-wrapper">{{ form6.as_p }}</div>
+                    <!-- 다음버튼 -->
+                    <button type="button" class="cta" data-action="next" data-step="6" disabled>다음</button>
+                </div>
+
+                <!-- 7. 완료화면 -->
+                <div id="step7" class="step">
+                  <section id="doneSection" hidden>
+                    <button type="button" class="backBtn" data-action="back" data-step="7" aria-label="이전">
+                      <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
+                    </button>
+
+                    <h2>후기가 등록되었습니다!</h2>
+                    <p>다른 청년 입주자에게 큰 도움이 됩니다.</p>
+                    <img src="{% static 'users/images/check-circle.png' %}" alt="" class="checkmark">
+                    <button type="submit" class="cta">후기함으로 가기</button>
+
+                   </section> 
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="{% static 'review/js/write_review.js' %}"></script>
+</body>
+</html>
