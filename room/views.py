@@ -63,19 +63,29 @@ def room_detail(request, room_id):
         ai_recommendations = request.session.get('ai_recommendations', {})
         ai_recommendation_reason = ai_recommendations.get(str(room.id))
 
-    # 리뷰/평점
-    reviews = Review.objects.filter(room=room).order_by('-created_at')
-    review_count = reviews.count()
 
-    review_texts = " ".join([review.text for review in reviews if review.text])
 
     ai_summary = "아직 등록된 후기가 없거나, AI 요약 생성에 필요한 데이터가 부족합니다."
     good_hashtags = []
     bad_hashtags = []
 
+    # 리뷰/평점
+    reviews = Review.objects.filter(room=room).order_by('-created_at')
+    review_count = reviews.count()
+
+    review_texts_list = []
+    for review in reviews:
+        if review.good_points:
+            review_texts_list.append(review.good_points)
+        if review.bad_points:
+            review_texts_list.append(review.bad_points)
+
+    review_texts = " ".join(review_texts_list)
+
     if review_texts:
         prompt = f"""
-                아래 후기 텍스트들을 분석하여 전체 내용을 100자 이내로 간결하게 요약해줘.
+                아래 후기 텍스트들을 분석하여 전체 내용을 50자 이내로 간결하게 요약해줘.
+                요약 내용은 그저 나열식이 아니라 깔끔하게 정리된 문장이어야 해. 존댓말을 사용해.
                 그리고 후기에서 긍정적인 내용과 부정적인 내용을 각각 3개의 해시태그로 추출해줘.
 
                 <후기 텍스트>
@@ -92,8 +102,16 @@ def room_detail(request, room_id):
             """
         try:
             response = model.generate_content(prompt)
-            # ... 응답 처리 로직
-            # ai_summary, good_hashtags, bad_hashtags 변수 업데이트
+            if "```json" in response.text:
+                response_text = response.text.split("```json")[1].split("```")[0]
+            else:
+                response_text = response.text
+            ai_data = json.loads(response_text.strip())
+
+            ai_summary = ai_data.get('summary', ai_summary)
+            good_hashtags = ai_data.get('good_hashtags', good_hashtags)
+            bad_hashtags = ai_data.get('bad_hashtags', bad_hashtags)
+
         except Exception as e:
             print(f"Gemini API 호출 중 오류 발생: {e}")
 

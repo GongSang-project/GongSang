@@ -7,7 +7,8 @@ urlpatterns = [
     path('senior/', views.review_list_senior, name='review_list_senior'),
     path('senior/completed/', views.review_completed_list_senior, name='review_completed_list_senior'),
 
-    path('write/<int:request_id>/', views.review_write, name='review_write'),
+    path('write/senior/<int:request_id>/', views.review_write_senior, name='review_write_senior'),
+    path('write/youth/<int:request_id>/', views.review_write_youth, name='review_write_youth'),
 
     path('youth/', views.review_list_youth, name='review_list_youth'),
     path('youth/completed/', views.review_completed_list_youth, name='review_completed_list_youth'),
