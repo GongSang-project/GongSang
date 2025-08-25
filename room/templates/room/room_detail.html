@@ -1,4 +1,4 @@
-{% load static %}
+{% load static room_labels %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -137,7 +137,7 @@
         <div class="h2">생활시설</div>
         <div class="fac-list">
           {% for v in room.options %}
-            <span class="fac">{{ v }}</span>
+            <span class="fac">{{ v|label_option }}</span>
           {% endfor %}
         </div>
       {% endif %}
@@ -146,7 +146,7 @@
         <div class="h2" style="margin-top:14px">보안시설</div>
         <div class="fac-list">
           {% for v in room.security_facilities %}
-            <span class="fac">{{ v }}</span>
+            <span class="fac">{{ v|label_security }}</span>
           {% endfor %}
         </div>
       {% endif %}
@@ -155,14 +155,20 @@
         <div class="h2" style="margin-top:14px">기타시설</div>
         <div class="fac-list">
           {% for v in room.other_facilities %}
-            <span class="fac">{{ v }}</span>
+            <span class="fac">{{ v|label_other }}</span>
           {% endfor %}
         </div>
       {% endif %}
 
       {% if room.heating_type %}
         <div class="h2" style="margin-top:14px">난방 방식</div>
-        <div class="fac-list"><span class="fac">{{ room.heating_type }}</span></div>
+        <div class="fac-list">
+          {% if room.get_heating_type_display %}
+            <span class="fac">{{ room.get_heating_type_display }}</span>
+          {% else %}
+            <span class="fac">{{ room.heating_type|label_heating }}</span>
+          {% endif %}
+        </div>
       {% endif %}
     </section>
     {% endif %}
@@ -173,7 +179,7 @@
       <div class="pills" style="margin-top:6px">
         {% if room.nearest_subway %}<span class="pill">🚇 {{ room.nearest_subway }}</span>{% endif %}
         <span class="pill">📍 {{ room.address_province }} {{ room.address_city }} {{ room.address_district }}</span>
-      </div> <!-- ✅ 누락된 닫힘 추가 -->
+      </div>
     </section>
 
     <!-- 소개 -->
