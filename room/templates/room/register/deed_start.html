@@ -1,77 +1,228 @@
-<h1>방 등록하기</h1>
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>방 등록하기</title>
+  <link rel="stylesheet" href="{% static 'users/css/survey_form.css' %}">
+  <style>
+    .visually-hidden { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
 
-{% if error %}
-  <div style="color:#c00; margin-bottom:8px;">{{ error }}</div>
-{% endif %}
+    /* 폰트 */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
-<form id="deedForm" method="post" enctype="multipart/form-data">
-  {% csrf_token %}
+    /* --- Reset & Globals --- */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background-color: #000;
+      padding: 30px 0 60px;
+      font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+    }
+    #root {
+      width: 375px; height: 812px; margin: 0 auto; overflow: hidden; position: relative; background: #fff;
+    }
+    #app-wrapper { width: 100%; height: 100%; position: relative; overflow: auto; }
 
-  <!-- 업로드 출처 -->
-  <input type="hidden" name="source" id="sourceField" value="">
-
-  <!-- 실제 파일 입력 (시각적 숨김) -->
-  <!-- 카메라 전용: 모바일에서 카메라 우선 -->
-  <input
-    type="file"
-    id="deedCamera"
-    name="file"
-    accept="image/*"
-    capture="environment"
-    class="visually-hidden"
-  >
-  <!-- 파일 첨부: 갤러리/파일앱/PDF/HEIC 허용 -->
-  <input
-    type="file"
-    id="deedFile"
-    name="file"
-    accept="image/*,image/heic,image/heif,application/pdf,.pdf,.heic,.heif"
-    class="visually-hidden"
-  >
-
-  <!-- 사용자 버튼 -->
-  <div style="display:flex; gap:12px;">
-    <label for="deedCamera" class="btn">카메라로 촬영</label>
-    <label for="deedFile" class="btn">파일 첨부</label>
-  </div>
-
-  <!-- 선택한 파일명 표시(선택) -->
-  <p id="pickedName" class="small" style="margin-top:10px;"></p>
-</form>
-
-<style>
-  .visually-hidden {
-    position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;
-  }
-  .btn { display:inline-block; padding:12px 16px; border:1px solid #ddd; border-radius:10px; cursor:pointer; }
-  .btn:hover { background:#f7f7f7; }
-  .small { color:#666; font-size:12px; }
-</style>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('deedForm');
-    const cameraInput = document.getElementById('deedCamera');
-    const fileInput = document.getElementById('deedFile');
-    const srcField = document.getElementById('sourceField');
-    const pickedName = document.getElementById('pickedName');
-
-    function onPicked(e) {
-      const input = e.target;
-      if (!input.files || !input.files.length) return;
-
-      // 파일명 표시
-      if (pickedName) pickedName.textContent = input.files[0].name || '';
-
-      // 소스 구분값 세팅 (camera/file)
-      srcField.value = (input === cameraInput) ? 'camera' : 'file';
-
-      // 즉시 업로드 (POST) → 서버에서 temp 저장 후 deed_preview로 redirect
-      form.submit();
+    .back-btn {
+      appearance: none; background: none; border: 0; cursor: pointer; position:absolute; left:20.6133px; z-index:10;
+      top:54px;
+    }
+    .icon { width:20px; height:27px; padding:6px; }
+    .title {
+      color:#121212; text-align:center; font-size:20px; font-weight:500; line-height:15px; letter-spacing:-0.1px;
+      margin:0; position:absolute; top:60px; left:143px; white-space:nowrap;
     }
 
-    // change 시점(선택 완료)에서 처리하는 게 가장 안정적
-    cameraInput.addEventListener('change', onPicked);
-    fileInput.addEventListener('change', onPicked);
-  });
-</script>
+    /* 공통 질문/설명 블록 */
+    .qu-wrapper { display:flex; flex-direction:column; gap:25px; position:absolute; top:157.75px; left:25px; }
+    .qu { color:#121212; font-size:25px; font-weight:600; line-height:15px; letter-spacing:-0.125px; margin:0; }
+    .qu span { display:block; }
+    .qu span + span { margin-top:21px; }
+    .explanation { color:#121212; font-size:20px; font-weight:500; line-height:15px; letter-spacing:-0.1px; margin:0; }
+    .explanation span { display:block; }
+    .explanation span + span { margin-top:11px; }
+
+    /* 단계 숫자 */
+    .num { position:absolute; top:126.75px; left:24px; color:#515151; font-size:15px; font-weight:500; letter-spacing:-0.075px; margin:0; }
+
+    /* 개인정보 안내 */
+    .privacy-note {
+      color:#515151; font-size:16px; font-weight:500; line-height:15px; letter-spacing:-0.08px; margin:0;
+      position:absolute; top:619px; left:85px;
+    }
+
+    /* 버튼들 */
+    .btns { display:flex; flex-direction:column; gap:16px; position:absolute; top:650px; left:16px; }
+    .btn-camera, .btn-gallery {
+      width:343px; height:56px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+      text-align:center; text-decoration:none; font-size:20px; font-weight:700; line-height:22px; border:0;
+    }
+    .btn-camera { color:#F26430; background:#FFEBD9; }
+    .btn-gallery { background:#F26430; color:#fff; }
+
+    .cta {
+      width:343px; height:56px; border-radius:10px; border:none; font-size:20px; font-weight:700; color:#fff; background:#F26430; cursor:pointer;
+      position:absolute; top:722px; left:16px;
+    }
+    .cta:disabled { background:#959595; }
+
+    /* 아이콘 */
+    .contract_icon { width:190.6884px; height:209.7114px; position:absolute; top:309px; left:93px; }
+    .home_icon     { width:142.712px; height:118.031px; position:absolute; top:386px; left:142px; }
+    .hand_icon     { width:189px; height:189px; position:absolute; top:397.3149px; left:88px; }
+
+    /* 파일명 표시 */
+    #pickedName { position:absolute; top:615px; left:16px; width:343px; font-size:14px; color:#515151; text-align:center; }
+  </style>
+</head>
+
+<body>
+  <div id="root">
+    <div id="app-wrapper">
+
+      <!-- 상단 헤더 (항상 고정) -->
+    
+        <button type="button" class="back-btn" aria-label="이전">
+          <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
+        </button>
+        <h1 class="title">방 등록하기</h1>
+
+
+      <!-- ✅ 시작 화면: 최초 표시 -->
+      <section id="startSection">
+        <div class="qu-wrapper">
+          <h2 class="qu">
+            <span>청년과 함께 살</span>
+            <span>공간을 소개해볼까요?</span>
+          </h2>
+          <p class="explanation">
+            <span>임대차계약서를 첨부해주세요</span>
+            <span>인증 후 후기 등록이 가능해요</span>
+          </p>
+        </div>
+
+        <img src="{% static 'room/images/home_icon.svg' %}" alt="" class="home_icon">
+        <img src="{% static 'room/images/hand_icon.svg' %}" alt="" class="hand_icon">
+
+        <button class="cta" id="btnStart">시작하기</button>
+      </section>
+
+      <!-- ✅ 본 화면: 시작하기 후 표시 -->
+      <section id="mainSection" hidden>
+        <!-- 현재 단계 번호 -->
+        <h1 class="num">1/9</h1>
+
+        <!-- 질문 박스 -->
+        <div class="qu-wrapper">
+          <h2 class="qu"><span>집 소유 인증이 필요해요</span></h2>
+          <p class="explanation">
+            <span>등기부등본을 찍거나</span>
+            <span>파일을 올려주세요</span>
+          </p>
+        </div>
+
+        <p class="privacy-note">개인정보는 안전하게 보호됩니다.</p>
+
+        <!-- 아이콘 -->
+        <img src="{% static 'room/images/contract_icon.svg' %}" alt="" class="contract_icon">
+
+        <!-- 사용자 버튼 -->
+        <div class="btns">
+          <button type="button" id="btnCamera"  class="btn-camera">카메라로 촬영</button>
+          <button type="button" id="btnGallery" class="btn-gallery">사진 첨부</button>
+        </div>
+
+        <p id="pickedName"></p>
+
+        <!-- 에러 -->
+        {% if error %}
+          <div style="color:#c00; margin-bottom:8px;">{{ error }}</div>
+        {% endif %}
+
+        <!-- 실제 업로드 폼 -->
+        <form id="deedForm" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <input type="hidden" name="source" id="sourceField" value="">
+
+          <!-- 카메라 전용 -->
+          <input
+            type="file" id="deedCamera" name="file"
+            accept="image/*" capture="environment"
+            class="visually-hidden"
+          >
+          <!-- 갤러리/파일 -->
+          <input
+            type="file" id="deedFile" name="file"
+            accept="image/*,image/heic,image/heif,application/pdf,.pdf,.heic,.heif"
+            class="visually-hidden"
+          >
+        </form>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // 화면 전환
+      const startSection = document.getElementById('startSection');
+      const mainSection  = document.getElementById('mainSection');
+      const btnStart     = document.getElementById('btnStart');
+
+      btnStart.addEventListener('click', function (e) {
+        e.preventDefault();
+        startSection.hidden = true;
+        mainSection.hidden  = false;
+        // 필요 시 스크롤 상단
+        document.getElementById('app-wrapper').scrollTo({ top: 0, behavior: 'instant' });
+      });
+
+      // 백 버튼: 이전 페이지, 없으면 referrer/홈
+      const backBtn = document.querySelector('.back-btn');
+      backBtn.addEventListener('click', function () {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else if (document.referrer) {
+          window.location.href = document.referrer;
+        } else {
+          window.location.href = '/';
+        }
+      });
+
+      // 업로드 연결
+      const form        = document.getElementById('deedForm');
+      const cameraInput = document.getElementById('deedCamera');
+      const fileInput   = document.getElementById('deedFile');
+      const srcField    = document.getElementById('sourceField');
+      const pickedName  = document.getElementById('pickedName');
+
+      // 버튼 → 숨김 input 클릭
+      document.getElementById('btnCamera').addEventListener('click', function () {
+        cameraInput.click();
+      });
+      document.getElementById('btnGallery').addEventListener('click', function () {
+        fileInput.click();
+      });
+
+      // 파일 선택 후 즉시 제출
+      function onPicked(e) {
+        const input = e.target;
+        if (!input.files || !input.files.length) return;
+
+        // 파일명 표시
+        if (pickedName) pickedName.textContent = input.files[0].name || '';
+
+        // 소스(camera/file) 설정
+        srcField.value = (input === cameraInput) ? 'camera' : 'file';
+
+        // 제출
+        form.submit();
+      }
+      cameraInput.addEventListener('change', onPicked);
+      fileInput.addEventListener('change', onPicked);
+    });
+  </script>
+</body>
+</html>

@@ -1,7 +1,64 @@
-// users/static/users/js/user_info.js
+// ✅ /users/user_info/ 전용: 진입 경로 기록
+(() => {
+  if (!location.pathname.startsWith('/users/user_info/')) return;
+
+  const ENTRY_KEY = 'userInfoEntry';
+  const BLOCK_PATHS = new Set([
+    '/users/senior-living-type/', '/users/senior-living-type',
+    '/users/youth-region/',       '/users/youth-region',
+  ]);
+
+  try {
+    const ref = document.referrer;
+    if (!ref) {
+      if (!sessionStorage.getItem(ENTRY_KEY)) sessionStorage.setItem(ENTRY_KEY, 'other');
+      return;
+    }
+
+    const u = new URL(ref, location.origin);
+    if (u.origin !== location.origin) {
+      if (!sessionStorage.getItem(ENTRY_KEY)) sessionStorage.setItem(ENTRY_KEY, 'other');
+      return;
+    }
+
+    const refPath = u.pathname;
+
+    // 1) 차단 경로에서 온 경우: 기존 값 유지(덮지 않음)
+    if (BLOCK_PATHS.has(refPath)) return;
+
+    // 2) 마이페이지에서 온 경우만 저장
+    if (refPath === '/users/youth/mypage/' || refPath === '/users/senior/mypage/') {
+      sessionStorage.setItem(ENTRY_KEY, refPath);
+      return;
+    }
+
+    // 3) 그 외: 값이 없을 때만 초기화
+    if (!sessionStorage.getItem(ENTRY_KEY)) {
+      sessionStorage.setItem(ENTRY_KEY, 'other');
+    }
+  } catch {
+    if (!sessionStorage.getItem(ENTRY_KEY)) {
+      sessionStorage.setItem(ENTRY_KEY, 'other');
+    }
+  }
+})();
+
+
 (() => {
   const form = document.getElementById('userInfoForm');
   if (!form) return;
+
+    const backLink = document.querySelector('.header a');
+  if (backLink) {
+    backLink.addEventListener('click', (e) => {
+      const entry = sessionStorage.getItem('userInfoEntry');
+      if (entry && entry !== 'other') {
+        e.preventDefault();
+        location.assign(entry); // history.back() 금지
+      }
+      // 없으면 <a>의 기본 href(/users/select_user/)로 이동
+    });
+  }
 
   const bar = document.getElementById('progressBar');
   const submitBtn = document.getElementById('submitBtn') || form.querySelector('button[type="submit"]');
@@ -86,6 +143,5 @@
       window.scrollTo({top:0, behavior:'smooth'});
     });
   }
-
-
+  
 })();

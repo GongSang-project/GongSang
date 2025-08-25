@@ -26,6 +26,21 @@ html, body { -ms-overflow-style: none; }
 html::-webkit-scrollbar,
 body::-webkit-scrollbar { display: none; }
 
+/* 버튼 공통 css(버튼 기본 css X */
+button {
+  appearance: none;
+  -webkit-appearance: none; 
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+a {
+  text-decoration: none;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -45,6 +60,9 @@ body {
     overflow: hidden;
     position: relative;
     background-color: #fff;
+    overflow-x: hidden;      
+    margin-left: auto; 
+    margin-right: auto;
 }
 
 #app-wrapper {
@@ -71,8 +89,9 @@ body {
     height: 115px;
     background-color: #ffffff;
     position: sticky;
-    top:695px;
-    z-index: 1;
+    top:697px;
+    z-index: 10;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 12.98%, #FFF 100%);
 }
 
 /* 뒤로가기 버튼 */
@@ -330,26 +349,29 @@ left: 25px;
 }
 
 /* 후기 관련 css */
-
+.sections-wrapper{
+  position: absolute;
+  top:519px;
+  left:25px;
+  display:flex;
+  flex-direction: column;
+  gap:22px;
+}
 
 .reviews-section{
-  position: absolute;
-  top:497px;
-  left:25px;
   display: flex;
   flex-direction:column;
+  gap:19.5px;
 }
 
 .review-title {
   display: flex;
   align-items: center;
-  position: absolute;
-  top:22px;
-  left:1px;
   margin: 0 0;
   height: 20px;
   min-width: 134px;
 }
+
 .review-title>img {
 width: 20px;
 height: 20px;
@@ -369,11 +391,15 @@ letter-spacing: -0.09px;
 margin-right: 5px;
 }
 
+.review-summary-wrapper
+{
+  display: flex;
+  flex-direction: column;
+  gap:18px;
+}
+
 /* ai 후기 요약 분석 */
 .review-summary {
-  position: absolute;
-  top:59px;
-  left:1px;
   display: flex;
   flex-direction: column;
   gap:8px;
@@ -392,9 +418,6 @@ margin: 0 0;
 }
 
 .review-hashtags {
-  position: absolute;
-  top:140px;  
-  left:1px;
   display: flex;
   gap:8px;
   flex-direction: column;
@@ -407,6 +430,17 @@ margin: 0 0;
   gap:12px;
 }
 
+.none-review{
+  margin-top: 5px;
+  color: var(--, #515151);
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 75% */
+letter-spacing: -0.1px;
+margin-bottom: 0px;
+}
 .review-hashtags-item >p{
 color: var(--Black, #121212);
 font-family: 'Pretendard';
@@ -462,8 +496,6 @@ scrollbar-width: none;
 
 /*후기 박스*/
 .individual-reviews {
-  position: absolute;
-  top:246px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -573,15 +605,10 @@ margin:0 0;
 .line3{
 width: 326px;
 border-top: 1px solid #E9E9E9;
-position: absolute;
-top: 1216px;
-left: 25px;
 }
 
 /* 각자의 성향 */
 .traits-section{
-  position: absolute;
-  top:1269px;
   left:25px;
   display: flex;
   flex-direction: column;
@@ -590,9 +617,14 @@ left: 25px;
 
 /* '각자의 성향 제목 위치 */
 .trait-title {
-  position: absolute;
-  top:1238px;
-  left:26px;
+  position: static;
+  margin: 0;
+}
+
+.trait-item-list{
+  display: flex;
+  flex-direction: column;
+  gap:27px;
 }
 
 .trait-item{
@@ -730,3 +762,87 @@ margin:22px;
   color:#BDBDBD;
 }
 
+/* footer에 있는 버튼 */
+.footer .telnum_btn{
+    width: 343px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-decoration: none;
+
+    font-family: 'Pretendard';
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 22px; /* 110% */
+    background: var(--Primary, #F26430);
+    color:white;
+    border: 0px;
+
+    position: absolute;
+    left:16px;
+    bottom: 47px;
+    display: inline-flex;
+    gap:10px;
+
+}
+
+/* 오버레이 */
+/* 전화번호 확인 버튼 눌렀을 때 */
+/* 오버레이 */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.50);  opacity: 0;
+  transition: opacity .15s ease;
+  z-index: 999;
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+.overlay.show { 
+opacity: 1; 
+display: block;}
+ 
+.overlay[hidden] { display: none; }
+/* 하단 바 (전화번호) */
+#bottom-cta {
+  position: absolute;
+  bottom: 34px;
+  width: 375px;
+  padding: 0px 16px;
+  display: none;
+  z-index: 1000;
+  background: none;
+  display: none;
+  flex-direction: column;
+}
+
+#bottom-cta.show {
+  display:flex;
+  gap:9px;
+}
+
+.cta-btn {
+display: flex;
+width: 343px;
+height: 54px;
+padding: 16px 0;
+justify-content: center;
+align-items: center;
+border-radius: 12px;
+background: #FFF;
+
+color: #09F;
+font-feature-settings: 'liga' off, 'clig' off;
+font-family: 'Pretendard';
+font-size: 18px;
+font-style: normal;
+font-weight: 500;
+line-height: 22px; /* 122.222% */
+}
+
+#cta-call { white-space: pre; }

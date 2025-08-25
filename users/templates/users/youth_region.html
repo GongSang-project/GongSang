@@ -105,6 +105,23 @@
     <!-- 다음 버튼 -->
     <button type="submit" id="submitBtn" form="userInfoForm">다음</button>
 
+      <!-- 완료화면 -->
+      <div>
+        <section id="doneSection" hidden>
+          <button type="button" class="backBtn" data-action="back" data-step="7" aria-label="이전">
+            <img src="{% static 'users/images/Vector.png' %}" alt="" class="icon">
+          </button>
+
+          <h2>
+            <span>기본 정보 입력을</span>
+            <span>완료하였습니다.</span>
+          </h2>
+          <img src="{% static 'users/images/check-circle.png' %}" alt="" class="checkmark">
+          <button type="submit" class="cta">두유 시작하기</button>
+
+        </section> 
+      </div>
+
   </div>
   </div>
   <script src="{% static 'users/js/info_youth.js' %}?v=8"></script>

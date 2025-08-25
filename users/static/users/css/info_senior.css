@@ -404,3 +404,94 @@ a.cta{
 }
 
 .icon-btn { all: unset; cursor: pointer; }
+
+/* 완료화면 */
+#doneSection {
+  position: absolute;
+  inset: 0;
+  z-index: 999;
+  background: #fff;
+}
+
+#doneSection[hidden] { display: none; }
+
+#doneSection .backBtn {
+  position: absolute;
+  top: 53.58px;
+  left: 20.61px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+#doneSection .icon {
+  position: static;
+  width: 20px;
+  height: 27px;
+  padding: 6px;
+}
+
+#doneSection h2{
+color: var(--Black, #121212);
+text-align: center;
+
+/* Headline 1 */
+font-family: 'Pretendard';
+font-size: 25px;
+font-style: normal;
+font-weight: 600;
+line-height: 15px; /* 60% */
+letter-spacing: -0.125px;
+position: absolute;
+top:273px;
+left:108px;
+display: flex;
+flex-direction: column;
+gap:15px;
+}
+
+.checkmark{
+display: flex;
+width: 130px;
+height: 130px;
+padding: 12.188px 12.188px 12.187px 12.187px;
+justify-content: center;
+align-items: center;
+flex-shrink: 0;
+aspect-ratio: 1/1;
+position: absolute;
+top:345px;
+left:122px;
+}
+
+/* cta 버튼 */
+#surveyForm .cta {
+  position: absolute;
+  top: 722px;
+  left: 16px;
+  width: 343px;
+  height: 56px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 완료화면 CTA는 오버레이 하단 고정 */
+#doneSection .cta {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 24px;
+  width: auto;            
+  height: 56px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 접근성: 작은 화면에서도 수직 스크롤 가능하도록 */
+#doneSection {
+  overflow: auto;
+}

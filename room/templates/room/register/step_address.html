@@ -1,176 +1,339 @@
-<!-- templates/room/register/step_address.html -->
-<h1>2/9 집의 위치를 알려주세요</h1>
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <title>방 등록 - 2. 위치 입력</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- 필요시 전역 CSS 유지 -->
+  <link rel="stylesheet" href="{% static 'users/css/survey_form.css' %}">
+  <style>
+    /* 폰트 */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
-{% if error %}
-  <div style="color:#c00;margin-bottom:8px;">{{ error }}</div>
-{% endif %}
+    :root{
+      --orange:#F26430;
+      --orange-weak:#FFE3D1;
+      --grey:#515151;
+      --black:#121212;
+      --field-bg:#F3F3F3;
+      --field-bd:#E9E9E9;
+      --disabled:#959595;
+      --page-w:375px;
+      --lr:16px; /* 좌우 패딩 */
+    }
 
-{% if addr_tree_empty %}
-  <div style="background:#fff3cd; border:1px solid #ffeeba; color:#856404; padding:10px; border-radius:8px; margin-bottom:10px;">
-    주소 데이터가 비어 있습니다. CSV를 <code>{{ addr_csv_path }}</code> 경로에 두었는지 확인하세요
-    (또는 <code>settings.LEGALADDR_CSV_PATH</code> 설정).
+    *{box-sizing:border-box}
+    body{margin:0;background:#000;font-family:'Pretendard',system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans KR',sans-serif}
+    #root{width:var(--page-w);height:812px;margin:0 auto;background:#fff;position:relative;overflow:hidden}
+    #app-wrapper{width:100%;height:100%;overflow:auto;position:relative}
+
+    /* 헤더 */
+    .header{position:sticky;top:0;height:102.94px;background:#fff;z-index:100}
+    .back-btn{appearance:none;background:none;border:0;cursor:pointer;position:absolute;left:20.6133px;top:54px}
+    .back-btn img{width:20px;height:27px;padding:6px}
+    .title{position:absolute;top:60px;left:50%;margin:0;left:143px;
+      color:var(--black);font-size:20px;font-weight:500;line-height:15px;letter-spacing:-0.1px;white-space:nowrap}
+  
+.num {
+    position: absolute;
+    top: 126.75px;
+    left: 24px;
+    width: auto; height: 15px;
+    color: #515151;
+
+    font-family: 'Pretendard';
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 500;
+    letter-spacing: -0.075px;
+    margin: 0 0;
+}
+
+/* 질문박스 */
+.qu-wrapper{
+display: flex;
+flex-direction: column;
+gap:25px;
+position: absolute;
+top:157.75px;
+left:25px;
+}
+
+.qu{
+align-self: stretch;
+color: var(--Black, #121212);
+font-family: 'Pretendard';
+font-size: 25px;
+font-style: normal;
+font-weight: 600;
+line-height: 15px; /* 60% */
+letter-spacing: -0.125px;
+margin: 0 0;
+}
+.qu span{ display:block; }
+.qu span + span{ margin-top: 21px; }
+
+.explanation{
+align-self: stretch;
+color: var(--Black, #121212);
+font-family: 'Pretendard';
+font-size: 20px;
+font-style: normal;
+font-weight: 500;
+line-height: 15px; /* 75% */
+letter-spacing: -0.1px;
+margin: 0 0;
+}
+.explanation span{display: block;}
+.explanation span + span {margin-top:11px; }
+
+
+    /* 폼 레이아웃 */
+    form#addrForm{
+      position: absolute;
+      top:203px;
+      left:25px;
+    width:325px;}
+    .row{margin:14px 0}
+    .row label{display:block; margin:0 0 8px 2px; color:var(--black); font-size:14px; font-weight:500}
+    .input{
+      width:100%; height:56px; padding:12px 14px;
+      border-radius:10px; border-radius: 10px;
+border: 1px solid  #C3C3C3;
+background: var(--White, #FFF); color:#1f1f1f; font-size:16px; outline:none;
+    }
+    .input:focus{box-shadow:0 0 0 2px rgba(242,100,48,.15)}
+    .input:disabled{opacity:.6; cursor:not-allowed}
+
+    /* 제출 버튼 */
+    .btn-primary{
+    width: 343px;
+    height: 56px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Pretendard';
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    background-color: #F26430;
+    cursor: pointer;
+
+    position: absolute;
+    top: 722px;
+    left: 16px;
+    }
+    .btn-primary:disabled{background:var(--disabled)}
+    
+    /* 안내/경고 */
+    .alert{
+      background:#fff3cd; border:1px solid #ffeeba; color:#856404;
+      padding:10px; border-radius:8px; margin:0 var(--lr) 10px;
+      font-size:14px;
+    }
+    .error{color:#c00; margin:0 var(--lr) 8px}
+    .no-scrollbar {
+  overflow: auto;              /* 필요에 따라 auto/scroll */
+  -ms-overflow-style: none;    /* IE/옛 Edge */
+  scrollbar-width: none;       /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar { /* Chrome/Safari */
+  display: none;
+}
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div id="app-wrapper">
+
+      <!-- 헤더 -->
+      <div class="header">
+        <button type="button" class="back-btn" aria-label="이전">
+          <img src="{% static 'users/images/Vector.png' %}" alt="">
+        </button>
+        <h1 class="title">방 등록하기</h1>
+      </div>
+
+      <!-- 단계 / 질문 -->
+      <p class="num">2/9</p>
+      <div class="qu-wrapper">
+        <h2 class="qu">집의 위치를 알려주세요</h2>
+      </div>
+
+      {% if error %}
+        <div class="error">{{ error }}</div>
+      {% endif %}
+      {% if addr_tree_empty %}
+        <div class="alert">
+          주소 데이터가 비어 있습니다. CSV를 <code>{{ addr_csv_path }}</code> 경로에 두었는지 확인하세요
+          (또는 <code>settings.LEGALADDR_CSV_PATH</code> 설정).
+        </div>
+      {% endif %}
+
+      <!-- 폼 -->
+      <form method="post" id="addrForm" autocomplete="off">
+        {% csrf_token %}
+
+        <!-- 시/도 -->
+        <div class="row">
+          <label for="sido">시/도</label>
+          <select id="sido" name="address_province" class="input" required disabled>
+            <option value="">시/도를 선택하세요</option>
+          </select>
+        </div>
+
+        <!-- 구/군 -->
+        <div class="row">
+          <label for="sigungu">구/군</label>
+          <select id="sigungu" name="address_city" class="input" required disabled>
+            <option value="">구/군을 선택하세요</option>
+          </select>
+        </div>
+
+        <!-- 동/읍/면 -->
+        <div class="row">
+          <label for="dong">동/읍/면</label>
+          <select id="dong" name="address_district" class="input" required disabled>
+            <option value="">동/읍/면을 선택하세요</option>
+          </select>
+        </div>
+
+        <!-- 상세주소 -->
+        <div class="row">
+          <label for="addrDetail">상세주소</label>
+          <input id="addrDetail" type="text" name="address_detailed"
+                 class="input" placeholder="도로명/지번 + 동/호" required>
+        </div>
+
+        <!-- 가까운 지하철역 (선택) -->
+        <div class="row">
+          <label for="nearest">가까운 지하철역 (선택)</label>
+          <input id="nearest" type="text" name="nearest_subway" class="input" placeholder="예: 공릉역">
+        </div>
+
+        
+      </form>
+<button type="submit" id="submitBtn" class="btn-primary" form="addrForm" disabled>계속</button>
+
+      <!-- 주소 트리 데이터 -->
+      <script id="addr-data" type="application/json">{{ addr_tree_json|safe }}</script>
+
+    </div>
   </div>
-{% endif %}
 
-<form method="post" id="addrForm" autocomplete="off">
-  {% csrf_token %}
-
-  <!-- 시/도 -->
-  <div class="row">
-    <label for="sido">시/도</label>
-    <select id="sido" name="address_province" required disabled>
-      <option value="">시/도를 선택하세요</option>
-    </select>
-  </div>
-
-  <!-- 구/군 -->
-  <div class="row">
-    <label for="sigungu">구/군</label>
-    <select id="sigungu" name="address_city" required disabled>
-      <option value="">구/군을 선택하세요</option>
-    </select>
-  </div>
-
-  <!-- 동/읍/면 -->
-  <div class="row">
-    <label for="dong">동/읍/면</label>
-    <select id="dong" name="address_district" required disabled>
-      <option value="">동/읍/면을 선택하세요</option>
-    </select>
-  </div>
-
-  <!-- 상세주소 -->
-  <div class="row">
-    <label for="addrDetail">상세주소</label>
-    <input id="addrDetail" type="text" name="address_detailed"
-           placeholder="도로명/지번 + 동/호" required>
-  </div>
-
-  <!-- 가까운 지하철역 (선택) -->
-  <div class="row">
-    <label for="nearest">가까운 지하철역 (선택)</label>
-    <input id="nearest" type="text" name="nearest_subway" placeholder="예: 경복궁역">
-  </div>
-
-  <button type="submit" id="submitBtn" class="btn-primary" disabled>계속</button>
-</form>
-
-<!-- 뷰에서 내려준 CSV→트리 JSON -->
-<script id="addr-data" type="application/json">{{ addr_tree_json|safe }}</script>
-
-<style>
-  .row{display:flex;gap:10px;align-items:center;margin:8px 0}
-  label{width:130px;color:#444}
-  select,input[type="text"]{flex:1;padding:10px 12px;border:1px solid #ccc;border-radius:10px}
-  .btn-primary{margin-top:12px;padding:10px 16px;border:1px solid #0a66ff;border-radius:10px;background:#0a66ff;color:#fff;cursor:pointer}
-  .btn-primary:disabled{opacity:.5;cursor:not-allowed}
-</style>
-
-<script>
-(function(){
-  const $sido    = document.getElementById('sido');
-  const $sigungu = document.getElementById('sigungu');
-  const $dong    = document.getElementById('dong');
-  const $detail  = document.getElementById('addrDetail');
-  const $submit  = document.getElementById('submitBtn');
-
-  // 1) 트리 로드
-  let tree = {};
-  try {
-    const txt = document.getElementById('addr-data').textContent || '{}';
-    tree = JSON.parse(txt);
-  } catch (e) {
-    console.error('주소 데이터 파싱 오류', e);
-    tree = {};
-  }
-
-  function clear(sel, placeholder){
-    sel.innerHTML = '';
-    const op = document.createElement('option');
-    op.value = ''; op.textContent = placeholder;
-    sel.appendChild(op);
-  }
-  function fill(sel, arr){
-    (arr || []).forEach(v=>{
-      const op = document.createElement('option');
-      op.value = v; op.textContent = v;
-      sel.appendChild(op);
+  <script>
+  (function(){
+    const backBtn = document.querySelector('.back-btn');
+    backBtn.addEventListener('click', ()=>{
+      if (history.length > 1) history.back();
+      else if (document.referrer) location.href = document.referrer;
+      else location.href = '/';
     });
-  }
-  function updateSubmit(){
-    const ok = $sido.value && $sigungu.value && $dong.value && $detail.value.trim();
-    $submit.disabled = !ok;
-  }
 
-  // 2) 초기 로드: 시/도 옵션 채우기
-  (function init(){
-    clear($sido, '시/도를 선택하세요');
-    const sidos = Object.keys(tree).sort();
-    fill($sido, sidos);
-    $sido.disabled = (sidos.length === 0);
+    const $sido    = document.getElementById('sido');
+    const $sigungu = document.getElementById('sigungu');
+    const $dong    = document.getElementById('dong');
+    const $detail  = document.getElementById('addrDetail');
+    const $submit  = document.getElementById('submitBtn');
 
-    // 서버 initial 값 복원
-    const iS = "{{ form.initial.address_province|default_if_none:'' }}";
-    const iG = "{{ form.initial.address_city|default_if_none:'' }}";
-    const iD = "{{ form.initial.address_district|default_if_none:'' }}";
-    const iDetail = "{{ form.initial.address_detailed|default_if_none:'' }}";
+    // 1) 트리 로드
+    let tree = {};
+    try {
+      const txt = document.getElementById('addr-data').textContent || '{}';
+      tree = JSON.parse(txt);
+    } catch (e) {
+      console.error('주소 데이터 파싱 오류', e);
+      tree = {};
+    }
 
-    if (iS && tree[iS]){
-      $sido.value = iS;
-      onSidoChange(true);
-      if (iG && tree[iS][iG]){
-        $sigungu.value = iG;
-        onSigunguChange(true);
-        if (iD){ $dong.value = iD; }
+    function clear(sel, placeholder){
+      sel.innerHTML = '';
+      const op = document.createElement('option');
+      op.value = ''; op.textContent = placeholder;
+      sel.appendChild(op);
+    }
+    function fill(sel, arr){
+      (arr || []).forEach(v=>{
+        const op = document.createElement('option');
+        op.value = v; op.textContent = v;
+        sel.appendChild(op);
+      });
+    }
+    function updateSubmit(){
+      const ok = $sido.value && $sigungu.value && $dong.value && $detail.value.trim();
+      $submit.disabled = !ok;
+    }
+
+    // 2) 초기 로드: 시/도 옵션 채우기 + 서버 initial 복원
+    (function init(){
+      clear($sido, '시/도를 선택하세요');
+      const sidos = Object.keys(tree).sort();
+      fill($sido, sidos);
+      $sido.disabled = (sidos.length === 0);
+
+      const iS = "{{ form.initial.address_province|default_if_none:'' }}";
+      const iG = "{{ form.initial.address_city|default_if_none:'' }}";
+      const iD = "{{ form.initial.address_district|default_if_none:'' }}";
+      const iDetail = "{{ form.initial.address_detailed|default_if_none:'' }}";
+
+      if (iS && tree[iS]){
+        $sido.value = iS;
+        onSidoChange(true);
+        if (iG && tree[iS][iG]){
+          $sigungu.value = iG;
+          onSigunguChange(true);
+          if (iD){ $dong.value = iD; }
+        }
       }
+      if (iDetail){ $detail.value = iDetail; }
+      updateSubmit();
+    })();
+
+    // 3) 시/도 → 구/군
+    function onSidoChange(silent=false){
+      clear($sigungu, '구/군을 선택하세요');
+      clear($dong, '동/읍/면을 선택하세요');
+      $sigungu.disabled = true; $dong.disabled = true;
+
+      const s = $sido.value;
+      if (!s || !tree[s]) { updateSubmit(); return; }
+
+      const sigungus = Object.keys(tree[s]).sort();
+      fill($sigungu, sigungus);
+      $sigungu.disabled = (sigungus.length === 0);
+      if (!silent && !$sigungu.disabled) $sigungu.focus();
+      updateSubmit();
     }
-    if (iDetail){ $detail.value = iDetail; }
-    updateSubmit();
+    $sido.addEventListener('change', function(){ onSidoChange(); });
+
+    // 4) 구/군 → 동/읍/면
+    function onSigunguChange(silent=false){
+      clear($dong, '동/읍/면을 선택하세요');
+      $dong.disabled = true;
+
+      const s = $sido.value, g = $sigungu.value;
+      if (!s || !g || !tree[s] || !tree[s][g]) { updateSubmit(); return; }
+
+      const dongs = (tree[s][g] || []).slice();
+      fill($dong, dongs);
+      $dong.disabled = (dongs.length === 0);
+      if (!silent && !$dong.disabled) $dong.focus();
+      updateSubmit();
+    }
+    $sigungu.addEventListener('change', function(){ onSigunguChange(); });
+
+    // 5) 상세주소 입력/동 선택 시 버튼 활성화
+    $dong.addEventListener('change', updateSubmit);
+    $detail.addEventListener('input', updateSubmit);
+
+    // Enter로 제출
+    $detail.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter' && !$submit.disabled){
+        e.preventDefault();
+        e.currentTarget.form.submit();
+      }
+    });
   })();
-
-  // 3) 시/도 선택 → 구/군 채우기 (동기)
-  function onSidoChange(silent=false){
-    clear($sigungu, '구/군을 선택하세요');
-    clear($dong, '동/읍/면을 선택하세요');
-    $sigungu.disabled = true; $dong.disabled = true;
-
-    const s = $sido.value;
-    if (!s || !tree[s]) { updateSubmit(); return; }
-
-    const sigungus = Object.keys(tree[s]).sort();
-    fill($sigungu, sigungus);
-    $sigungu.disabled = (sigungus.length === 0);
-    if (!silent && !$sigungu.disabled) $sigungu.focus();
-    updateSubmit();
-  }
-  $sido.addEventListener('change', function(){ onSidoChange(); });
-
-  // 4) 구/군 선택 → 동/읍/면 채우기 (동기)
-  function onSigunguChange(silent=false){
-    clear($dong, '동/읍/면을 선택하세요');
-    $dong.disabled = true;
-
-    const s = $sido.value, g = $sigungu.value;
-    if (!s || !g || !tree[s] || !tree[s][g]) { updateSubmit(); return; }
-
-    const dongs = (tree[s][g] || []).slice();
-    fill($dong, dongs);
-    $dong.disabled = (dongs.length === 0);
-    if (!silent && !$dong.disabled) $dong.focus();
-    updateSubmit();
-  }
-  $sigungu.addEventListener('change', function(){ onSigunguChange(); });
-
-  // 5) 나머지
-  $dong.addEventListener('change', updateSubmit);
-  $detail.addEventListener('input', updateSubmit);
-
-  // Enter로도 제출 가능 (상세주소 칸)
-  $detail.addEventListener('keydown', (e)=>{
-    if (e.key === 'Enter' && !$submit.disabled){
-      e.preventDefault();
-      e.currentTarget.form.submit();
-    }
-  });
-})();
-</script>
+  </script>
+</body>
+</html>
