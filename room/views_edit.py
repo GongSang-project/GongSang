@@ -20,14 +20,14 @@ except Exception:
     RoomExtra = None
     RoomPhoto = None
 
-# 기존 폼 재사용 (필드 구성은 템플릿에서 다르게 배치)
+# 등록 플로우의 스텝 폼 재사용
 from .forms import RoomStepAddressForm, RoomStepDetailForm, RoomStepContractForm
 
 # ───── 세션 키 (등록과 충돌 안 나게 별도 키 사용)
 EDIT_ROOM_ID      = "EDIT_ROOM_ID"           # 편집 대상 PK
 EDIT_WIZARD_DATA  = "room_edit_wizard"       # 편집 스텝 데이터 dict
 EDIT_PHOTOS_DATA  = "room_edit_photos"       # {'COMMON':[...], 'YOUTH':[...], 'BATHROOM':[...]}
-EDIT_INTRO_TEXT   = "room_edit_intro"        # 상세 설명(시안에선 상세정보 스텝에 포함)
+EDIT_INTRO_TEXT   = "room_edit_intro"        # 소개 텍스트
 
 def _senior_guard(request):
     return request.user.is_authenticated and not getattr(request.user, "is_youth", True)
@@ -58,7 +58,7 @@ def _clear_edit_session(request):
     request.session.modified = True
 
 # ─────────────────────────────────────────────
-# 0. 편집 시작 (등록 플로우와 완전히 분리)
+# 0. 편집 시작
 @login_required
 @never_cache
 def edit_start(request, room_id):
@@ -66,6 +66,9 @@ def edit_start(request, room_id):
         return redirect("users:home_youth")
 
     room = get_object_or_404(Room, pk=room_id, owner=request.user)
+
+    # 이전 편집 세션 클리어 후 시작(예전 키 충돌 방지)
+    _clear_edit_session(request)
 
     request.session[EDIT_ROOM_ID] = room.id
     _wiz_set(request, {
@@ -84,10 +87,11 @@ def edit_start(request, room_id):
             "can_short_term": room.can_short_term,
         },
         "detail": {
-            "floor": room.floor,
-            "area": room.area,
+            # ✅ 새 구조
+            "property_type": room.property_type,   # APARTMENT/VILLA/OFFICETEL/HOUSE 또는 None
+            "room_count": getattr(room, "room_count", None),
             "toilet_count": room.toilet_count,
-            # 시안상의 추가 텍스트들은 템플릿에서 POST로 받아 아래 detail에 합쳐 저장
+            "area": room.area,
         },
         "facilities": {
             "options": room.options or [],
@@ -159,7 +163,7 @@ def edit_step_contract(request):
         "page_title": _page_title(),
     })
 
-# 3. 상세 (시안의 “집에 대해 얘기해주세요”, “어떤 청년…” 같은 텍스트도 여기서 받음)
+# 3. 상세
 @login_required
 def edit_step_detail(request):
     if not _senior_guard(request): return redirect("users:home_youth")
@@ -171,10 +175,8 @@ def edit_step_detail(request):
     if request.method == "POST":
         form = RoomStepDetailForm(request.POST)
         if form.is_valid():
-            data = form.cleaned_data.copy()
-            # 자유 텍스트/선호 정보는 템플릿에서 name="intro"/"youth_pref"로 받아서 저장
+            data = form.cleaned_data.copy()  # property_type, room_count, toilet_count, area
             intro = (request.POST.get("intro") or "").strip()
-            data["youth_pref"] = (request.POST.get("youth_pref") or "").strip()
             wiz = _wiz_get(request)
             wiz["detail"] = data
             _wiz_set(request, wiz)
@@ -200,7 +202,6 @@ def edit_step_facilities(request):
     wiz   = _wiz_get(request)
     fac   = wiz.get("facilities", {})
     if request.method == "POST":
-        # 체크박스/토글은 템플릿에서 name을 아래와 맞추면 됩니다.
         options  = request.POST.getlist("options")
         security = request.POST.getlist("security_facilities")
         other    = request.POST.getlist("other_facilities")
@@ -244,14 +245,14 @@ def edit_step_photos(request):
         save_many("youth_photos",    "YOUTH")
         save_many("bathroom_photos", "BATHROOM")
 
-        # 저장 버튼 name="save_and_exit"로 분기 (업로드만 하고 계속 가능)
+        # 저장 & 나가기
         if "save_and_exit" in request.POST:
             request.session[EDIT_PHOTOS_DATA] = photos
             request.session.modified = True
             _apply_edit_and_persist(request)     # ← 실제 DB 반영
             return HttpResponseRedirect(reverse("room:owner_room_list") + "?page=1")
 
-        # 계속 편집 (업로드만 반영)
+        # 업로드만 반영(계속 편집)
         request.session[EDIT_PHOTOS_DATA] = photos
         request.session.modified = True
 
@@ -273,16 +274,19 @@ def _apply_edit_and_persist(request):
     fac  = wiz.get("facilities", {})
     intro = request.session.get(EDIT_INTRO_TEXT, "")
 
-    # 날짜는 수정 플로우엔 별도 스텝이 없으므로 오늘/기존값 유지
+    # 날짜는 수정 플로우엔 별도 스텝이 없으므로 기존값 유지(없으면 오늘)
     available_date = room.available_date or timezone.localdate()
 
-    # 필드 반영
+    # 필드 반영 (✅ floor 제거, 새 필드 반영)
     room.deposit = con.get("deposit")
     room.rent_fee = con.get("rent_fee")
     room.utility_fee = con.get("utility_fee") or 0
-    room.floor = det.get("floor")
+
+    room.property_type = det.get("property_type") or None
+    room.room_count = det.get("room_count")
     room.area = det.get("area")
     room.toilet_count = det.get("toilet_count")
+
     room.available_date = available_date
     room.can_short_term = bool(con.get("can_short_term"))
 

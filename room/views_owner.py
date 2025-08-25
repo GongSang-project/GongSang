@@ -8,7 +8,6 @@ from django.db.models import Prefetch
 
 from .models import Room
 
-# ✅ RoomPhoto는 선택적으로 import
 try:
     from .models import RoomPhoto
 except Exception:
@@ -28,15 +27,15 @@ def owner_room_list(request):
     base_qs = Room.objects.filter(owner=request.user).order_by("-updated_at", "-created_at")
 
     if RoomPhoto:
-        # ✅ RoomPhoto의 실제 역참조 이름을 안전하게 얻기 (related_name이 무엇이든 동작)
-        rel_name = RoomPhoto._meta.get_field("room").remote_field.get_accessor_name()
+        # related_name = "room_photos" 를 그대로 사용
         photos_qs = RoomPhoto.objects.only("id", "image", "category", "room_id").order_by("id")
-        rooms = base_qs.prefetch_related(Prefetch(rel_name, queryset=photos_qs, to_attr="photos"))
+        rooms = base_qs.prefetch_related(
+            Prefetch("room_photos", queryset=photos_qs)
+        )
     else:
-        # ✅ 사진 모델이 없을 때도 템플릿이 깨지지 않도록 빈 리스트 주입
-        rooms = list(base_qs)
+        rooms = list(base_qs)  # RoomPhoto 모델이 없을 경우 대비(거의 안 타는 분기)
         for r in rooms:
-            r.photos = []
+            r.room_photos = []  # 템플릿에서 room.room_photos.all 호출해도 안전하도록 폴백
 
     return render(request, "room/owner_list.html", {"rooms": rooms})
 
@@ -45,7 +44,7 @@ class RoomOwnerEditForm(forms.ModelForm):
     class Meta:
         model = Room
         fields = [
-            "deposit","rent_fee","utility_fee","floor","area",
+            "deposit","rent_fee","utility_fee","area",
             "toilet_count","available_date","can_short_term",
             "parking_available","pet_allowed","heating_type",
             "nearest_subway",
