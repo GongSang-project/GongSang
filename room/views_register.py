@@ -1,5 +1,3 @@
-# room/views_register.py
-
 import os
 import csv
 import json
@@ -25,11 +23,30 @@ from .models import (
 )
 
 # 선택적 import (존재하지 않을 수도 있는 부가 모델)
+from django.apps import apps
+
 try:
-    from .models import RoomExtra, RoomPhoto
-except Exception:
-    RoomExtra = None
+    RoomPhoto = apps.get_model('room', 'RoomPhoto')
+except LookupError:
     RoomPhoto = None
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+import base64
+from django.conf import settings
+
+from users.utils import decrypt_image
+
+from django.http import HttpResponse
+from django.conf import settings
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+import base64
+
+try:
+    RoomExtra = apps.get_model('room', 'RoomExtra')
+except LookupError:
+    RoomExtra = None
 
 
 # ─────────────────────────────────────────────────────────────
@@ -41,9 +58,22 @@ WIZARD_DATA    = "room_wizard"         # 스텝 데이터 dict
 PHOTOS_DATA    = "room_photos"         # {'COMMON':[...], 'YOUTH':[...], 'BATHROOM':[...]}
 INTRO_TEXT     = "room_intro"
 EDIT_ROOM_ID   = "EDIT_ROOM_ID"        # 수정 대상 Room.id (없으면 신규 등록)
+DEED_TEMP_ENCRYPTED_DATA = "deed_temp_encrypted_data"
 
 # ─────────────────────────────────────────────────────────────
 # 공용 유틸
+
+def encrypt_file_data(file):
+    try:
+        padded_data = pad(file.read(), AES.block_size)
+
+        cipher = AES.new(settings.ENCRYPTION_KEY, AES.MODE_CBC)
+        encrypted_data = cipher.encrypt(padded_data)
+
+        return base64.b64encode(cipher.iv + encrypted_data).decode('utf-8')
+    except Exception as e:
+        print(f"암호화 오류: {e}")
+        return None
 
 def _senior_guard(request):
     return request.user.is_authenticated and not getattr(request.user, "is_youth", True)
@@ -52,7 +82,7 @@ def _is_edit_mode(request) -> bool:
     return bool(request.session.get(EDIT_ROOM_ID))
 
 def _clear_deed_session(request):
-    for k in (DEED_TEMP_PATH, DEED_SOURCE, DEED_CONFIRMED):
+    for k in (DEED_TEMP_ENCRYPTED_DATA, DEED_SOURCE, DEED_CONFIRMED):
         request.session.pop(k, None)
     request.session.modified = True
 
@@ -71,10 +101,10 @@ def _is_image(path: str) -> bool:
     return path.lower().endswith((".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".heif"))
 
 def _require_deed_confirmed(request):
-    # 수정 모드는 등기부 단계 스킵
     if _is_edit_mode(request):
         return True
-    return request.session.get(DEED_CONFIRMED) is True and request.session.get(DEED_TEMP_PATH)
+
+    return request.session.get(DEED_CONFIRMED) is True and request.session.get(DEED_TEMP_ENCRYPTED_DATA)
 
 def _wiz_get(request):
     return request.session.get(WIZARD_DATA, {})
@@ -92,13 +122,6 @@ _ADDR_TREE_CACHE = None
 _ADDR_ERROR_MSG = None
 
 def _addr_csv_path() -> Path:
-    """
-    CSV 경로 자동 탐색:
-    1) ENV: LEGALADDR_CSV_PATH
-    2) settings.LEGALADDR_CSV_PATH
-    3) <BASE_DIR>/data/{regions.csv|region.csv|legaladdr.csv}
-    4) 패턴 탐색(region*.csv 등)
-    """
     # 1) ENV
     p_env = os.environ.get("LEGALADDR_CSV_PATH")
     if p_env:
@@ -162,11 +185,6 @@ def _norm_header(name: str) -> str:
     return n.replace(" ", "").replace("_", "").replace("-", "")
 
 def _load_addr_tree():
-    """
-    CSV를 읽어 {시도:{시군구:[동...]}} 트리 생성.
-    ⚠ 트리가 비었으면 캐시하지 않음 → 파일을 나중에 넣어도 다음 요청에 즉시 반영.
-    실패 원인은 _ADDR_ERROR_MSG에 저장.
-    """
     global _ADDR_TREE_CACHE, _ADDR_ERROR_MSG
     _ADDR_ERROR_MSG = None
 
@@ -300,7 +318,7 @@ def deed_start(request):
     if not _senior_guard(request):
         return redirect("users:home_youth")
 
-    # 수정 모드면 등기부 단계를 통째로 건너뜀
+    # 수정 모드는 등기부 단계를 통째로 건너뜀
     if _is_edit_mode(request):
         return redirect("room:register_step_address")
 
@@ -310,25 +328,21 @@ def deed_start(request):
         form = DeedUploadRawForm(request.POST, request.FILES)
         source = request.POST.get("source") or "file"
         if form.is_valid():
-            # 기존 임시 파일 제거
-            old_rel = request.session.get(DEED_TEMP_PATH)
-            if old_rel:
-                try:
-                    default_storage.delete(old_rel)
-                except Exception:
-                    pass
+            uploaded_file = form.cleaned_data["file"]
 
-            # 새 파일 저장
             try:
-                path = _temp_save(form.cleaned_data["file"], request.user.id)
+                # 암호화된 데이터를 문자열로 인코딩하여 세션에 저장
+                encrypted_data = encrypt_file_data(uploaded_file)
             except Exception:
-                ctx["error"] = "파일 저장 중 오류가 발생했습니다."
+                ctx["error"] = "파일 암호화 중 오류가 발생했습니다."
                 return render(request, "room/register/deed_start.html", ctx)
 
-            request.session[DEED_TEMP_PATH] = path
+            # 암호화된 데이터를 세션에 저장
+            request.session[DEED_TEMP_ENCRYPTED_DATA] = encrypted_data
             request.session[DEED_SOURCE] = "camera" if source == "camera" else "file"
             request.session[DEED_CONFIRMED] = False
             request.session.modified = True
+
             return redirect("room:deed_preview")
         else:
             ctx["error"] = "; ".join([str(err) for errs in form.errors.values() for err in errs])
@@ -343,18 +357,19 @@ def deed_start(request):
 def deed_preview(request):
     if not _senior_guard(request):
         return redirect("users:home_youth")
-    if _is_edit_mode(request):  # 수정 모드에선 미리보기 자체가 없음
+    if _is_edit_mode(request):
         return redirect("room:register_step_address")
 
-    rel = request.session.get(DEED_TEMP_PATH)
-    if not rel:
+    encrypted_data = request.session.get(DEED_TEMP_ENCRYPTED_DATA)
+    if not encrypted_data:
         return redirect("room:deed_start")
 
+    from django.urls import reverse
     ctx = {
-        "file_url": settings.MEDIA_URL + rel,
-        "file_name": rel.split("/")[-1],
-        "is_image": _is_image(rel),
+        "file_url": reverse('room:deed_preview_stream'),
         "source": request.session.get(DEED_SOURCE, "file"),
+
+        "is_image": True
     }
     return render(request, "room/register/deed_preview.html", ctx)
 
@@ -365,9 +380,6 @@ def deed_retry(request):
     if _is_edit_mode(request):
         return redirect("room:register_step_address")
 
-    rel = request.session.get(DEED_TEMP_PATH)
-    if rel:
-        default_storage.delete(rel)
     _clear_deed_session(request)
     return redirect("room:deed_start")
 
@@ -377,8 +389,10 @@ def deed_confirm(request):
         return redirect("users:home_youth")
     if _is_edit_mode(request):
         return redirect("room:register_step_address")
-    if not request.session.get(DEED_TEMP_PATH):
+
+    if not request.session.get(DEED_TEMP_ENCRYPTED_DATA):
         return redirect("room:deed_start")
+
     request.session[DEED_CONFIRMED] = True
     request.session.modified = True
     return redirect("room:register_step_address")
@@ -446,21 +460,14 @@ def register_step_detail(request):
         return redirect("room:deed_start")
 
     initial = _wiz_get(request).get("detail", {})
-    property_types = ["아파트", "빌라", "오피스텔", "주택"]
 
     if request.method == "POST":
         form = RoomStepDetailForm(request.POST)
         if form.is_valid():
-            data = form.cleaned_data.copy()
-            data["property_type"] = (
-                request.POST.get("property_type") or initial.get("property_type") or property_types[0]
-            )
-            data["rooms_count"] = request.POST.get("rooms_count") or initial.get("rooms_count") or ""
-
+            data = form.cleaned_data.copy()  # {'property_type', 'room_count', 'toilet_count', 'area'}
             wizard = _wiz_get(request)
             wizard["detail"] = data
             _wiz_set(request, wizard)
-
             return redirect("room:register_step_contract")
     else:
         form = RoomStepDetailForm(initial=initial)
@@ -471,9 +478,6 @@ def register_step_detail(request):
         {
             "form": form,
             "step": "3/9",
-            "property_types": property_types,
-            "initial_property_type": initial.get("property_type") or property_types[0],
-            "initial_rooms_count": initial.get("rooms_count") or 3,
         },
     )
 
@@ -611,6 +615,11 @@ def register_step_photos(request):
     edit_mode = _is_edit_mode(request)
 
     if request.method == "POST":
+        # 테스트
+        print("[PHOTOS:FILES:keys]", list(request.FILES.keys()))
+        print("[PHOTOS:FILES:common]", len(request.FILES.getlist("common_photos")))
+        print("[PHOTOS:FILES:youth]", len(request.FILES.getlist("youth_photos")))
+        print("[PHOTOS:FILES:bath]", len(request.FILES.getlist("bathroom_photos")))
         def save_many(field_name, bucket_key):
             uploaded = request.FILES.getlist(field_name)
             if not uploaded:
@@ -625,6 +634,11 @@ def register_step_photos(request):
         save_many("common_photos",   "COMMON")
         save_many("youth_photos",    "YOUTH")
         save_many("bathroom_photos", "BATHROOM")
+
+        # 테스트
+        request.session[PHOTOS_DATA] = photos
+        request.session.modified = True
+        print("[PHOTOS:SESSION:AFTER]", request.session.get(PHOTOS_DATA))
 
         total = sum(len(v) for v in photos.values())
         if not edit_mode:  # 신규 등록만 최소/최대 검사
@@ -658,6 +672,28 @@ def register_step_intro(request):
         wiz = _wiz_get(request)
         addr, det, con, per = wiz["address"], wiz["detail"], wiz["contract"], wiz["period"]
 
+        # 테스트
+        photos = request.session.get(PHOTOS_DATA, {})
+        print("[INTRO:PHOTOS:SESSION]", request.session.get(PHOTOS_DATA))
+        if RoomPhoto is None:
+            print("[INTRO:SAVE] RoomPhoto is None → 모델 import 실패 또는 존재하지 않음")
+        else:
+            saved = 0
+            photos = request.session.get(PHOTOS_DATA, {"COMMON": [], "YOUTH": [], "BATHROOM": []})
+            for cat, rels in photos.items():
+                for relpath in rels:
+                    try:
+                        print("[INTRO:SAVE:TRY]", cat, relpath)
+                        with default_storage.open(relpath, "rb") as f:
+                            p = RoomPhoto(room=room, category=cat)
+                            p.image.save(os.path.basename(relpath), File(f), save=True)  # ★ save=True 필수
+                        default_storage.delete(relpath)
+                        saved += 1
+                    except Exception as e:
+                        print("[INTRO:SAVE:ERR]", type(e).__name__, e)
+            print("[INTRO:SAVE:COUNT]", saved)
+
+
         # 날짜 복원
         ad = per.get("available_date")
         try:
@@ -672,9 +708,10 @@ def register_step_intro(request):
             room.deposit = con["deposit"]
             room.rent_fee = con["rent_fee"]
             room.utility_fee = con.get("utility_fee") or 0
-            room.floor = det["floor"]
             room.area = det["area"]
             room.toilet_count = det["toilet_count"]
+            room.property_type = det["property_type"]
+            room.room_count = det["room_count"]
             room.available_date = available_date
             room.can_short_term = bool(con.get("can_short_term"))
             room.address_province = addr["address_province"]
@@ -712,7 +749,6 @@ def register_step_intro(request):
                         except Exception:
                             pass
 
-            # 등기부는 수정 플로우에선 다루지 않음(필요 시 deed_start로 유도)
             redirect_url = "room:owner_room_list"
 
         else:
@@ -722,9 +758,10 @@ def register_step_intro(request):
                 deposit=con["deposit"],
                 rent_fee=con["rent_fee"],
                 utility_fee=con.get("utility_fee") or 0,
-                floor=det["floor"],
                 area=det["area"],
                 toilet_count=det["toilet_count"],
+                property_type=det["property_type"],
+                room_count=det["room_count"],
                 available_date=available_date,
                 can_short_term=bool(con.get("can_short_term")),
                 address_province=addr["address_province"],
@@ -740,17 +777,12 @@ def register_step_intro(request):
                 heating_type=wiz.get("fac2", {}).get("heating_type") or None,
             )
 
-            # 등기부 임시파일 → Room에 복사
-            rel = request.session.get(DEED_TEMP_PATH)
-            if rel:
-                try:
-                    with default_storage.open(rel, "rb") as f:
-                        room.land_register_document.save(os.path.basename(rel), File(f), save=False)
-                    room.is_land_register_verified = True
-                    room.save()
-                    default_storage.delete(rel)
-                except Exception:
-                    pass
+            # 암호화된 등기부등본 데이터 저장
+            encrypted_data = request.session.get(DEED_TEMP_ENCRYPTED_DATA)
+            if encrypted_data:
+                room.land_register_document = encrypted_data
+                room.is_land_register_verified = True
+                room.save()
 
             # 소개 저장
             if RoomExtra is not None:
@@ -772,15 +804,14 @@ def register_step_intro(request):
                         except Exception:
                             pass
 
-            redirect_url = "room:room_detail"
+            redirect_url = "room:owner_room_list"
 
         # 세션 정리
         for k in (WIZARD_DATA, DEED_TEMP_PATH, DEED_SOURCE, DEED_CONFIRMED, PHOTOS_DATA, INTRO_TEXT, EDIT_ROOM_ID):
             request.session.pop(k, None)
         request.session.modified = True
 
-        if redirect_url == "room:room_detail":
-            return redirect(redirect_url, room_id=room.id)
+        # 현재 플로우에선 상세 페이지로 안 보내고 내 방 목록으로 이동
         return redirect(redirect_url)
 
     # GET → 소개 입력 화면
@@ -789,3 +820,36 @@ def register_step_intro(request):
         "edit_mode": edit_mode,
         "initial_intro": request.session.get(INTRO_TEXT, ""),
     })
+
+
+def decrypt_file_data(encrypted_data_str):
+    try:
+        decoded_data = base64.b64decode(encrypted_data_str)
+        iv = decoded_data[:AES.block_size]
+        encrypted_data = decoded_data[AES.block_size:]
+
+        cipher = AES.new(settings.ENCRYPTION_KEY, AES.MODE_CBC, iv)
+        decrypted_data = cipher.decrypt(encrypted_data)
+        return unpad(decrypted_data, AES.block_size)
+    except Exception as e:
+        print(f"복호화 오류: {e}")
+        return None
+
+
+@login_required
+def deed_preview_stream(request):
+    if not _senior_guard(request):
+        return HttpResponse("권한이 없습니다.", status=403)
+
+    encrypted_data = request.session.get(DEED_TEMP_ENCRYPTED_DATA)
+    if not encrypted_data:
+        return HttpResponse("파일을 찾을 수 없습니다.", status=404)
+
+    decrypted_data = decrypt_image(encrypted_data)  # users.utils의 함수 사용
+    if not decrypted_data:
+        return HttpResponse("파일을 불러올 수 없습니다.", status=500)
+
+
+    content_type = 'application/pdf'
+
+    return HttpResponse(decrypted_data, content_type=content_type)

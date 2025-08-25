@@ -3,12 +3,17 @@ from urllib.parse import urlencode
 from django.shortcuts import render
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Room
+from .models import Room, PROPERTY_TYPE_CHOICES
 import re
 
-# 카테고리 별 키워드(한글/영문/변형 포함)
+# ───────────────────────────────────────────────────────────────
+# 모델의 choices 기반 기본 매핑
+CODE_SET = {code for code, label in PROPERTY_TYPE_CHOICES}
+LABEL_TO_CODE = {label: code for code, label in PROPERTY_TYPE_CHOICES}
+
+# 추가 별칭(라벨/영문 변형 등) — 반드시 "코드값"을 키로 사용!
 PT_ALIASES = {
-    "APT": {"아파트", "아파트형", "APT", "apartment", "Apartment"},
+    "APARTMENT": {"아파트", "아파트형", "APT", "apartment", "Apartment"},
     "OFFICETEL": {"오피스텔", "officetel", "OFFICETEL"},
     "VILLA": {"빌라", "연립", "다세대", "VILLA"},
     "HOUSE": {"주택", "단독", "다가구", "단독주택", "연립주택", "HOUSE"},
@@ -69,24 +74,40 @@ def _apply_region_tokens(qs, text: str):
         qs = qs.filter(q_obj)
     return qs
 
-# ── 카테고리 필터 유틸 ─────────────────────────────────────────
+# ── 카테고리(매물 유형) 필터 ─────────────────────────────────────
 def _normalize_pt_code(pt_raw: str):
+    """
+    사용자가 '아파트' / 'apartment' / 'APARTMENT' 등으로 넘겨도
+    실제 코드값(APARTMENT 등)으로 표준화.
+    """
     if not pt_raw:
         return None
+
     s = pt_raw.strip()
     s_upper = s.upper()
-    if s_upper in PT_ALIASES:
-        return s_upper
+
+    # 1) 이미 코드값이면 (대소문자 무시) 인정
+    for code in CODE_SET:
+        if s_upper == code.upper():
+            return code
+
+    # 2) 라벨 → 코드 매핑
+    if s in LABEL_TO_CODE:
+        return LABEL_TO_CODE[s]
+
+    # 3) 별칭 테이블 역검색
     for code, names in PT_ALIASES.items():
         lowered = {n.lower() for n in names}
         if s.lower() in lowered:
             return code
+
+    # 못 찾으면 None
     return None
 
-def _apply_category_filter(qs, pt_raw: str):
+def _apply_category_filter_textfallback(qs, pt_raw: str):
     """
-    property_type 필드가 없을 때 텍스트 기반으로 카테고리 필터.
-    매칭 0건이면 필터를 적용하지 않고 (qs 원본 반환, matched=False).
+    property_type 필드가 없거나 코드 매칭이 실패할 때 텍스트 기반으로 필터링.
+    매칭 0건이면 필터 미적용.
     """
     term = (pt_raw or "").strip()
     if not term:
@@ -112,7 +133,6 @@ def _apply_category_filter(qs, pt_raw: str):
 
     if qs_try.exists():
         return qs_try, True
-    # 백오프: 0건이면 필터 미적용
     return qs, False
 
 # ───────────────────────────────────────────────────────────────
@@ -129,27 +149,30 @@ def room_list_page(request):
     if region:
         qs = _apply_region_tokens(qs, region)
 
-    # --- 카테고리 ---
+    # --- 카테고리(매물 유형) ---
     pt_raw = (request.GET.get('property_type') or '').strip()
     pt_no_hit = False
+    mapped_code = None
+
     if pt_raw:
         if _has_field(Room, 'property_type'):
-            code = _normalize_pt_code(pt_raw)
-            if code:
+            mapped_code = _normalize_pt_code(pt_raw)
+            if mapped_code:
+                # 정상 코드 매핑
                 before = qs.count()
-                qs = qs.filter(property_type=code)
+                qs = qs.filter(property_type=mapped_code)
                 if qs.count() == 0:
                     pt_no_hit = True
-                    # 백오프: 코드로 0건이면 부분일치도 시도
-                    qs = Room.objects.all().order_by('-created_at').filter(property_type__icontains=pt_raw)
+                    # 라벨/별칭 기반 텍스트 백오프
+                    qs, matched = _apply_category_filter_textfallback(Room.objects.all().order_by('-created_at'), pt_raw)
+                    pt_no_hit = not matched
             else:
-                before = qs.count()
-                qs = qs.filter(property_type__icontains=pt_raw)
-                if qs.count() == 0:
-                    pt_no_hit = True
-                    qs = Room.objects.all().order_by('-created_at')
+                # 코드로 표준화 실패 → 텍스트 백오프
+                qs, matched = _apply_category_filter_textfallback(qs, pt_raw)
+                pt_no_hit = not matched
         else:
-            qs, matched = _apply_category_filter(qs, pt_raw)
+            # 필드가 없다면 전적으로 텍스트 백오프
+            qs, matched = _apply_category_filter_textfallback(qs, pt_raw)
             pt_no_hit = not matched
 
     # --- 거래유형 & 가격 (필드 있을 때만) ---
@@ -207,8 +230,13 @@ def room_list_page(request):
         "prev_qs": prev_qs,
         "next_qs": next_qs,
         "display_region": region or q or "전체 지역",
-        "pt_no_hit": pt_no_hit,  # ← 0건이면 True (템플릿에서 안내문 띄우기)
+        "pt_no_hit": pt_no_hit,          # 0건이면 True (템플릿에서 안내문 띄우기)
+        "mapped_property_type": mapped_code,  # 디버깅/표시용(선택)
     }
-    # 콘솔 디버깅용(원하면 지워도 됨)
-    print(f"[room_list] q='{q}' region='{region}' property_type='{pt_raw}' total={total} pt_no_hit={pt_no_hit}")
+
+    # 콘솔 디버깅용
+    print(
+        f"[room_list] q='{q}' region='{region}' property_type_raw='{pt_raw}' "
+        f"mapped='{mapped_code}' total={total} pt_no_hit={pt_no_hit}"
+    )
     return render(request, 'room/room_list.html', ctx)

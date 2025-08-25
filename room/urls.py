@@ -40,6 +40,13 @@ urlpatterns = [
     path("register/step/photos/",     reg.register_step_photos,      name="register_step_photos"),
     path("register/step/intro/",      reg.register_step_intro,       name="register_step_intro"),
 
+    # 방 등록하기 - 등기부등본 업로드(시니어)
+    path("register/deed/",           reg.deed_start,   name="deed_start"),
+    path("register/deed/preview/",   reg.deed_preview, name="deed_preview"),
+    path("register/deed/preview/stream/", reg.deed_preview_stream, name="deed_preview_stream"), # 이 줄을 추가
+    path("register/deed/retry/",     reg.deed_retry,   name="deed_retry"),
+    path("register/deed/confirm/",   reg.deed_confirm, name="deed_confirm"),
+
     # 등록한 방(시니어)
     path("my/",                    own.owner_room_list,     name="owner_room_list"),
     path("my/<int:room_id>/edit/", views_edit.edit_start,   name="owner_room_update"),

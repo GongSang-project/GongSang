@@ -59,12 +59,26 @@ HEATING_CHOICES = [
     ('DISTRICT', '지역난방'),
 ]
 
+# 주거 유형
+PROPERTY_TYPE_CHOICES = [
+    ("APARTMENT",  "아파트"),
+    ("OFFICETEL",  "오피스텔"),
+    ("HOUSE",      "주택"),
+    ("VILLA",      "빌라"),
+]
+
+# 방 사진
+PHOTO_CATEGORY = [
+        ('COMMON', '공용 공간'),
+        ('YOUTH', '청년 공간'),
+        ('BATHROOM', '화장실'),
+    ]
 
 class Room(models.Model):
     # 방의 기본 정보
     deposit = models.IntegerField(verbose_name="보증금", validators=[MinValueValidator(0)])
     rent_fee = models.IntegerField(verbose_name="월세", validators=[MinValueValidator(0)])
-    floor = models.CharField(verbose_name="층수", max_length=50)  # '아파트 9층', '빌라 2층' 등
+    # floor = models.CharField(verbose_name="층수", max_length=50)  # '아파트 9층', '빌라 2층' 등
     area = models.FloatField(verbose_name="면적(m²)", validators=[MinValueValidator(0.1)])
     utility_fee = models.IntegerField(verbose_name="관리비", default=0, validators=[MinValueValidator(0)])
 
@@ -74,10 +88,18 @@ class Room(models.Model):
     address_district = models.CharField(verbose_name="주소(읍/면/동)", max_length=50, blank=True, null=True)
     address_detailed = models.CharField(verbose_name="상세주소(도로명/동/호)", max_length=50, blank=True, null=True)
 
+    # 주거 유형
+    property_type = models.CharField(
+        "주거 유형",
+        max_length=20,
+        choices=PROPERTY_TYPE_CHOICES,
+        blank=True,
+        null=True,
+    )
+
     # 등기부 등본
-    land_register_document = models.FileField(
-        verbose_name="등기부 등본",
-        upload_to='land_registers/',
+    land_register_document = models.TextField(
+        verbose_name="등기부 등본 (암호화)",
         null=True,
         blank=True
     )
@@ -89,6 +111,8 @@ class Room(models.Model):
     # 추가 정보
     can_short_term = models.BooleanField(verbose_name="단기 거주 가능 여부", default=False)
     toilet_count = models.IntegerField(verbose_name="화장실 개수", default=1, validators=[MinValueValidator(1)])
+
+    room_count = models.IntegerField(verbose_name="방 개수", default=1, validators=[MinValueValidator(1)]) # 방 개수 추가
     available_date = models.DateField(verbose_name="입주 가능일")
 
     # 소유주 및 계약 정보
@@ -117,6 +141,9 @@ class Room(models.Model):
     created_at = models.DateTimeField(verbose_name="등록일", auto_now_add=True)
     updated_at = models.DateTimeField(verbose_name="수정일", auto_now=True)
 
+    # 소개글
+    # description = models.TextField(verbose_name="소개글", blank=True, null=True)
+
     def __str__(self):
         full_address = f"{self.address_province} {self.address_city} {self.address_district} {self.address_detailed}"
         return f"{full_address} ({self.owner.username}님의 방)"
@@ -124,3 +151,44 @@ class Room(models.Model):
     class Meta:
         verbose_name = "방"
         verbose_name_plural = "방 목록"
+
+"""
+class RoomPhoto(models.Model):
+    CATEGORY_CHOICES = [
+        ("COMMON", "공용"),
+        ("YOUTH", "청년방"),
+        ("BATHROOM", "욕실"),
+    ]
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.CASCADE,
+        related_name="photos",   # ← 역참조 이름: room.photos
+    )
+    image = models.ImageField(upload_to="room_photos/")
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.room_id} - {self.category or ''} - {self.image.name}"
+"""
+# models.py
+class RoomPhoto(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room_photos")
+    category = models.CharField(max_length=20, choices=PHOTO_CATEGORY)
+    image = models.ImageField(upload_to="room_photos/%Y/%m/%d/")
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ["-created_at"]
+
+
+class RoomExtra(models.Model):
+    room = models.OneToOneField(
+        Room,
+        on_delete=models.CASCADE,
+        related_name="extra",
+        verbose_name="방"
+    )
+    description = models.TextField(verbose_name="소개글", blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.room.id} 번 방 소개글"

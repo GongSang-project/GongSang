@@ -30,22 +30,77 @@
       <h2>어느 지역에서<br>방을 구하고 싶으세요?</h2>
       <h3>선택하신 지역을 기준으로<br>잘 맞는 방을 추천해드려요.</h3>
 
-      <!-- 폼 -->
-    <form method="post" id="userInfoForm">
-      {% csrf_token %}
-      <div>
-        <label for="id_interested_province">관심 시/도:</label>
-        {{ form.interested_province }}
-      </div>
-      <div>
-        <label for="id_interested_city">관심 시/군/구:</label>
-        {{ form.interested_city }}
-      </div>
-      <div>
-        <label for="id_interested_district">관심 읍/면/동:</label>
-        {{ form.interested_district }}
-      </div>
-    </form>
+       <!-- 폼 -->
+        <form method="post" id="userInfoForm">
+          {% csrf_token %}
+          <div>
+            <label for="id_interested_province">관심 시/도:</label>
+            <select name="interested_province" id="id_interested_province" required>
+              <option value="">시/도를 선택해주세요</option>
+            </select>
+          </div>
+          <div>
+            <label for="id_interested_city">관심 시/군/구:</label>
+            <select name="interested_city" id="id_interested_city" required>
+              <option value="">시/군/구를 선택해주세요</option>
+            </select>
+          </div>
+          <div>
+            <label for="id_interested_district">관심 읍/면/동:</label>
+            <select name="interested_district" id="id_interested_district" required>
+              <option value="">읍/면/동을 선택해주세요</option>
+            </select>
+          </div>
+        </form>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const addrTree = JSON.parse('{{ addr_tree_json|escapejs }}');
+              const provinceSelect = document.getElementById('id_interested_province');
+              const citySelect = document.getElementById('id_interested_city');
+              const districtSelect = document.getElementById('id_interested_district');
+
+              // 시/도 드롭다운 채우기
+              for (const province in addrTree) {
+                const option = document.createElement('option');
+                option.value = province;
+                option.textContent = province;
+                provinceSelect.appendChild(option);
+              }
+
+              // 시/도 선택 시 시/군/구 드롭다운 업데이트
+              provinceSelect.addEventListener('change', function() {
+                const selectedProvince = this.value;
+                citySelect.innerHTML = '<option value="">시/군/구를 선택해주세요</option>';
+                districtSelect.innerHTML = '<option value="">읍/면/동을 선택해주세요</option>';
+
+                if (selectedProvince && addrTree[selectedProvince]) {
+                  for (const city in addrTree[selectedProvince]) {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                  }
+                }
+              });
+
+              // 시/군/구 선택 시 읍/면/동 드롭다운 업데이트
+              citySelect.addEventListener('change', function() {
+                const selectedProvince = provinceSelect.value;
+                const selectedCity = this.value;
+                districtSelect.innerHTML = '<option value="">읍/면/동을 선택해주세요</option>';
+
+                if (selectedProvince && selectedCity && addrTree[selectedProvince][selectedCity]) {
+                  addrTree[selectedProvince][selectedCity].forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district;
+                    option.textContent = district;
+                    districtSelect.appendChild(option);
+                  });
+                }
+              });
+            });
+        </script>
 
     <!-- 다음 버튼 -->
     <button type="submit" id="submitBtn" form="userInfoForm">다음</button>

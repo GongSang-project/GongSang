@@ -68,11 +68,10 @@ class User(AbstractUser):
     #     return number_str
 
 
-    id_card_image = models.ImageField(
-        "신분증 사진",
-        upload_to="users/id_card",  # 파일이 저장될 경로 (MEDIA_ROOT/users/id_card)
-        blank=True,
-        null=True
+    id_card_image = models.TextField(
+        verbose_name="암호화된 신분증",
+        null=True,
+        blank=True
     )
     is_id_card_uploaded = models.BooleanField("신분증 첨부 여부", default=False)
 

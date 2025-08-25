@@ -46,12 +46,14 @@ class SeniorLivingTypeForm(forms.ModelForm):
 
 # 2. 신분증 업로드
 class IdCardForm(forms.ModelForm):
+    id_card_image = forms.FileField(
+        required=True,
+        label="신분증 이미지 업로드"
+    )
+
     class Meta:
         model = User
-        fields = ['id_card_image']
-        widgets = {
-            'id_card_image': forms.FileInput(attrs={'class': 'form-control'}),
-        }
+        fields = ["id_card_image"]
 
 # 3. 성향조사
 class SurveyStep1Form(forms.Form):
@@ -152,4 +154,18 @@ class SurveyStep10Form(forms.Form):
 class YouthInterestedRegionForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['interested_province', 'interested_city', 'interested_district']
+        fields = [
+            'interested_province',
+            'interested_city',
+            'interested_district',
+        ]
+        labels = {
+            'interested_province': '시/도',
+            'interested_city': '시/군/구',
+            'interested_district': '읍/면/동',
+        }
+        widgets = {
+            'interested_province': forms.TextInput(attrs={'placeholder': '예: 서울특별시'}),
+            'interested_city': forms.TextInput(attrs={'placeholder': '예: 노원구'}),
+            'interested_district': forms.TextInput(attrs={'placeholder': '예: 공릉동'}),
+        }

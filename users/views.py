@@ -37,6 +37,24 @@ from .forms import (
 )
 from .models import User, CHOICE_PARTS, Region, Listing
 from .models import get_choice_parts, important_points_parts
+from django.db.models import Case, When, IntegerField
+
+import os
+import json
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.cache import never_cache
+
+from room.views_register import _load_addr_tree, _get_addr_error
+
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from .forms import IdCardForm
+from .models import User
+from django.conf import settings
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+import base64
 
 # ────────────────────────────────────────────────────────────────────────────
 # Gemini 설정
@@ -56,13 +74,14 @@ FORMS = [
     ("step10", SurveyStep10Form),
 ]
 
+try:
+    from room.models import RoomPhoto
+except Exception:
+    RoomPhoto = None
+
 # ────────────────────────────────────────────────────────────────────────────
 # 최근 본 방 유틸
 def _recent_rooms_from_session(request, limit: int = 20):
-    """
-    세션에 저장된 recent_room_ids(가장 최근이 앞쪽)를 읽어
-    그 순서 그대로 정렬한 Room 목록을 반환.
-    """
     ids = request.session.get("recent_room_ids", []) or []
     if not ids:
         return []
@@ -165,13 +184,39 @@ def youth_region_view(request):
         return render(request, "users/re_login.html")
 
     user = request.user
+    addr_tree = _load_addr_tree()
+    addr_tree_json = json.dumps(addr_tree, ensure_ascii=False)
+    error = None
+
     form = YouthInterestedRegionForm(request.POST or None, instance=user)
 
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        return redirect("users:upload_id_card")
+    if request.method == "POST":
+        if form.is_valid():
+            data = form.cleaned_data
+            s = data.get("interested_province")
+            g = data.get("interested_city")
+            d = data.get("interested_district")
 
-    return render(request, "users/youth_region.html", {"form": form})
+            # 주소 트리를 사용하여 유효성 검사
+            ok = bool(s in addr_tree and g in addr_tree.get(s, {}) and d in addr_tree.get(s, {}).get(g, []))
+
+            if not ok:
+                error = "유효한 행정동을 선택해 주세요."
+            else:
+                form.save()
+                return redirect("users:upload_id_card")
+    else:
+        form = YouthInterestedRegionForm(instance=user)
+
+    return render(
+        request,
+        "users/youth_region.html",
+        {
+            "form": form,
+            "addr_tree_json": addr_tree_json,
+            "error": error,
+        },
+    )
 
 
 def senior_living_type_view(request):
@@ -189,6 +234,21 @@ def senior_living_type_view(request):
 
     return render(request, "users/senior_living_type.html", {"form": form})
 
+ENCRYPTION_KEY = settings.ENCRYPTION_KEY
+
+def encrypt_image(image_file):
+    try:
+        image_data = image_file.read()
+
+        padded_data = pad(image_data, AES.block_size)
+
+        cipher = AES.new(ENCRYPTION_KEY, AES.MODE_CBC)
+        encrypted_data = cipher.encrypt(padded_data)
+
+        return base64.b64encode(cipher.iv + encrypted_data)
+    except Exception as e:
+        print(f"암호화 오류: {e}")
+        return None
 
 def upload_id_card(request):
     if not request.user.is_authenticated:
@@ -199,10 +259,20 @@ def upload_id_card(request):
     if request.method == "POST":
         form = IdCardForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_id_card_uploaded = True
-            user.save()
-            return redirect("users:survey_wizard_start")
+            uploaded_file = request.FILES.get('id_card_image')
+
+            if uploaded_file:
+                encrypted_data = encrypt_image(uploaded_file)
+
+                if encrypted_data:
+                    user.id_card_image = encrypted_data
+                    user.is_id_card_uploaded = True
+                    user.save()
+
+                    return redirect("users:survey_wizard_start")
+                else:
+                    # 암호화 실패 시 에러 처리
+                    form.add_error(None, "파일 암호화 중 오류가 발생했습니다.")
     else:
         form = IdCardForm(instance=user)
 
@@ -216,7 +286,7 @@ def user_logout(request):
 
 
 # ────────────────────────────────────────────────────────────────────────────
-# 청년 홈: AI 추천 + 최근 본 방 + (datalist 자동완성 후보)  — 캐시 차단
+# 청년 홈: AI 추천 + 최근 본 방 + (datalist 자동완성 후보) — 캐시 차단
 @never_cache
 def home_youth(request):
     if not request.user.is_authenticated:
@@ -224,77 +294,72 @@ def home_youth(request):
     if not request.user.is_youth:
         return render(request, "users/re_login.html")
 
-    # 최근 본 방 (뒤로가기 시 즉시 반영)
     recent_rooms = _recent_rooms_from_session(request)
 
-    # 🔽 자동완성 후보(rooms 데이터 기반으로 최대 300개 스캔 → 상위 50개만 노출)
     qs_for_suggest = (
         Room.objects
         .order_by("-id")
         .values("address_province", "address_city", "address_district", "nearest_subway")[:300]
     )
     seen, suggestions = set(), []
-
     def _add(x):
         x = (x or "").strip()
         if x and x not in seen:
-            suggestions.append(x)
-            seen.add(x)
-
+            suggestions.append(x); seen.add(x)
     for r in qs_for_suggest:
         prov = r.get("address_province") or ""
         city = r.get("address_city") or ""
         dist = r.get("address_district") or ""
-        sub = r.get("nearest_subway") or ""
-        # 단일
-        for v in (sub, dist, city, prov):
-            _add(v)
-        # 조합
+        sub  = r.get("nearest_subway") or ""
+        for v in (sub, dist, city, prov): _add(v)
         _add(" ".join(x for x in (city, dist) if x))
         _add(" ".join(x for x in (prov, city, dist) if x))
 
-    # AI 입력 데이터
     data_for_ai = get_and_prepare_rooms_for_ai(request)
-
-    # 데이터 없으면 빈 추천 + 최근 본 방만 렌더
     if not data_for_ai or not data_for_ai.get("available_rooms"):
         resp = render(request, "users/home_youth.html", {
             "recommended_rooms": [],
             "recent_rooms": recent_rooms,
-            "region_suggestions": suggestions[:50],   # 🔽 datalist 후보
+            "region_suggestions": suggestions[:50],
         })
         resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-        resp["Pragma"] = "no-cache"
-        resp["Expires"] = "0"
+        resp["Pragma"] = "no-cache"; resp["Expires"] = "0"
         return resp
 
-    # Gemini 프롬프트
     prompt = f"""
         아래는 한 청년의 프로필과 관심 지역에 있는 여러 방의 정보(시니어의 프로필 포함)야.
         이 데이터들을 분석해서 청년과 가장 잘 맞는 순서대로 방 목록을 추천해 줘.
-
         **매칭 점수를 계산할 때 아래 항목의 중요도를 반드시 고려해.**
-        - 반려동물 여부: 10
-        - 흡연 여부: 10
-        - 소음 허용도: 9
-        - 활동 시간대: 8
-        - 대화 빈도: 7
-        - 생활 공간 중요 포인트: 6
-        - 공용 공간 사용 빈도: 6
-        - 식사 공유 여부: 5
-        - 주말 생활 패턴: 4
-
+        **<항목별 가중치 표>**
+        - 반려동물 여부: 10 (불일치 시 매칭 불가 수준)
+        - 흡연 여부: 10 (건강 및 냄새 민감도)
+        - 소음 허용도: 9 (일상 스트레스에 직결)
+        - 활동 시간대: 8 (생활 리듬 직접 영향)
+        - 대화 빈도: 7 (생활 충돌 가능성 높음)
+        - 생활 공간 중요 포인트: 6 (가치관 차이)
+        - 공용 공간 사용 빈도: 6 (프라이버시 & 충돌 가능성)
+        - 식사 공유 여부: 5 (생활 방식 영향)
+        - 주말 생활 패턴: 4 (생활 리듬 보조 지표)
+        - 자유 응답: 점수 부여는 아니지만, **매우 중요하게 고려**하여 추천 이유에 반영해.
         <청년 프로필>
         {json.dumps(data_for_ai['youth_profile'], indent=2, ensure_ascii=False)}
-
         <방 목록>
         {json.dumps(data_for_ai['available_rooms'], indent=2, ensure_ascii=False)}
 
+        **아래 <방 목록>에 있는 모든! 방에 대해 추천 순위와 이유를 반드시 제공해 줘. 점수가 낮다고 해서 반환하지 않으면 안돼.**
+        
         응답은 다음 JSON 형식으로만 제공해줘.
+        **'recommendation_reason'은 두 문장(두 줄) 내외로 간결하게 작성해. 유저들의 이름은 말하지 말고, 생활 방식 일치 여부에 초점을 맞춰 설명해 줘.**
         ```json
         [
-          {{"room_id":"<실제 ID>", "recommendation_reason":"<두 문장 이내>"}},
-          {{"room_id":"<다른 ID>", "recommendation_reason":"<두 문장 이내>"}}
+          {{
+            "room_id": "<방 목록에 있는 실제 ID를 사용>",
+            "recommendation_reason": "<두 줄 내외의 간결한 추천 이유>"
+          }},
+          {{
+            "room_id": "<방 목록에 있는 다른 실제 ID를 사용>",
+            "recommendation_reason": "<추천 이유>"
+          }}
         ]
         ```
     """
@@ -310,10 +375,14 @@ def home_youth(request):
         print(f"Gemini API 호출 중 오류 발생: {e}")
         recommended_list_from_ai = []
 
-    # 추천된 순서대로 Room 정렬
+    # ✅ 여기만 바꿈: 사진을 함께 prefetch해서 카드 썸네일에서 바로 사용 가능
     sorted_rooms = []
     if isinstance(recommended_list_from_ai, list):
-        room_map = {str(room.id): room for room in Room.objects.all()}
+        room_qs = Room.objects.all()
+        if RoomPhoto:
+            room_qs = room_qs.prefetch_related("room_photos")  # ← 핵심
+        room_map = {str(room.id): room for room in room_qs}
+
         for item in recommended_list_from_ai:
             room_id = str(item.get("room_id"))
             if room_id in room_map:
@@ -321,7 +390,6 @@ def home_youth(request):
                 room.recommendation_reason = item.get("recommendation_reason", "추천 이유가 제공되지 않았습니다.")
                 sorted_rooms.append(room)
 
-    # 세션에 추천/점수 저장 (전체목록 페이지에서 사용)
     ai_recommendations_with_score = {}
     for room in sorted_rooms:
         matching_score = calculate_matching_score(request.user, room.owner)
@@ -334,11 +402,10 @@ def home_youth(request):
     resp = render(request, "users/home_youth.html", {
         "recommended_rooms": sorted_rooms,
         "recent_rooms": recent_rooms,
-        "region_suggestions": suggestions[:50],   # 🔽 datalist 후보
+        "region_suggestions": suggestions[:50],
     })
     resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    resp["Pragma"] = "no-cache"
-    resp["Expires"] = "0"
+    resp["Pragma"] = "no-cache"; resp["Expires"] = "0"
     return resp
 
 
