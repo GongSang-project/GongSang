@@ -1,85 +1,39 @@
-{% load static %}
-
-<h1 style="font-size:20px;margin:16px 0 8px;">방 등록하기</h1>
-<p style="color:#777;margin:0 0 16px;">3/9</p>
-<h2 style="font-size:22px;margin:0 0 18px;">집의 상세 정보를 알려주세요</h2>
-
-{% if form.errors %}
-  <div style="background:#ffe8e8;border:1px solid #ffb4b4;padding:10px;border-radius:10px;color:#b10000;margin-bottom:12px;">
-    입력을 확인해 주세요.
-  </div>
-{% endif %}
-
-<form method="post" id="detailForm" novalidate>
+{# templates/room/register/step_detail.html #}
+<form method="post" novalidate>
   {% csrf_token %}
+  {{ form.non_field_errors }}
 
-  <!-- 매물유형 (UI용) -->
-  <label style="display:block;margin:10px 0 6px;">매물유형</label>
-  <select name="property_type" id="property_type"
-          style="width:100%;padding:12px;border:1px solid #ddd;border-radius:12px;">
-    {% for v in property_types %}
-      <option value="{{ v }}" {% if v == initial_property_type %}selected{% endif %}>{{ v }}</option>
-    {% endfor %}
-  </select>
+  <h2>집의 상세 정보를 알려주세요</h2>
 
-  <div style="display:flex;gap:12px;margin-top:18px;">
-    <!-- 방 개수 (UI용) -->
-    <div style="flex:1;">
-      <label style="display:block;margin:0 0 6px;">방 개수</label>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <input type="number" name="rooms_count" id="rooms_count" min="1" step="1"
-               value="{{ initial_rooms_count }}"
-               style="flex:1;padding:12px;border:1px solid #ddd;border-radius:12px;">
-        <span style="color:#666;">개</span>
-      </div>
+  <div class="field">
+    <label for="{{ form.property_type.id_for_label }}">매물유형</label>
+    {{ form.property_type.errors }}
+    {{ form.property_type }}
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label for="{{ form.room_count.id_for_label }}">방 개수</label>
+      {{ form.room_count.errors }}
+      {{ form.room_count }}
+      <span>개</span>
     </div>
-
-    <!-- 화장실 개수 → models.Room.toilet_count -->
-    <div style="flex:1;">
-      <label style="display:block;margin:0 0 6px;">화장실 개수</label>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <input type="number" name="toilet_count" id="toilet_count" min="1" step="1" required
-               value="{{ form.initial.toilet_count|default:1 }}"
-               style="flex:1;padding:12px;border:1px solid #ddd;border-radius:12px;">
-        <span style="color:#666;">개</span>
-      </div>
+    <div class="field">
+      <label for="{{ form.toilet_count.id_for_label }}">화장실 개수</label>
+      {{ form.toilet_count.errors }}
+      {{ form.toilet_count }}
+      <span>개</span>
     </div>
   </div>
 
-  <!-- 면적 → models.Room.area -->
-  <div style="margin-top:18px;">
-    <label style="display:block;margin:0 0 6px;">청년이 사용할 방은 몇 m² 인가요?</label>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <input type="number" name="area" id="area" min="1" step="0.1" required
-             value="{{ form.initial.area|default:'' }}"
-             placeholder="예: 15"
-             style="flex:1;padding:12px;border:1px solid #ddd;border-radius:12px;">
-      <span style="color:#666;">m²</span>
+  <div class="field">
+    <label for="{{ form.area.id_for_label }}">청년이 사용할 방은 몇 m² 인가요?</label>
+    {{ form.area.errors }}
+    <div style="display:flex;align-items:center;gap:8px">
+      {{ form.area }}
+      <span>m²</span>
     </div>
   </div>
 
-  <!-- floor가 폼에서 필수일 수 있으니 기본값 전달 -->
-  <input type="hidden" name="floor" value="{{ form.initial.floor|default:'정보없음' }}">
-
-  <button type="submit" id="nextBtn"
-          style="width:100%;margin:24px 0 8px;padding:14px 16px;border:none;border-radius:14px;background:#f0642d;color:#fff;font-size:16px;">
-    다음
-  </button>
+  <button type="submit">다음</button>
 </form>
-
-<script>
-  (function () {
-    const area = document.getElementById('area');
-    const toilet = document.getElementById('toilet_count');
-    const btn = document.getElementById('nextBtn');
-    function toggle() {
-      const ok = (Number(area.value) > 0) && (Number(toilet.value) >= 1);
-      btn.disabled = !ok;
-      btn.style.opacity = ok ? 1 : 0.6;
-      btn.style.cursor = ok ? 'pointer' : 'not-allowed';
-    }
-    area.addEventListener('input', toggle);
-    toilet.addEventListener('input', toggle);
-    toggle();
-  })();
-</script>

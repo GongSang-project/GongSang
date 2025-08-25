@@ -68,7 +68,7 @@
 
     <!-- HERO -->
     <div class="hero">
-      {% with photos=room.photos.all %}
+      {% with photos=room.room_photos.all %}
         {% if photos|length %}
           <img src="{{ photos.0.image.url }}" alt="">
           <div class="count">1/{{ photos|length }}</div>
