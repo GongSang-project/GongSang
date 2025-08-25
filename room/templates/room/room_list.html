@@ -1,27 +1,123 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>{{ display_region }} 방 검색 결과</title>
+  <meta name="viewport" content="width=375, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>{{ display_region }} | 전체 {{ total }}개</title>
   <style>
-    :root { --sheet-radius:16px; --btn:#f0643b; --chip:#f27d5b18; }
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
-    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
-    .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin: 12px 0 18px; }
-    .toolbtn { display:inline-flex; align-items:center; gap:6px; padding:10px 12px; border:1px solid #e7e7e7; border-radius:12px; background:#fff; cursor:pointer; }
-    .toolbtn .value { color:#111; font-weight:600; }
-    .toolbtn small { color:#666; }
-    .applybar { display:flex; gap:10px; }
-    .applybar .reset { background:#fff; border:1px solid #eee; }
-    .applybar .ok { background:var(--btn); color:#fff; }
-    .rooms { display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 18px; }
-    .card { border: 1px solid #eee; border-radius: 10px; padding: 12px; }
-    .meta { font-size: 13px; color:#666; }
-    .pager { margin-top: 16px; display:flex; gap:8px; align-items:center; }
-    .pager a { padding:6px 10px; border:1px solid #ddd; border-radius:8px; text-decoration:none; }
+    :root{
+      --bg:#f3f3f3;
+      --white:#fff;
+      --black:#121212;
+      --gray-700:#6E6E6E;
+      --gray-500:#959595;
+      --line:#e8e8e8;
+      --shadow:0 0 10px #0000001a;
+      --orange:#F26430;
+      --peach:#FFEBD9;
+      --peach-strong:#ffebd9;
+      --blue-soft:#BAD7FF;
+      --blue-text:#0C3281;
+      --sheet-radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--black);
+      font-family:Pretendard, -apple-system, system-ui, Segoe UI, Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+    .app{width:375px; min-height:812px; margin:0 auto; background:var(--bg);}
 
-    /* bottom sheet */
+    /* ===== Header ===== */
+    .header{
+      position:sticky; top:0; z-index:10;
+      background:var(--white);
+      box-shadow:var(--shadow);
+      border-radius:12px 12px 0 0;
+      padding-top:6px;
+    }
+    .head-row{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 16px 12px;
+    }
+    .head-left{display:flex; align-items:center; gap:12px;}
+    .back-btn{
+      width:32px; height:32px; border:none; background:transparent; padding:0;
+      display:flex; align-items:center; justify-content:center; cursor:pointer;
+    }
+    .back-btn svg{width:10px; height:17px}
+    .back-btn path{stroke:var(--black); stroke-width:1.5; fill:none; stroke-linecap:round; stroke-linejoin:round;}
+    .title{font-size:18px; font-weight:700; letter-spacing:-0.1px;}
+    .head-right{display:flex; align-items:flex-end; gap:8px; color:var(--gray-500); font-size:12px;}
+    .sep{color:#d0d0d0; margin:0 4px; font-weight:400;}
+
+    /* filter chips row */
+    .filters{
+      display:flex; gap:8px; padding:10px 16px 12px; background:var(--white);
+      border-top:1px solid #fff; /* 시각적 여백 유지 */
+      flex-wrap:wrap; /* 다음 줄로 넘어가도록 */
+      overflow-x:visible;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:7px 11px; border-radius:100px;
+      border:1px solid #e7e7e7; background:var(--white);
+      font-size:12px; color:var(--gray-500); cursor:pointer;
+      white-space:nowrap; flex:0 0 auto; /* 텍스트 줄바꿈 방지 + 축소 방지 */
+    }
+    .chip .caret{width:9px; height:6px;}
+    .chip .caret path{stroke:#999; stroke-width:1.2; fill:none; stroke-linecap:round; stroke-linejoin:round;}
+
+    /* ===== List ===== */
+    .list{padding:10px 17px 18px; display:flex; flex-direction:column; gap:12px;}
+    .card{
+      position:relative; background:var(--white); border:1px solid var(--line);
+      border-radius:12px; overflow:hidden; display:grid; grid-template-columns:135px 1fr;
+      min-height:195px;
+    }
+    .card-left{
+      position:relative; width:135px; height:173px; margin:11px 0 11px 12px; border-radius:6px; overflow:hidden; background:#d1d1d1;
+    }
+    .thumb{position:absolute; inset:0;}
+    .thumb img{width:100%; height:100%; object-fit:cover;}
+    .dot-row{
+      position:absolute; left:0; right:0; bottom:6px; display:flex; gap:4px; justify-content:center;
+    }
+    .dot{width:5px; height:5px; border-radius:50%; background:#c1c1c1;}
+    .dot.active{background:#fff;}
+    .like{
+      position:absolute; right:8px; top:8px; width:27px; height:27px; display:grid; place-items:center;
+      background:rgba(255,255,255,.92); border-radius:50%; border:1px solid #eee; cursor:pointer;
+    }
+    .like svg{width:16px; height:16px;}
+    .like path{stroke:#999; fill:none; stroke-width:1.5;}
+    .like.active path{fill:#ff6a6a; stroke:#ff6a6a;}
+
+    .card-right{padding:15px 12px 12px 12px; display:flex; flex-direction:column; gap:8px}
+    .score{font-size:15px; font-weight:600;}        /* "AI 매칭 점수 92점" */
+    .price{font-size:15px; font-weight:700;}        /* "월세 200/25" */
+    .meta{color:var(--gray-500); font-size:12px; line-height:16px}
+    .host{display:flex; align-items:center; gap:6px; color:var(--gray-500); font-size:12px}
+
+    .trial{display:inline-flex; align-items:center; gap:4px; height:20px; padding:0 6px;
+      background:var(--blue-soft); color:var(--blue-text);
+      border-radius:6px; font-size:11px; font-weight:600; width:max-content}
+
+    .tags{display:flex; flex-wrap:wrap; gap:6px}
+    .tag{display:inline-flex; align-items:center; height:20px; padding:0 6px; background:var(--peach-strong);
+      color:var(--orange); border-radius:6px; font-size:11px; font-weight:600;}
+
+    /* anchor overlay for whole card */
+    .card a.card-link{position:absolute; inset:0; z-index:1;}
+    .card .click-surface{position:relative; z-index:2;}
+
+    /* pager */
+    .pager{padding:8px 16px 18px; display:flex; justify-content:center; gap:8px}
+    .pager a, .pager span{
+      font-size:13px; color:#444; text-decoration:none; border:1px solid #e1e1e1; border-radius:8px; padding:6px 10px; background:#fff;
+    }
+
+    /* ===== Bottom sheets ===== */
     .sheet-backdrop{position:fixed;inset:0;background:#0006;opacity:0;visibility:hidden;transition:.2s;z-index:20;}
     .sheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-top-left-radius:var(--sheet-radius);border-top-right-radius:var(--sheet-radius);box-shadow:0 -8px 30px #0002;transition:.3s;z-index:21;}
     .sheet.open{bottom:0;}
@@ -29,248 +125,350 @@
     .sheet-title{margin:0;font-size:16px;font-weight:700;}
     .sheet-body{padding:14px 18px 18px; display:grid; gap:14px;}
     .chips{display:flex; gap:8px; flex-wrap:wrap;}
-    .chip{padding:8px 12px; border-radius:10px; border:1px solid #eee; background:var(--chip); cursor:pointer;}
-    .chip.active{border-color:var(--btn); background:#ffece7;}
+    .chip-option{padding:8px 12px; border-radius:10px; border:1px solid #eee; background:#f27d5b18; cursor:pointer;}
+    .chip-option.active{border-color:var(--orange); background:#ffece7;}
     .section label{display:block; margin-bottom:6px; font-weight:600;}
     .row{display:grid;grid-template-columns:1fr 1fr; gap:8px;}
-    .range{display:flex; align-items:center; gap:10px;}
-    .range input[type="number"]{width:100%; padding:10px; border:1px solid #eee; border-radius:10px;}
+    .row input{width:100%; padding:10px; border:1px solid #eee; border-radius:10px;}
     .sheet-foot{padding:12px 18px 18px; border-top:1px solid #f4f4f4; display:flex; gap:10px;}
     .sheet-foot button{flex:1; padding:12px; border-radius:12px; border:1px solid #eee; cursor:pointer; font-weight:600;}
-    /* date sheet */
-    .date-row{display:flex; gap:10px;}
-    .date-row input{flex:1; padding:10px; border:1px solid #eee; border-radius:10px;}
-    @media (max-width: 960px){ .rooms{grid-template-columns: repeat(2, 1fr);} }
+    .sheet-foot .ok{background:var(--orange); color:#fff; border-color:var(--orange)}
+
+    /* ===== Deal sheet (match design) ===== */
+    #sheetDeal::before{content:""; position:absolute; left:50%; transform:translateX(-50%); top:6px; width:64px; height:5px; border-radius:999px; background:#d8d8d8;}
+    #sheetDeal .sheet-head{padding:18px 20px 8px;}
+    #sheetDeal .sheet-title{font-size:20px; font-weight:800; letter-spacing:-0.2px; margin-bottom:4px;}
+    #sheetDeal .sheet-sub{margin:0; color:#9aa0a6; font-size:13px;}
+    #sheetDeal .sheet-body{padding:14px 20px 18px;}
+    #sheetDeal .chips{gap:10px;}
+    #sheetDeal .chip-option{padding:10px 14px; border-radius:8px; border:1px solid var(--orange); color:var(--orange); background:#fff; font-weight:800;}
+    #sheetDeal .chip-option.active{background:var(--orange); color:#fff;}
+    #sheetDeal .section{display:block}
+    #sheetDeal .section + .section{margin-top:18px}
+    #sheetDeal .section label{font-size:14px; font-weight:700; color:#333; margin-bottom:10px}
+    #sheetDeal .row{grid-template-columns:1fr 1fr; gap:12px}
+    #sheetDeal .input-wrap{position:relative}
+    #sheetDeal .input-wrap input{width:100%; padding:14px 46px 14px 14px; border:1px solid #ececec; border-radius:12px; box-shadow:0 2px 6px #0000000d; font-size:14px}
+    #sheetDeal .input-wrap .unit{position:absolute; right:10px; top:50%; transform:translateY(-50%); background:#fff; color:#9a9a9a; border:1px solid #eee; border-radius:10px; padding:6px 10px; font-size:12px; box-shadow:0 1px 3px #0000000a}
+    #sheetDeal .price-title{margin:8px 0 6px; font-size:18px; font-weight:800;}
+    #sheetDeal .sheet-foot{padding:16px 20px 22px; gap:12px}
+    #sheetDeal .sheet-foot button{height:48px; border-radius:14px; font-size:16px; font-weight:800}
+    #sheetDeal .sheet-foot [data-reset-deal]{background:#f6d7bf; color:#cf6b35; border-color:#f6d7bf}
+    #sheetDeal .sheet-foot .ok{background:var(--orange); color:#fff; border-color:var(--orange)}
   </style>
 </head>
 <body>
-<div class="container">
-  <h2 style="margin-bottom:8px;">
-    {{ display_region }} <small style="color:#666; font-weight:400;">(전체 {{ total }}개)</small>
-  </h2>
+<div class="app">
 
-  <!-- 검색 폼: GET -->
-  <form method="get" id="roomFilterForm">
-    <!-- 기존 검색어/지역 입력은 숨김 유지(필요 시 노출해서 같이 씀) -->
-    <input type="hidden" name="q" value="{{ request.GET.q }}">
-    <input type="hidden" name="region" value="{{ request.GET.region }}">
-    <!-- 신규 필터 hidden 값들 -->
-    <input type="hidden" name="property_type" id="property_type" value="{{ request.GET.property_type }}">
-    <input type="hidden" name="deal_types" id="deal_types" value="{{ request.GET.deal_types }}">
-    <input type="hidden" name="deposit_min" id="deposit_min" value="{{ request.GET.deposit_min }}">
-    <input type="hidden" name="deposit_max" id="deposit_max" value="{{ request.GET.deposit_max }}">
-    <input type="hidden" name="rent_min" id="rent_min" value="{{ request.GET.rent_min }}">
-    <input type="hidden" name="rent_max" id="rent_max" value="{{ request.GET.rent_max }}">
-    <input type="hidden" name="move_in_from" id="move_in_from" value="{{ request.GET.move_in_from }}">
+  <!-- ===== Header ===== -->
+  <div class="header">
+    <div class="head-row">
+      <div class="head-left">
+        <button class="back-btn" type="button" aria-label="뒤로가기" onclick="history.back()">
+          <svg viewBox="0 0 8 13" xmlns="http://www.w3.org/2000/svg"><path d="M6.84 1.5 1.155 6.711 6.84 11.923"/></svg>
+        </button>
+        <div class="title">{{ display_region }}</div>
+      </div>
+      <div class="head-right">
+        <span class="sep">|</span>
+        <div>전체 {{ total }}개</div>
+      </div>
+    </div>
 
-    <!-- 상단 툴바 버튼들 -->
-    <div class="toolbar">
-      <button type="button" class="toolbtn" id="btnType">
-        <small>매물유형</small>
-        <span class="value" id="labelType">{{ request.GET.property_type|default:"전체" }}</span>
-      </button>
-      <button type="button" class="toolbtn" id="btnDeal">
-        <small>거래유형/가격</small>
-        <span class="value" id="labelDeal">
-          {% if request.GET.deal_types %}
-            {{ request.GET.deal_types }}{% if request.GET.rent_min or request.GET.rent_max %} · 월세 {{ request.GET.rent_min|default:"-" }}~{{ request.GET.rent_max|default:"-" }}{% endif %}
-          {% else %}전체{% endif %}
-        </span>
-      </button>
-      <button type="button" class="toolbtn" id="btnDate">
-        <small>입주 날짜</small>
-        <span class="value" id="labelDate">{{ request.GET.move_in_from|default:"선택" }}</span>
-      </button>
+    <!-- 필터 칩 -->
+    <form method="get" id="roomFilterForm">
+      <!-- 기존 검색 파라미터 유지 -->
+      <input type="hidden" name="q" value="{{ request.GET.q }}">
+      <input type="hidden" name="region" value="{{ request.GET.region }}">
+      <!-- 신규 필터 hidden -->
+      <input type="hidden" name="property_type" id="property_type" value="{{ request.GET.property_type }}">
+      <input type="hidden" name="deal_types" id="deal_types" value="{{ request.GET.deal_types }}">
+      <input type="hidden" name="deposit_min" id="deposit_min" value="{{ request.GET.deposit_min }}">
+      <input type="hidden" name="deposit_max" id="deposit_max" value="{{ request.GET.deposit_max }}">
+      <input type="hidden" name="rent_min" id="rent_min" value="{{ request.GET.rent_min }}">
+      <input type="hidden" name="rent_max" id="rent_max" value="{{ request.GET.rent_max }}">
+      <input type="hidden" name="move_in_from" id="move_in_from" value="{{ request.GET.move_in_from }}">
 
-      <div style="margin-left:auto;">
-        <div class="applybar">
-          <a class="toolbtn reset" href="{% url 'room:room_list_page' %}">초기화</a>
-          <button class="toolbtn ok" type="submit" style="border:none;">검색</button>
+      <div class="filters">
+        <button type="button" class="chip" id="btnType">
+          <span>매물유형</span>
+          <span class="caret">
+            <svg viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4"/></svg>
+          </span>
+        </button>
+        <button type="button" class="chip" id="btnDeal">
+          <span>거래유형/가격</span>
+          <span class="caret">
+            <svg viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4"/></svg>
+          </span>
+        </button>
+        <button type="button" class="chip" id="btnDate">
+          <span>입주 날짜</span>
+          <span class="caret">
+            <svg viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4"/></svg>
+          </span>
+        </button>
+        <div style="display:flex; gap:8px;">
+          <a class="chip" href="{% url 'room:room_list_page' %}" style="text-decoration:none;">초기화</a>
+          <button class="chip" type="submit" style="background:var(--orange); color:#fff; border-color:var(--orange);">검색</button>
         </div>
       </div>
-    </div>
-  </form>
-
-  <!-- ===== 매물유형 시트 ===== -->
-  <div class="sheet-backdrop" id="backdropType" hidden></div>
-  <div class="sheet" id="sheetType" aria-hidden="true">
-    <div class="sheet-head"><h3 class="sheet-title">매물 유형</h3></div>
-    <div class="sheet-body">
-      <div class="chips" id="typeChips">
-        <!-- 단일 선택 -->
-        <span class="chip" data-value="">전체</span>
-        <span class="chip" data-value="아파트">아파트</span>
-        <span class="chip" data-value="빌라">빌라</span>
-        <span class="chip" data-value="오피스텔">오피스텔</span>
-        <span class="chip" data-value="주택">주택</span>
-      </div>
-    </div>
-    <div class="sheet-foot">
-      <button type="button" class="reset" data-reset-type>초기화</button>
-      <button type="button" class="ok" data-apply-type>확인</button>
-    </div>
+    </form>
   </div>
 
-  <!-- ===== 거래유형/가격 시트 ===== -->
-  <div class="sheet-backdrop" id="backdropDeal" hidden></div>
-  <div class="sheet" id="sheetDeal" aria-hidden="true">
-    <div class="sheet-head"><h3 class="sheet-title">거래 방식 · 가격</h3></div>
-    <div class="sheet-body">
-      <div class="section">
-        <label>거래 방식 (중복 선택 가능)</label>
-        <div class="chips" id="dealChips">
-          <span class="chip" data-value="체험입주">체험 입주</span>
-          <span class="chip" data-value="월세">월세</span>
-        </div>
-      </div>
-      <div class="section">
-        <label>보증금 (만원)</label>
-        <div class="row">
-          <input type="number" id="inpDepositMin" placeholder="최소">
-          <input type="number" id="inpDepositMax" placeholder="최대">
-        </div>
-      </div>
-      <div class="section">
-        <label>월세 (만원)</label>
-        <div class="row">
-          <input type="number" id="inpRentMin" placeholder="최소">
-          <input type="number" id="inpRentMax" placeholder="최대">
-        </div>
-      </div>
-    </div>
-    <div class="sheet-foot">
-      <button type="button" class="reset" data-reset-deal>초기화</button>
-      <button type="button" class="ok" data-apply-deal>확인</button>
-    </div>
-  </div>
-
-  <!-- ===== 입주 날짜 시트 ===== -->
-  <div class="sheet-backdrop" id="backdropDate" hidden></div>
-  <div class="sheet" id="sheetDate" aria-hidden="true">
-    <div class="sheet-head"><h3 class="sheet-title">입주 날짜</h3></div>
-    <div class="sheet-body">
-      <div class="date-row">
-        <input type="date" id="inpMoveIn">
-      </div>
-    </div>
-    <div class="sheet-foot">
-      <button type="button" class="reset" data-reset-date>초기화</button>
-      <button type="button" class="ok" data-apply-date>확인</button>
-    </div>
-  </div>
-
-  <!-- ===== 목록 ===== -->
-  <div class="rooms">
+  <!-- ===== List ===== -->
+  <div class="list">
     {% for r in page_obj %}
       <div class="card">
-        <div class="meta">{{ r.created_at|date:"Y-m-d" }} · {{ r.nearest_subway|default:"역 정보 없음" }}</div>
-        <h3 style="margin:6px 0;">
-          {{ r.address_city }} {{ r.address_district }} {{ r.address_detailed }}
-        </h3>
-        <div>보증금 {{ r.deposit|floatformat:0 }} / 월세 {{ r.rent_fee|floatformat:0 }}</div>
-        <div class="meta">{{ r.area }}㎡ · {{ r.floor }}</div>
-        <div style="margin-top:8px;">
-          <a href="{% url 'room:room_detail' r.id %}">상세보기</a>
+        <a href="{% url 'room:room_detail' r.id %}" class="card-link" aria-label="상세보기로 이동"></a>
+
+        <!-- left -->
+        <div class="card-left click-surface">
+          <div class="thumb">
+            {% if r.thumbnail_url %}
+              <img src="{{ r.thumbnail_url }}" alt="대표 이미지" />
+            {% elif r.images and r.images.0 %}
+              <img src="{{ r.images.0.url }}" alt="대표 이미지" />
+            {% else %}
+              <img src="{% static 'img/placeholder_room.jpg' %}" alt="대표 이미지" />
+            {% endif %}
+          </div>
+
+          <!-- like -->
+          <button class="like" type="button" aria-label="관심">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-.99-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.77-8.84a5.5 5.5 0 0 0 .07-7.78Z"/></svg>
+          </button>
+
+          <!-- dots -->
+          <div class="dot-row">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+
+        <!-- right -->
+        <div class="card-right click-surface">
+          <div class="score">AI 매칭 점수 {{ r.match_score|default:"" }}{% if r.match_score %}점{% endif %}</div>
+          <div class="price">월세 {{ r.deposit|floatformat:0 }}/{{ r.rent_fee|floatformat:0 }}</div>
+
+          <div class="meta">
+            {{ r.address_city }} {{ r.address_district }}<br/>
+            {{ r.property_type|default:"아파트" }} {% if r.floor %}{{ r.floor }}층,{% endif %} 방 {{ r.area|floatformat:1 }}m²
+          </div>
+
+          <div class="host">
+            <span>👵{% if r.household_display == '여성 시니어' %}{% else %}👴{% endif %}</span>
+            <span>{{ r.household_display|default:"시니어 부부" }}</span>
+          </div>
+
+          {% if r.trial_move_in %}
+            <div class="trial">체험 입주 가능</div>
+          {% endif %}
+
+          <div class="tags">
+            {% if r.tags %}
+              {% for t in r.tags|slice:":3" %}
+                <span class="tag">#{{ t }}</span>
+              {% endfor %}
+            {% elif r.preferences %}
+              {% for t in r.preferences|slice:":3" %}
+                <span class="tag">#{{ t }}</span>
+              {% endfor %}
+            {% endif %}
+          </div>
         </div>
       </div>
     {% empty %}
-      <p>조건에 맞는 방이 없습니다.</p>
+      <p style="color:#666; text-align:center; margin:24px 0;">조건에 맞는 방이 없습니다.</p>
     {% endfor %}
   </div>
 
+  <!-- pager -->
   <div class="pager">
     {% if page_obj.has_previous %}<a href="?{{ prev_qs }}">이전</a>{% endif %}
     <span>페이지 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_next %}<a href="?{{ next_qs }}">다음</a>{% endif %}
   </div>
+
+  <!-- ====== Bottom Sheets ====== -->
+  <!-- 매물유형 -->
+  <div class="sheet-backdrop" id="backdropType" hidden></div>
+  <div class="sheet" id="sheetType" aria-hidden="true">
+    <div class="sheet-head"><h3 class="sheet-title">매물 유형</h3></div>
+    <div class="sheet-body">
+      <div class="chips" id="typeChips">
+        <span class="chip-option" data-value="">전체</span>
+        <span class="chip-option" data-value="아파트">아파트</span>
+        <span class="chip-option" data-value="빌라">빌라</span>
+        <span class="chip-option" data-value="오피스텔">오피스텔</span>
+        <span class="chip-option" data-value="주택">주택</span>
+      </div>
+    </div>
+    <div class="sheet-foot">
+      <button type="button" data-reset-type>초기화</button>
+      <button type="button" class="ok" data-apply-type>확인</button>
+    </div>
+  </div>
+
+  <!-- 거래유형/가격 -->
+  <div class="sheet-backdrop" id="backdropDeal" hidden></div>
+  <div class="sheet" id="sheetDeal" aria-hidden="true">
+    <div class="sheet-head">
+      <h3 class="sheet-title">거래 방식</h3>
+      <p class="sheet-sub">중복 선택 가능</p>
+    </div>
+    <div class="sheet-body">
+      <div class="section">
+        <div class="chips" id="dealChips">
+          <span class="chip-option" data-value="체험입주">체험 입주</span>
+          <span class="chip-option" data-value="월세">월세</span>
+        </div>
+      </div>
+
+      <div class="price-title">가격</div>
+
+      <div class="section">
+        <label>보증금</label>
+        <div class="row">
+          <div class="input-wrap">
+            <input type="number" id="inpDepositMin" placeholder="최소">
+            <span class="unit">만원</span>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="inpDepositMax" placeholder="최대">
+            <span class="unit">만원</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <label>월세</label>
+        <div class="row">
+          <div class="input-wrap">
+            <input type="number" id="inpRentMin" placeholder="최소">
+            <span class="unit">만원</span>
+          </div>
+          <div class="input-wrap">
+            <input type="number" id="inpRentMax" placeholder="최대">
+            <span class="unit">만원</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-foot">
+      <button type="button" data-reset-deal>초기화</button>
+      <button type="button" class="ok" data-apply-deal>확인</button>
+    </div>
+  </div>
+
+  <!-- 입주 날짜 -->
+  <div class="sheet-backdrop" id="backdropDate" hidden></div>
+  <div class="sheet" id="sheetDate" aria-hidden="true">
+    <div class="sheet-head"><h3 class="sheet-title">입주 날짜</h3></div>
+    <div class="sheet-body">
+      <div class="row">
+        <input type="date" id="inpMoveIn">
+      </div>
+    </div>
+    <div class="sheet-foot">
+      <button type="button" data-reset-date>초기화</button>
+      <button type="button" class="ok" data-apply-date>확인</button>
+    </div>
+  </div>
 </div>
 
 <script>
-  // 유틸
+  // helpers
   const $ = s => document.querySelector(s);
   const $$ = s => Array.from(document.querySelectorAll(s));
 
-  // 초기 값 세팅(서버에서 온 쿼리 유지)
-  (function initFromQuery(){
-    const pt = "{{ request.GET.property_type|default_if_none:'' }}";
-    if(pt) selectChip("#typeChips", pt);
-
-    const dealStr = "{{ request.GET.deal_types|default_if_none:'' }}";
-    if(dealStr){
-      dealStr.split(",").forEach(v => selectChip("#dealChips", v.trim()));
-    }
-    $("#inpDepositMin").value = "{{ request.GET.deposit_min }}";
-    $("#inpDepositMax").value = "{{ request.GET.deposit_max }}";
-    $("#inpRentMin").value = "{{ request.GET.rent_min }}";
-    $("#inpRentMax").value = "{{ request.GET.rent_max }}";
-    $("#inpMoveIn").value = "{{ request.GET.move_in_from }}";
-  })();
-
   function openSheet(id){
     $("#"+id).classList.add("open");
-    $("#backdrop"+id.replace("sheet","")).hidden=false;
-    $("#backdrop"+id.replace("sheet","")).style.opacity=1;
-    $("#backdrop"+id.replace("sheet","")).style.visibility='visible';
+    const bd = $("#backdrop"+id.replace("sheet",""));
+    bd.hidden=false; bd.style.opacity=1; bd.style.visibility='visible';
   }
   function closeSheet(id){
     $("#"+id).classList.remove("open");
     const bd = $("#backdrop"+id.replace("sheet",""));
     bd.style.opacity=0; setTimeout(()=>{bd.hidden=true; bd.style.visibility='hidden';},200);
   }
-  function selectChip(containerSel, value){
-    $$(containerSel+" .chip").forEach(ch=>{
+
+  // like toggle
+  $$(".like").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{ e.stopPropagation(); btn.classList.toggle("active"); });
+  });
+
+  // 초기 값 세팅(서버에서 온 쿼리 유지)
+  (function initFromQuery(){
+    const pt = "{{ request.GET.property_type|default_if_none:'' }}";
+    if(pt){ selectSingle("#typeChips", pt); }
+
+    const dealStr = "{{ request.GET.deal_types|default_if_none:'' }}";
+    if(dealStr){ dealStr.split(",").forEach(v=> toggleChip("#dealChips", v.trim(), true)); }
+
+    $("#inpDepositMin").value = "{{ request.GET.deposit_min }}";
+    $("#inpDepositMax").value = "{{ request.GET.deposit_max }}";
+    $("#inpRentMin").value    = "{{ request.GET.rent_min }}";
+    $("#inpRentMax").value    = "{{ request.GET.rent_max }}";
+    $("#inpMoveIn").value     = "{{ request.GET.move_in_from }}";
+  })();
+
+  function selectSingle(containerSel, value){
+    $$(containerSel+" .chip-option").forEach(ch=>{
       ch.classList.toggle("active", ch.dataset.value===value || (value==="" && ch.dataset.value===""));
+    });
+  }
+  function toggleChip(containerSel, value, on){
+    $$(containerSel+" .chip-option").forEach(ch=>{
+      if(ch.dataset.value===value){ ch.classList.toggle("active", on ?? !ch.classList.contains("active")); }
     });
   }
 
   // 매물유형
   $("#btnType").addEventListener("click", ()=> openSheet("sheetType"));
   $("#backdropType").addEventListener("click", ()=> closeSheet("sheetType"));
-  $$("#typeChips .chip").forEach(ch=> ch.addEventListener("click", ()=>{
-    selectChip("#typeChips", ch.dataset.value);
-  }));
-  document.querySelector("[data-reset-type]").addEventListener("click", ()=> selectChip("#typeChips",""));
+  $$("#typeChips .chip-option").forEach(ch=> ch.addEventListener("click", ()=> selectSingle("#typeChips", ch.dataset.value)));
+  document.querySelector("[data-reset-type]").addEventListener("click", ()=> selectSingle("#typeChips",""));
   document.querySelector("[data-apply-type]").addEventListener("click", ()=>{
-    const active = $("#typeChips .chip.active");
+    const active = $("#typeChips .chip-option.active");
     const val = active ? active.dataset.value : "";
     $("#property_type").value = val;
-    $("#labelType").textContent = val || "전체";
     closeSheet("sheetType");
   });
 
   // 거래유형/가격
   $("#btnDeal").addEventListener("click", ()=> openSheet("sheetDeal"));
   $("#backdropDeal").addEventListener("click", ()=> closeSheet("sheetDeal"));
-  $$("#dealChips .chip").forEach(ch=> ch.addEventListener("click", ()=> ch.classList.toggle("active")));
+  $$("#dealChips .chip-option").forEach(ch=> ch.addEventListener("click", ()=> ch.classList.toggle("active")));
   document.querySelector("[data-reset-deal]").addEventListener("click", ()=>{
-    $$("#dealChips .chip").forEach(ch=> ch.classList.remove("active"));
+    $$("#dealChips .chip-option").forEach(ch=> ch.classList.remove("active"));
     ["inpDepositMin","inpDepositMax","inpRentMin","inpRentMax"].forEach(id=> $("#"+id).value="");
   });
   document.querySelector("[data-apply-deal]").addEventListener("click", ()=>{
-    const types = $$("#dealChips .chip.active").map(ch=> ch.dataset.value).join(",");
+    const types = $$("#dealChips .chip-option.active").map(ch=> ch.dataset.value).join(",");
     $("#deal_types").value = types;
     $("#deposit_min").value = $("#inpDepositMin").value;
     $("#deposit_max").value = $("#inpDepositMax").value;
     $("#rent_min").value    = $("#inpRentMin").value;
     $("#rent_max").value    = $("#inpRentMax").value;
-
-    const label = [];
-    label.push(types || "전체");
-    const rmin = $("#inpRentMin").value, rmax=$("#inpRentMax").value;
-    if(rmin || rmax) label.push(`월세 ${rmin||"-"}~${rmax||"-"}`);
-    $("#labelDeal").textContent = label.join(" · ");
     closeSheet("sheetDeal");
   });
 
   // 입주 날짜
   $("#btnDate").addEventListener("click", ()=> openSheet("sheetDate"));
   $("#backdropDate").addEventListener("click", ()=> closeSheet("sheetDate"));
-  document.querySelector("[data-reset-date]").addEventListener("click", ()=> { $("#inpMoveIn").value=""; });
+  document.querySelector("[data-reset-date]").addEventListener("click", ()=> $("#inpMoveIn").value="");
   document.querySelector("[data-apply-date]").addEventListener("click", ()=>{
-    const v = $("#inpMoveIn").value;
-    $("#move_in_from").value = v;
-    $("#labelDate").textContent = v || "선택";
+    $("#move_in_from").value = $("#inpMoveIn").value;
     closeSheet("sheetDate");
+  });
+
+  // 카드 안 버튼 클릭 시 링크탭 방지
+  $$(".card .click-surface button").forEach(b=>{
+    b.addEventListener("click", e=> e.stopPropagation());
   });
 </script>
 </body>

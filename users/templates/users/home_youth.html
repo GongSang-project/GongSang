@@ -122,10 +122,10 @@
     <!-- 카테고리 -->
     <div class="sec-title"><b>카테고리</b></div>
     <div class="cats">
-      <div class="cat" onclick="location.href='{% url 'room:room_list_page' %}?property_type=아파트'">아파트</div>
-      <div class="cat" onclick="location.href='{% url 'room:room_list_page' %}?property_type=빌라'">빌라</div>
-      <div class="cat" onclick="location.href='{% url 'room:room_list_page' %}?property_type=오피스텔'">오피스텔</div>
-      <div class="cat" onclick="location.href='{% url 'room:room_list_page' %}?property_type=주택'">주택</div>
+      <a class="cat" href="{% url 'room:room_list_page' %}?property_type=아파트">아파트</a>
+      <a class="cat" href="{% url 'room:room_list_page' %}?property_type=빌라">빌라</a>
+      <a class="cat" href="{% url 'room:room_list_page' %}?property_type=오피스텔">오피스텔</a>
+      <a class="cat" href="{% url 'room:room_list_page' %}?property_type=주택">주택</a>
     </div>
 
     <!-- 최근 본 방 -->
