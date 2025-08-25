@@ -47,6 +47,15 @@ from django.views.decorators.cache import never_cache
 
 from room.views_register import _load_addr_tree, _get_addr_error
 
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from .forms import IdCardForm
+from .models import User
+from django.conf import settings
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+import base64
+
 # ────────────────────────────────────────────────────────────────────────────
 # Gemini 설정
 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
@@ -225,6 +234,21 @@ def senior_living_type_view(request):
 
     return render(request, "users/senior_living_type.html", {"form": form})
 
+ENCRYPTION_KEY = settings.ENCRYPTION_KEY
+
+def encrypt_image(image_file):
+    try:
+        image_data = image_file.read()
+
+        padded_data = pad(image_data, AES.block_size)
+
+        cipher = AES.new(ENCRYPTION_KEY, AES.MODE_CBC)
+        encrypted_data = cipher.encrypt(padded_data)
+
+        return base64.b64encode(cipher.iv + encrypted_data)
+    except Exception as e:
+        print(f"암호화 오류: {e}")
+        return None
 
 def upload_id_card(request):
     if not request.user.is_authenticated:
@@ -235,10 +259,20 @@ def upload_id_card(request):
     if request.method == "POST":
         form = IdCardForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_id_card_uploaded = True
-            user.save()
-            return redirect("users:survey_wizard_start")
+            uploaded_file = request.FILES.get('id_card_image')
+
+            if uploaded_file:
+                encrypted_data = encrypt_image(uploaded_file)
+
+                if encrypted_data:
+                    user.id_card_image = encrypted_data
+                    user.is_id_card_uploaded = True
+                    user.save()
+
+                    return redirect("users:survey_wizard_start")
+                else:
+                    # 암호화 실패 시 에러 처리
+                    form.add_error(None, "파일 암호화 중 오류가 발생했습니다.")
     else:
         form = IdCardForm(instance=user)
 

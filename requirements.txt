@@ -5,3 +5,4 @@ Pillow
 google-genai
 google-generativeai
 python-dotenv==1.1.1
+pycryptodome

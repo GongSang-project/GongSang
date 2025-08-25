@@ -98,9 +98,8 @@ class Room(models.Model):
     )
 
     # 등기부 등본
-    land_register_document = models.FileField(
-        verbose_name="등기부 등본",
-        upload_to='land_registers/',
+    land_register_document = models.TextField(
+        verbose_name="등기부 등본 (암호화)",
         null=True,
         blank=True
     )

@@ -46,12 +46,14 @@ class SeniorLivingTypeForm(forms.ModelForm):
 
 # 2. 신분증 업로드
 class IdCardForm(forms.ModelForm):
+    id_card_image = forms.FileField(
+        required=True,
+        label="신분증 이미지 업로드"
+    )
+
     class Meta:
         model = User
-        fields = ['id_card_image']
-        widgets = {
-            'id_card_image': forms.FileInput(attrs={'class': 'form-control'}),
-        }
+        fields = ["id_card_image"]
 
 # 3. 성향조사
 class SurveyStep1Form(forms.Form):
